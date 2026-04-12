@@ -17,24 +17,30 @@ export function Navbar() {
     <nav>
       <div className="container">
         <Link href="/" style={{ textDecoration: "none" }}>
-          <span style={{
-            fontFamily: "var(--font-mono)",
-            fontWeight: 700,
-            fontSize: "1rem",
-            color: "var(--text)",
-            letterSpacing: "-0.02em",
-          }}>
-            <span style={{ color: "var(--accent)" }}>H&amp;S</span>
-            {" "}
-            <span style={{ color: "var(--text-dim)", fontSize: "0.75rem" }}>Hack&amp;Stack</span>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontWeight: 700,
+              fontSize: "1rem",
+              color: "var(--text)",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            <span style={{ color: "var(--accent)" }}>H&amp;S</span>{" "}
+            <span style={{ color: "var(--text-dim)", fontSize: "0.75rem" }}>
+              Hack&amp;Stack
+            </span>
           </span>
         </Link>
 
-        <div style={{ display: "flex", gap: "0.25rem", alignItems: "center" }}>
+        <div
+          style={{ display: "flex", gap: "0.25rem", alignItems: "center" }}
+        >
           {NAV_LINKS.map((link) => {
-            const active = link.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(link.href);
+            const active =
+              link.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}
@@ -46,8 +52,12 @@ export function Navbar() {
                   borderRadius: "2px",
                   textDecoration: "none",
                   color: active ? "var(--accent)" : "var(--text-dim)",
-                  background: active ? "rgba(249,115,22,0.08)" : "transparent",
-                  border: active ? "1px solid rgba(249,115,22,0.2)" : "1px solid transparent",
+                  background: active
+                    ? "rgba(249,115,22,0.08)"
+                    : "transparent",
+                  border: active
+                    ? "1px solid rgba(249,115,22,0.2)"
+                    : "1px solid transparent",
                   transition: "all 0.15s ease",
                 }}
               >
