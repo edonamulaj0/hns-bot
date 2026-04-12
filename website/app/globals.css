@@ -178,6 +178,18 @@ h1, h2, h3, h4 {
   color: #000;
 }
 
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-bright);
+  color: var(--text);
+}
+
+.btn-outline:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--bg-card);
+}
+
 /* ── Phase badge ────────────────────────────────────────────────────────────── */
 
 .phase-badge {
@@ -267,6 +279,25 @@ footer.footer {
   border-radius: 50%;
   background: var(--accent-3);
   animation: pulse-dot 2s ease infinite;
+}
+
+@keyframes phase-countdown-border {
+  0%, 100% { border-color: var(--border); }
+  50% { border-color: var(--accent); }
+}
+
+.animate-phase-countdown-border {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--border);
+  animation: phase-countdown-border 1.5s ease-in-out infinite;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 /* ── Page-specific hover states ─────────────────────────────────────────────── */

@@ -2,9 +2,15 @@ import { MessageFlags } from "discord-api-types/v10";
 import type { DiscordHono } from "discord-hono";
 import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
-import { extractGithubUsername, fetchMonthlyPulse } from "../github";
+import {
+  extractGithubUsername,
+  fetchMonthlyPulse,
+  fetchMonthlyPulseViaViewerGraphql,
+  GitHubApiError,
+} from "../github";
+import { getValidGithubAccessTokenForUser } from "../github-oauth";
 import { monthKey } from "../time";
-import { awardPoints, XP } from "../points";
+import { awardPoints } from "../points";
 import { getDiscordUserId } from "./helpers";
 
 async function safeFollowup(
@@ -20,7 +26,6 @@ async function safeFollowup(
 
 export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
   return app.command("pulse", async (c) =>
-    // Ephemeral defer so PATCH @original can use ephemeral on every reply (Discord requirement).
     c.flags("EPHEMERAL").resDefer(async (ctx) => {
       try {
         const prisma = getPrisma(ctx.env.DB);
@@ -38,7 +43,15 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
 
         const user = await prisma.user.findUnique({
           where: { discordId },
-          select: { id: true, github: true, lastPulseMonth: true },
+          select: {
+            id: true,
+            github: true,
+            lastPulseMonth: true,
+            githubAccessTokenEnc: true,
+            githubRefreshTokenEnc: true,
+            githubTokenExpiresAt: true,
+            githubLinkedLogin: true,
+          },
         });
 
         if (!user?.github) {
@@ -67,7 +80,10 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
           return;
         }
 
-        const pulse = await fetchMonthlyPulse(username, currentMonth, ctx.env.GITHUB_TOKEN);
+        const userOAuth = await getValidGithubAccessTokenForUser(prisma, user, ctx.env);
+        const pulse = userOAuth
+          ? await fetchMonthlyPulseViaViewerGraphql(userOAuth, currentMonth)
+          : await fetchMonthlyPulse(username, currentMonth, ctx.env.GITHUB_TOKEN);
 
         await prisma.user.update({
           where: { id: user.id },
@@ -79,38 +95,62 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
         }
 
         const noActivity =
-          pulse.commits === 0 && pulse.prsOpened === 0 && pulse.prsMerged === 0;
+          pulse.commits === 0 &&
+          pulse.prsOpened === 0 &&
+          pulse.prsMerged === 0 &&
+          (pulse.prReviews ?? 0) === 0;
+
+        const noActivityText =
+          pulse.source === "viewer"
+            ? `No GitHub contributions recorded for **@${username}** in **${currentMonth}** in your contribution calendar (for the linked account).`
+            : `No **public** GitHub activity matched for **@${username}** in ${currentMonth}. Green squares often include **private** repos; run \`/link-github\` or add \`GITHUB_TOKEN\` on the Worker.`;
+
+        const prFields =
+          pulse.source === "viewer"
+            ? [
+                { name: "PRs opened", value: `${pulse.prsOpened}`, inline: true },
+                { name: "PR reviews", value: `${pulse.prReviews ?? 0}`, inline: true },
+              ]
+            : [
+                { name: "PRs Opened", value: `${pulse.prsOpened}`, inline: true },
+                { name: "PRs Merged", value: `${pulse.prsMerged}`, inline: true },
+              ];
 
         await safeFollowup(ctx, {
           flags: MessageFlags.Ephemeral,
           embeds: [
             {
               title: `⚡ GitHub Pulse — ${currentMonth}`,
-              description: noActivity
-                ? `No public GitHub activity found for **@${username}** this month. Keep shipping!`
-                : undefined,
+              description: noActivity ? noActivityText : undefined,
               color: pulse.xpEarned > 0 ? 0x57f287 : 0x99aab5,
               fields: noActivity
                 ? []
                 : [
                     { name: "GitHub", value: `[@${username}](${user.github})`, inline: true },
                     { name: "Commits", value: `${pulse.commits}`, inline: true },
-                    { name: "PRs Opened", value: `${pulse.prsOpened}`, inline: true },
-                    { name: "PRs Merged", value: `${pulse.prsMerged}`, inline: true },
+                    ...prFields,
                     { name: "XP Earned", value: `**+${pulse.xpEarned}**`, inline: true },
                     ...(pulse.repoCount > 0
                       ? [{ name: "Repos Active", value: `${pulse.repoCount}`, inline: true }]
                       : []),
                   ],
-              footer: { text: "Pulse can only be run once per month. Max 100 XP." },
+              footer: {
+                text:
+                  pulse.source === "viewer"
+                    ? "Once/month · max 100 XP · OAuth viewer (private repos you allowed)"
+                    : `Once/month · max 100 XP · ${pulse.source} (public) · /link-github for private`,
+              },
             },
           ],
         });
       } catch (err) {
         console.error("pulse error:", err);
+        const detail =
+          err instanceof GitHubApiError
+            ? err.message
+            : "Could not fetch GitHub activity. Check your GitHub URL in `/setup-profile` and try again.";
         await safeFollowup(ctx, {
-          content:
-            "Could not fetch GitHub activity. Make sure your profile URL is correct and try again.",
+          content: detail.slice(0, 1900),
           flags: MessageFlags.Ephemeral,
         });
       }

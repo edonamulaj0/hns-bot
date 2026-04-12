@@ -4,6 +4,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { getPortfolio, PHASE_META, type PortfolioResponse } from "@/lib/api";
+import { PhaseCountdown } from "@/components/PhaseCountdown";
+import type { Phase } from "@/lib/phase";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const STAGGER_MS = 0.08;
@@ -116,7 +118,8 @@ export default function ChallengesPage() {
               <span className="mono dim text-xs sm:text-sm">{currentMonth}</span>
             )}
           </div>
-          <div className="label">Build & Compete</div>
+          <PhaseCountdown phase={(portfolio?.phase as Phase) ?? undefined} />
+          <div className="label mt-6 sm:mt-8">Build & Compete</div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 lg:mb-6">
             Monthly Challenges
           </h1>
@@ -418,14 +421,12 @@ export default function ChallengesPage() {
           <p className="text-white/60 mb-6 sm:mb-8 text-sm sm:text-base">
             Join our Discord community to get notified of new challenges, chat with other builders, and submit your projects.
           </p>
-          <a
-            href="https://discord.gg/hackandstack"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/join"
             className="btn btn-primary inline-flex text-sm sm:text-base"
           >
-            Join Discord →
-          </a>
+            Join Us →
+          </Link>
         </div>
       </motion.section>
     </>

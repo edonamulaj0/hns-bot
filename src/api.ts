@@ -126,6 +126,7 @@ async function portfolioResponse(
     bucket.push({
       id: item.id,
       tier: item.tier,
+      track: item.track,
       title: item.title,
       description: item.description,
       repoUrl: item.repoUrl,
@@ -133,6 +134,7 @@ async function portfolioResponse(
       attachmentUrl: item.attachmentUrl,
       votes: item.votes,
       month: item.month,
+      createdAt: item.createdAt.toISOString(),
       user: item.user,
     });
     acc[item.month] = bucket;
@@ -172,7 +174,11 @@ async function membersResponse(prisma: PrismaClient): Promise<Response> {
     orderBy: { rank: "asc" },
   });
 
-  return corsJson({ members });
+  return corsJson(
+    { members },
+    200,
+    "private, no-store, must-revalidate",
+  );
 }
 
 async function leaderboardResponse(prisma: PrismaClient): Promise<Response> {
@@ -190,7 +196,11 @@ async function leaderboardResponse(prisma: PrismaClient): Promise<Response> {
     take: 50,
   });
 
-  return corsJson({ leaderboard: top });
+  return corsJson(
+    { leaderboard: top },
+    200,
+    "private, no-store, must-revalidate",
+  );
 }
 
 async function blogsResponse(prisma: PrismaClient): Promise<Response> {
@@ -215,13 +225,17 @@ async function blogsResponse(prisma: PrismaClient): Promise<Response> {
   return corsJson({ blogs });
 }
 
-function corsJson(data: unknown, status = 200): Response {
+function corsJson(
+  data: unknown,
+  status = 200,
+  cacheControl = "public, max-age=60",
+): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
-      "Cache-Control": "public, max-age=60",
+      "Cache-Control": cacheControl,
     },
   });
 }

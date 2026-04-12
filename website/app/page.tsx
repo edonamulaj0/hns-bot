@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import {
   getPortfolio,
   getMembers,
@@ -14,6 +14,11 @@ import {
   type PortfolioResponse,
   type BlogsResponse,
 } from "@/lib/api";
+import type { Phase } from "@/lib/phase";
+import { PhaseCountdownLine } from "@/components/PhaseCountdown";
+import { DiscordWidget } from "@/components/DiscordWidget";
+import { buildActivityFeed } from "@/lib/activity-feed";
+import { ActivityFeedList, SeeAllActivityLink } from "@/components/ActivityTimeline";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const STAGGER_MS = 0.08;
@@ -83,6 +88,11 @@ export default function HomePage() {
   const top3 = leaderboardData.slice(0, 3);
   const maxXp = top3[0]?.points ?? 1;
   const latestBlogs = blogsData.slice(0, 3);
+
+  const activityPreview = useMemo(
+    () => buildActivityFeed(portfolioData, blogsData, 5),
+    [portfolioData, blogsData],
+  );
 
   const statsRef = useRef<HTMLDivElement>(null);
   const statsInView = useInView(statsRef, { once: true, amount: 0.15 });
@@ -164,14 +174,9 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.85, ease: EASE_OUT }}
             >
-              <a
-                href="https://discord.gg/hackandstack"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-primary"
-              >
-                Join the Discord →
-              </a>
+              <Link href="/join" className="btn btn-primary">
+                Join Us →
+              </Link>
               <Link href="/challenges" className="btn">
                 View Challenges
               </Link>
@@ -204,10 +209,10 @@ export default function HomePage() {
               <span className="label">Months active</span>
             </div>
             <div className="stat-block">
-              <span className="value" style={{ color: "var(--accent-2)" }}>
-                {portfolioData?.month ?? "—"}
-              </span>
-              <span className="label">Current month</span>
+              <div className="value min-h-[2.75rem] flex flex-col justify-center text-left">
+                <PhaseCountdownLine phase={(portfolioData?.phase as Phase) ?? undefined} />
+              </div>
+              <span className="label">Challenge phase</span>
             </div>
           </div>
         </div>
@@ -339,9 +344,9 @@ export default function HomePage() {
                 <p className="mono text-[0.7rem] text-[var(--accent)] tracking-wider uppercase mb-2">
                   Community writing
                 </p>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">Latest from Blog</h2>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">Latest articles</h2>
               </div>
-              <Link href="/blog" className="btn whitespace-nowrap">
+              <Link href="/members?view=articles" className="btn whitespace-nowrap">
                 All articles →
               </Link>
             </div>
@@ -465,6 +470,51 @@ export default function HomePage() {
               <p>No projects published yet. The first batch ships at the end of the month.</p>
             </div>
           )}
+        </div>
+      </motion.section>
+
+      {activityPreview.length > 0 && (
+        <motion.section
+          className="section border-t border-[var(--border)]"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.6, ease: EASE_OUT }}
+          viewport={{ once: true, amount: 0.15 }}
+        >
+          <div className="container max-w-3xl">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+              <div>
+                <p className="mono text-[0.7rem] text-[var(--accent)] tracking-wider uppercase mb-2">
+                  Live
+                </p>
+                <h2 className="text-2xl sm:text-3xl font-bold">Recent Activity</h2>
+              </div>
+              <SeeAllActivityLink />
+            </div>
+            <ActivityFeedList items={activityPreview} compact />
+          </div>
+        </motion.section>
+      )}
+
+      <motion.section
+        className="section border-t border-[var(--border)] bg-[var(--bg-card)]"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.6, ease: EASE_OUT }}
+        viewport={{ once: true, amount: 0.15 }}
+      >
+        <div className="container text-center max-w-2xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4">Join the community</h2>
+          <p className="text-sm sm:text-base text-white/60 leading-relaxed mb-8">
+            Hundreds of developers and security researchers. Monthly challenges. Real projects. Join the Discord and
+            start building.
+          </p>
+          <div className="mx-auto w-full max-w-[480px]">
+            <DiscordWidget />
+          </div>
+          <Link href="/join" className="btn btn-primary mt-8 inline-flex">
+            Join Us →
+          </Link>
         </div>
       </motion.section>
     </>

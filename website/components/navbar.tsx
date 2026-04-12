@@ -8,11 +8,9 @@ const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/challenges", label: "Challenges" },
   { href: "/members", label: "Members" },
-  { href: "/blog", label: "Blog" },
+  { href: "/activity", label: "Activity" },
   { href: "/about", label: "About" },
 ];
-
-const DISCORD_INVITE = "https://discord.gg/hackandstack";
 
 function linkActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -85,14 +83,12 @@ export function Navbar() {
               </Link>
             );
           })}
-          <a
-            href={DISCORD_INVITE}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/join"
             className="btn btn-primary mt-2 justify-center md:mt-0 md:ml-2"
           >
-            Join Discord
-          </a>
+            Join Us
+          </Link>
         </div>
       </div>
     </nav>

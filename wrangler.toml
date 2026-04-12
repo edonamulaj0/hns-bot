@@ -14,11 +14,21 @@ VOTING_CHANNEL_ID = "1475220426077507676"
 # Set BLOG_CHANNEL_ID to your blog-sharing channel ID
 BLOG_CHANNEL_ID = ""
 
-# Secrets — set via: wrangler secret put SECRET_NAME
-# DISCORD_TOKEN
-# DISCORD_PUBLIC_KEY
-# DISCORD_APPLICATION_ID
-# GITHUB_TOKEN  (optional, raises rate limit from 60 to 5000 req/hr)
+# GitHub OAuth (/link-github → private-aware /pulse). Uncomment and set, plus secrets below.
+# WORKER_PUBLIC_URL = "https://hns-bot.edonaamulaj.workers.dev"
+# GITHUB_OAUTH_CLIENT_ID = "Iv1...."
+# Callback URL in GitHub OAuth app settings must be: {WORKER_PUBLIC_URL}/oauth/github/callback
+# wrangler secret put GITHUB_OAUTH_CLIENT_SECRET
+# wrangler secret put GITHUB_LINK_SECRET   # long random string; encrypts user tokens at rest in D1
+
+# Discord bot — NEVER put DISCORD_TOKEN in this file (it breaks TOML if unquoted and is unsafe in git).
+#   Production: wrangler secret put DISCORD_TOKEN
+#   Local dev:  create .dev.vars (gitignored) with DISCORD_TOKEN=...
+# Public key + application ID (from Discord Developer Portal → General Information). Safe in [vars].
+DISCORD_PUBLIC_KEY = "cae56c5d6b3f9d47fe891660a9111d8844edf025dcb053f6121687c7c775a4e4"
+DISCORD_APPLICATION_ID = "1475217166558298303"
+
+# GITHUB_TOKEN  (recommended: /pulse uses Search API for commit/PR counts; without it, public events only + stricter rate limits)
 
 [triggers]
 crons = ["5 0 * * *"]

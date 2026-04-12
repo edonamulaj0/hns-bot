@@ -7,6 +7,7 @@ import {
   handleApiRequest,
   unknownApiRouteResponse,
 } from "./api";
+import { handleGithubOAuthCallback } from "./github-oauth";
 import { getPrisma } from "./db";
 import {
   registerSetupProfile,
@@ -17,6 +18,7 @@ import { registerProfile } from "./commands/profile";
 import { registerSubmit } from "./commands/submit";
 import { registerShareBlog } from "./commands/share-blog";
 import { registerPulse } from "./commands/pulse";
+import { registerLinkGithub, registerUnlinkGithub } from "./commands/link-github";
 import { registerLeaderboard } from "./commands/leaderboard";
 import { registerCron } from "./commands/cron";
 
@@ -29,6 +31,8 @@ app = registerProfile(app);
 app = registerSubmit(app);
 app = registerShareBlog(app);
 app = registerPulse(app);
+app = registerLinkGithub(app);
+app = registerUnlinkGithub(app);
 app = registerLeaderboard(app);
 app = registerCron(app);
 
@@ -62,6 +66,7 @@ function rootApiDiscoveryResponse(): Response {
       "/api/members",
       "/api/portfolio",
       "/api/leaderboard",
+      "/oauth/github/callback",
     ],
   };
   return new Response(JSON.stringify(body), {
@@ -75,6 +80,10 @@ function rootApiDiscoveryResponse(): Response {
 export default {
   fetch: async (request: Request, env: WorkerBindings, executionCtx?: ExecutionContext) => {
     const pathname = getNormalizedPathname(request);
+
+    if (pathname === "/oauth/github/callback" && request.method === "GET") {
+      return handleGithubOAuthCallback(request, env);
+    }
 
     const apiResponse = await handleApiRequest(request, env);
     if (apiResponse) return apiResponse;

@@ -17,6 +17,11 @@ model User {
   rank         Int          @default(0)
   lastPulseMonth String?    // Tracks if user has run /pulse this month (dedup)
   profileCompletedAt DateTime? // Set once on first /setup-profile save; canonical "has profile"
+  // GitHub OAuth (encrypted at rest; requires GITHUB_LINK_SECRET)
+  githubAccessTokenEnc  String?
+  githubRefreshTokenEnc String?
+  githubTokenExpiresAt  DateTime?
+  githubLinkedLogin     String? // GitHub login at link time (sanity check)
   submissions  Submission[]
   blogs        Blog[]
   createdAt    DateTime     @default(now())
@@ -75,6 +80,14 @@ model PendingDiscordAttachment {
   expiresAt     DateTime
 
   @@id([discordUserId, kind])
+  @@index([expiresAt])
+}
+
+model PendingGithubOAuth {
+  state         String   @id
+  discordUserId String
+  expiresAt     DateTime
+
   @@index([expiresAt])
 }
 

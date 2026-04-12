@@ -34,6 +34,11 @@ async function main() {
       new Option("file", "Upload a .txt or .md markdown article (optional)", "Attachment"),
     ),
     new Command("pulse", "Sync your GitHub activity and earn XP (once per month)"),
+    new Command(
+      "link-github",
+      "Connect GitHub (OAuth) so /pulse can count private repo contributions",
+    ),
+    new Command("unlink-github", "Remove stored GitHub OAuth from this bot"),
     new Command("leaderboard", "See the top contributors this month"),
   ];
 

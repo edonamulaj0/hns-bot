@@ -64,11 +64,14 @@ export interface Submission {
   title: string;
   description: string;
   tier: string;
+  /** "DEVELOPER" | "HACKER" from API */
+  track?: string;
   repoUrl: string;
   demoUrl: string | null;
   attachmentUrl?: string | null;
   votes: number;
   month: string;
+  createdAt?: string;
   user: MemberSummary;
 }
 
