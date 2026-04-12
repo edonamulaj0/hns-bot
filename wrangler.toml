@@ -1,0 +1,13 @@
+name = "hns-bot"
+main = "src/index.ts"
+compatibility_date = "2026-04-11"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hns-bot-db"
+database_id = "4b4b1a3d-44bf-42c7-9522-e0a50c6b4f52"
+
+[vars]
+ADMIN_CHANNEL_ID = "1492652283807142130"
+VOTING_CHANNEL_ID = "1475220426077507676"

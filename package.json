@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "@prisma/adapter-d1": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@prisma/config": "^7.7.0",
+    "discord-api-types": "^0.38.45",
+    "discord-hono": "^0.21.1",
+    "dotenv": "^17.4.1"
+  },
+  "scripts": {
+    "register": "npx tsx --env-file=.env src/register.ts",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}
