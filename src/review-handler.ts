@@ -2,6 +2,7 @@ import type { PrismaClient } from "@prisma/client/edge";
 import type { ComponentContext } from "discord-hono";
 import { MessageFlags } from "discord-api-types/v10";
 import type { HonoWorkerEnv } from "./worker-env";
+import { awardPoints, XP } from "./points";
 
 type ReviewAction = "approve" | "reject";
 
@@ -16,16 +17,14 @@ function parseReviewCustomId(customId?: string): {
   action: ReviewAction;
   submissionId: string;
 } | null {
-  if (!customId || !customId.startsWith(REVIEW_PREFIX)) {
-    return null;
-  }
+  if (!customId?.startsWith(REVIEW_PREFIX)) return null;
 
   const [, actionRaw, submissionId] = customId.split(":");
   if (!submissionId || (actionRaw !== "approve" && actionRaw !== "reject")) {
     return null;
   }
 
-  return { action: actionRaw, submissionId };
+  return { action: actionRaw as ReviewAction, submissionId };
 }
 
 export async function handleAdminReview(
@@ -55,14 +54,25 @@ export async function handleAdminReview(
   }
 
   try {
+    const wasAlreadyApproved = await prisma.submission.findUnique({
+      where: { id: parsed.submissionId },
+      select: { isApproved: true },
+    });
+
     const approved = parsed.action === "approve";
+
     const updated = await prisma.submission.update({
       where: { id: parsed.submissionId },
       data: { isApproved: approved },
       include: { user: true },
     });
 
-    const statusLabel = approved ? "APPROVED" : "REJECTED";
+    // Award XP only on first approval (not if toggling back and forth)
+    if (approved && !wasAlreadyApproved?.isApproved) {
+      await awardPoints(prisma, updated.userId, XP.SUBMISSION_APPROVED);
+    }
+
+    const statusLabel = approved ? "✅ APPROVED" : "❌ REJECTED";
     const statusColor = approved ? 0x57f287 : 0xed4245;
 
     await c.followup({
@@ -83,15 +93,80 @@ export async function handleAdminReview(
               value: `<@${actorDiscordId}>`,
               inline: true,
             },
+            ...(approved
+              ? [{ name: "XP Awarded", value: `+${XP.SUBMISSION_APPROVED} XP`, inline: true }]
+              : []),
           ],
         },
       ],
       components: [],
     });
-  } catch {
+  } catch (err) {
+    console.error("handleAdminReview error:", err);
     await c.followup({
       content:
         "Could not update that submission (it may have been removed already).",
+      flags: MessageFlags.Ephemeral,
+    });
+  }
+}
+
+export async function handleVote(
+  c: AdminReviewCtx,
+  prisma: PrismaClient,
+) {
+  const voterDiscordId =
+    c.interaction.member?.user?.id ?? c.interaction.user?.id ?? null;
+
+  if (!voterDiscordId) {
+    await c.followup({
+      content: "Could not detect your Discord ID.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const customId: string = c.interaction.data?.custom_id ?? "";
+  // format: vote:<submissionId>
+  const [, submissionId] = customId.split(":");
+
+  if (!submissionId) {
+    await c.followup({ content: "Invalid vote action.", flags: MessageFlags.Ephemeral });
+    return;
+  }
+
+  try {
+    // Create vote (unique constraint will throw on duplicate)
+    await prisma.vote.create({
+      data: { submissionId, voterDiscordId },
+    });
+
+    // Increment votes on submission
+    const submission = await prisma.submission.update({
+      where: { id: submissionId },
+      data: { votes: { increment: 1 } },
+      include: { user: true },
+    });
+
+    // Award XP to the submission author
+    await awardPoints(prisma, submission.userId, XP.VOTE_RECEIVED);
+
+    await c.followup({
+      content: `You voted for **${submission.title}** by <@${submission.user.discordId}>! It now has **${submission.votes}** vote(s).`,
+      flags: MessageFlags.Ephemeral,
+    });
+  } catch (err: any) {
+    // Unique constraint violation = already voted
+    if (err?.message?.includes("UNIQUE") || err?.code === "P2002") {
+      await c.followup({
+        content: "You've already voted for this submission.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+    console.error("handleVote error:", err);
+    await c.followup({
+      content: "Could not record your vote. Please try again.",
       flags: MessageFlags.Ephemeral,
     });
   }

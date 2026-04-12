@@ -11,3 +11,14 @@ database_id = "4b4b1a3d-44bf-42c7-9522-e0a50c6b4f52"
 [vars]
 ADMIN_CHANNEL_ID = "1492652283807142130"
 VOTING_CHANNEL_ID = "1475220426077507676"
+# Set BLOG_CHANNEL_ID to your blog-sharing channel ID
+BLOG_CHANNEL_ID = ""
+
+# Secrets — set via: wrangler secret put SECRET_NAME
+# DISCORD_TOKEN
+# DISCORD_PUBLIC_KEY
+# DISCORD_APPLICATION_ID
+# GITHUB_TOKEN  (optional, raises rate limit from 60 to 5000 req/hr)
+
+[triggers]
+crons = ["5 0 * * *"]
