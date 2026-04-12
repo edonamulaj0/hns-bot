@@ -1,13 +1,21 @@
-import { MessageFlags } from "discord-api-types/v10";
 import type { DiscordHono } from "discord-hono";
 import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
 import { formatTechStackList } from "./helpers";
+import { syncDiscordIdentity } from "../discord-identity";
 
 function githubUsernameFromUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   const m = url.match(/github\.com\/([^/?#\s]+)/i);
   return m?.[1] ?? null;
+}
+
+function profileUrl(url: string | null | undefined, kind: "github" | "linkedin"): string | null {
+  if (!url?.trim()) return null;
+  const t = url.trim();
+  if (t.startsWith("http://") || t.startsWith("https://")) return t;
+  if (kind === "github") return `https://github.com/${t}`;
+  return `https://linkedin.com/in/${t}`;
 }
 
 export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
@@ -18,13 +26,18 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
       return c.flags("EPHEMERAL").res("Could not detect your Discord ID.");
     }
 
+    await syncDiscordIdentity(prisma, callerId, c.interaction);
+
     const optUser = (c.var as { user?: string }).user;
-    const discordId = optUser && String(optUser).trim() !== "" ? String(optUser) : callerId;
+    const discordId =
+      optUser && String(optUser).trim() !== "" ? String(optUser) : callerId;
 
     const row = await prisma.user.findUnique({
       where: { discordId },
       select: {
         id: true,
+        discordUsername: true,
+        displayName: true,
         bio: true,
         github: true,
         linkedin: true,
@@ -59,8 +72,13 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
       year: "numeric",
     });
 
+    const handle = row.discordUsername ? `@${row.discordUsername}` : `@${discordId.slice(-8)}`;
+    const titleName =
+      row.displayName?.trim() ||
+      (row.discordUsername ? `@${row.discordUsername}` : discordId);
+
     const embed: Record<string, unknown> = {
-      title: `@${discordId}`,
+      title: titleName,
       color: 0xccff00,
       fields: [
         { name: "🏆 Rank", value: `#${row.rank}`, inline: true },
@@ -77,6 +95,11 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
       },
     };
 
+    embed.author = {
+      name: handle,
+      ...(iconUrl ? { icon_url: iconUrl } : {}),
+    };
+
     if (row.bio?.trim()) {
       (embed.fields as object[]).push({
         name: "📖 About",
@@ -85,14 +108,38 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
       });
     }
 
-    if (iconUrl) {
+    if (iconUrl && ghUser) {
       embed.thumbnail = { url: iconUrl };
-      embed.author = {
-        name: ghUser ? `@${ghUser}` : "GitHub",
-        icon_url: iconUrl,
-      };
     }
 
-    return c.res({ embeds: [embed] });
+    const ghUrl = profileUrl(row.github, "github");
+    const liUrl = profileUrl(row.linkedin, "linkedin");
+
+    const linkButtons: object[] = [];
+    if (ghUrl) {
+      linkButtons.push({
+        type: 2,
+        style: 5,
+        label: "GitHub",
+        emoji: { name: "🐙" },
+        url: ghUrl,
+      });
+    }
+    if (liUrl) {
+      linkButtons.push({
+        type: 2,
+        style: 5,
+        label: "LinkedIn",
+        emoji: { name: "💼" },
+        url: liUrl,
+      });
+    }
+
+    const payload: Record<string, unknown> = { embeds: [embed] };
+    if (linkButtons.length > 0) {
+      payload.components = [{ type: 1, components: linkButtons }];
+    }
+
+    return c.res(payload);
   });
 }

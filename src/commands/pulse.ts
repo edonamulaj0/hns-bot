@@ -12,6 +12,7 @@ import { getValidGithubAccessTokenForUser } from "../github-oauth";
 import { monthKey } from "../time";
 import { awardPoints } from "../points";
 import { getDiscordUserId } from "./helpers";
+import { syncDiscordIdentity } from "../discord-identity";
 
 async function safeFollowup(
   ctx: { followup: (data: object) => Promise<unknown> },
@@ -38,6 +39,8 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
           });
           return;
         }
+
+        await syncDiscordIdentity(prisma, discordId, ctx.interaction);
 
         const currentMonth = monthKey();
 

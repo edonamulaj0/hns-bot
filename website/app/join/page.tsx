@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     "Start building with H4cknStack: join Discord, set up your profile, pick a track, and ship your first project.",
 };
 
-const DISCORD_INVITE = "https://discord.gg/hackandstack";
+const DISCORD_INVITE = "https://discord.gg/xrxTUsgdv9";
 
 const ROLES = [
   { name: "Builder", desc: "Submitted at least one project" },
@@ -18,13 +18,42 @@ const ROLES = [
   { name: "Admin", desc: "Community team" },
 ];
 
-export default function JoinPage() {
+export default async function JoinPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const sp = await searchParams;
+
   return (
     <>
       <section className="section-sm page-header min-h-[min(50dvh,520px)] flex flex-col justify-center grid-bg">
         <div className="container max-w-3xl">
           <p className="label mb-2">Welcome</p>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-5">Ready to build?</h1>
+          {sp.error === "not_member" && (
+            <div
+              className="mb-6 rounded border p-4 text-sm leading-relaxed"
+              style={{
+                borderColor: "rgba(237,66,69,0.35)",
+                background: "rgba(237,66,69,0.08)",
+              }}
+            >
+              Sign-in requires membership in the H4cknStack Discord. Join with the link below, then try{" "}
+              <strong className="text-white">Sign in with Discord</strong> again.
+            </div>
+          )}
+          {sp.error === "oauth" && (
+            <div
+              className="mb-6 rounded border p-4 text-sm text-white/80"
+              style={{
+                borderColor: "rgba(245,158,11,0.35)",
+                background: "rgba(245,158,11,0.08)",
+              }}
+            >
+              Discord sign-in could not be completed. Please try again.
+            </div>
+          )}
           <p className="text-base sm:text-lg text-white/65 leading-relaxed mb-8 max-w-2xl">
             H4cknStack is a global community where developers and security researchers ship real work every month — projects,
             writeups, and tools — and earn XP with a public portfolio on the site. Everything runs through Discord: submissions,

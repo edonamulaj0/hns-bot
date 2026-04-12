@@ -4,11 +4,12 @@ import { $channels$_$messages } from "discord-hono";
 import type { DiscordHono } from "discord-hono";
 import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
-import { getMonthlyPhase, monthKey, getHackerPhase, isHackerSubmissionOpen } from "../time";
+import { getMonthlyPhase, monthKey } from "../time";
 import { extractModalFields, getDiscordUserId } from "./helpers";
-import { validateTier, validateChallengeType, validateUrl } from "../validate";
+import { validateChallengeType, validateUrl } from "../validate";
 import { getCommandAttachment, validateSubmitAttachment } from "../discord-attachments";
 import { putPendingAttachment, takePendingAttachment } from "../pending-attachment";
+import { syncDiscordIdentity } from "../discord-identity";
 
 export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
   return app
@@ -16,54 +17,50 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
       const discordId = getDiscordUserId(c.interaction);
       if (!discordId) return c.res("Could not detect your Discord ID.");
 
+      const prisma = getPrisma(c.env.DB);
+      await syncDiscordIdentity(prisma, discordId, c.interaction);
+
       const cmdAtt = getCommandAttachment(c.interaction, "attachment");
       if (cmdAtt) {
         const attErr = validateSubmitAttachment(cmdAtt);
         if (attErr) return c.flags("EPHEMERAL").res(attErr);
-        const prisma = getPrisma(c.env.DB);
         await putPendingAttachment(prisma, discordId, "submit", {
           url: cmdAtt.url,
           filename: cmdAtt.filename,
-          contentType: cmdAtt.content_type,
+          content_type: cmdAtt.content_type,
           size: cmdAtt.size,
         });
       }
 
-      const devPhase = getMonthlyPhase();
-      const hackerOpen = isHackerSubmissionOpen();
-      const devOpen = devPhase === "BUILD";
-
-      if (!devOpen && !hackerOpen) {
+      if (getMonthlyPhase() !== "BUILD") {
         return c.res(
-          "Submissions are closed for both tracks right now.\n" +
-          "• Developer track: days 1–21 (UTC)\n" +
-          "• Hacker track: days 1–11 (Cycle A) or 15–25 (Cycle B)"
+          "Submissions are closed. The build window is **days 1–21** (UTC) each month. Use `/enroll` during BUILD.",
         );
       }
 
-      if (devOpen && hackerOpen) {
-        return c.resModal(
-          new Modal("submit-track-select", "Choose Your Track")
-            .row(
-              new TextInput("track", "Track: DEVELOPER or HACKER")
-                .required()
-                .placeholder("DEVELOPER or HACKER"),
-            ),
+      const user = await prisma.user.upsert({
+        where: { discordId },
+        create: { discordId },
+        update: {},
+      });
+
+      const currentMonth = monthKey();
+      const enrollment = await prisma.enrollment.findFirst({
+        where: {
+          userId: user.id,
+          challenge: { month: currentMonth },
+        },
+        include: { challenge: true },
+      });
+
+      if (!enrollment?.challenge) {
+        return c.flags("EPHEMERAL").res(
+          "You're not enrolled in a challenge for this month. Run `/enroll` first.",
         );
       }
 
-      if (devOpen) {
-        return c.resModal(buildDevModal());
-      }
-
-      return c.resModal(buildHackerModal());
-    })
-
-    .modal("submit-track-select", async (c) => {
-      const fields = extractModalFields(c.interaction);
-      const track = (fields.track ?? "").trim().toUpperCase();
-
-      if (track === "HACKER") {
+      const tr = enrollment.challenge.track;
+      if (tr === "HACKER") {
         return c.resModal(buildHackerModal());
       }
       return c.resModal(buildDevModal());
@@ -83,14 +80,36 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
           return;
         }
 
-        const fields = extractModalFields(ctx.interaction);
-        const currentMonth = monthKey();
+        await syncDiscordIdentity(prisma, discordId, ctx.interaction);
 
-        const tierError = validateTier(fields.tier);
-        if (tierError) {
-          await ctx.followup({ content: tierError.message, flags: MessageFlags.Ephemeral });
+        const user = await prisma.user.findUnique({ where: { discordId } });
+        if (!user) {
+          await ctx.followup({
+            content: "User record missing. Try `/setup-profile` first.",
+            flags: MessageFlags.Ephemeral,
+          });
           return;
         }
+
+        const currentMonth = monthKey();
+        const enrollment = await prisma.enrollment.findFirst({
+          where: {
+            userId: user.id,
+            challenge: { month: currentMonth },
+          },
+          include: { challenge: true },
+        });
+
+        if (!enrollment?.challenge || enrollment.challenge.track !== "DEVELOPER") {
+          await ctx.followup({
+            content: "You're not enrolled in a Developer challenge for this month. Run `/enroll`.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
+        const ch = enrollment.challenge;
+        const fields = extractModalFields(ctx.interaction);
 
         const repoError = validateUrl(fields.repo_url, "repo_url");
         if (repoError) {
@@ -112,27 +131,21 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
             await ctx.followup({ content: reErr, flags: MessageFlags.Ephemeral });
             return;
           }
-          // Discord CDN URLs for attachments expire; long-term archive should re-upload to R2 / object storage.
           attachmentUrl = pending.url;
         }
 
         try {
-          const user = await prisma.user.upsert({
-            where: { discordId },
-            create: { discordId },
-            update: {},
-          });
-
           const submission = await prisma.submission.create({
             data: {
               userId: user.id,
-              month: currentMonth,
-              tier: (fields.tier ?? "General").trim(),
+              month: ch.month,
+              tier: ch.tier,
               title: (fields.title ?? "Untitled").trim(),
               description: (fields.description ?? "").trim(),
               repoUrl: (fields.repo_url ?? "").trim(),
               demoUrl: fields.demo_url?.trim() || null,
               track: "DEVELOPER",
+              challengeId: ch.id,
               isApproved: false,
               votes: 0,
               attachmentUrl,
@@ -141,6 +154,7 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
 
           const embedFields: object[] = [
             { name: "Track", value: "🛠 Developer", inline: true },
+            { name: "Challenge", value: ch.title, inline: true },
             { name: "Month", value: submission.month, inline: true },
             { name: "Tier", value: submission.tier, inline: true },
             { name: "Repository", value: submission.repoUrl, inline: false },
@@ -206,9 +220,36 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
           return;
         }
 
-        const fields = extractModalFields(ctx.interaction);
+        await syncDiscordIdentity(prisma, discordId, ctx.interaction);
+
+        const user = await prisma.user.findUnique({ where: { discordId } });
+        if (!user) {
+          await ctx.followup({
+            content: "User record missing. Try `/setup-profile` first.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
         const currentMonth = monthKey();
-        const hackerState = getHackerPhase();
+        const enrollment = await prisma.enrollment.findFirst({
+          where: {
+            userId: user.id,
+            challenge: { month: currentMonth },
+          },
+          include: { challenge: true },
+        });
+
+        if (!enrollment?.challenge || enrollment.challenge.track !== "HACKER") {
+          await ctx.followup({
+            content: "You're not enrolled in a Hacker challenge for this month. Run `/enroll`.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
+        const ch = enrollment.challenge;
+        const fields = extractModalFields(ctx.interaction);
 
         const typeError = validateChallengeType(fields.challenge_type);
         if (typeError) {
@@ -223,7 +264,6 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
         }
 
         const challengeType = (fields.challenge_type ?? "").trim().toUpperCase();
-        const cycleKey = `${currentMonth}-${hackerState.cycle}`;
 
         const pending = await takePendingAttachment(prisma, discordId, "submit");
         let attachmentUrl: string | null = null;
@@ -243,25 +283,20 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
         }
 
         try {
-          const user = await prisma.user.upsert({
-            where: { discordId },
-            create: { discordId },
-            update: {},
-          });
-
           const title = (fields.summary ?? "Untitled").trim().slice(0, 100);
 
           const submission = await prisma.submission.create({
             data: {
               userId: user.id,
-              month: cycleKey,
-              tier: "Hacker",
+              month: ch.month,
+              tier: ch.tier,
               title,
               description: (fields.summary ?? "").trim(),
               repoUrl: (fields.writeup_url ?? "").trim(),
               demoUrl: fields.repo_url?.trim() || null,
               track: "HACKER",
               challengeType,
+              challengeId: ch.id,
               isApproved: false,
               votes: 0,
               attachmentUrl,
@@ -277,7 +312,9 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
 
           const hFields: object[] = [
             { name: "Track", value: "🔒 Hacker", inline: true },
-            { name: "Cycle", value: `${currentMonth} Cycle ${hackerState.cycle}`, inline: true },
+            { name: "Challenge", value: ch.title, inline: true },
+            { name: "Month", value: submission.month, inline: true },
+            { name: "Tier", value: submission.tier, inline: true },
             { name: "Type", value: typeLabels[challengeType] ?? challengeType, inline: true },
             { name: "Writeup", value: submission.repoUrl, inline: false },
             ...(submission.demoUrl ? [{ name: "Repo", value: submission.demoUrl, inline: false }] : []),
@@ -315,7 +352,7 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
           console.error(err);
           if (err?.code === "P2002") {
             await ctx.followup({
-              content: "You've already submitted a writeup with this title for this cycle.",
+              content: "You've already submitted with this title for this month.",
               flags: MessageFlags.Ephemeral,
             });
             return;
@@ -331,7 +368,6 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
 
 function buildDevModal() {
   return new Modal("submit-project-modal", "Submit Monthly Challenge Project")
-    .row(new TextInput("tier", "Tier (Beginner / Intermediate / Advanced)").required())
     .row(new TextInput("title", "Project Title").required().max_length(100))
     .row(new TextInput("description", "Project Description", "Multi").required().max_length(1000))
     .row(

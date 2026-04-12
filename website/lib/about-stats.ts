@@ -14,6 +14,8 @@ export type AboutStatsPayload = {
   monthly: { month: string; count: number }[];
   topUser: {
     discordId: string;
+    discordUsername?: string | null;
+    displayName?: string | null;
     points: number;
     github: string | null;
   } | null;
@@ -59,7 +61,13 @@ export async function getAboutStats(): Promise<AboutStatsPayload> {
 
     const top = lbRes.leaderboard[0];
     const topUser = top
-      ? { discordId: top.discordId, points: top.points, github: top.github }
+      ? {
+          discordId: top.discordId,
+          discordUsername: top.discordUsername,
+          displayName: top.displayName,
+          points: top.points,
+          github: top.github,
+        }
       : null;
 
     return {

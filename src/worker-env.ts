@@ -5,6 +5,10 @@ export type WorkerBindings = {
   ADMIN_CHANNEL_ID: string;
   VOTING_CHANNEL_ID: string;
   BLOG_CHANNEL_ID: string; // Required: channel for blog post announcements
+  /** Role ID allowed to run /post-challenge */
+  ADMIN_ROLE_ID: string;
+  DEVELOPER_CHALLENGES_CHANNEL_ID: string;
+  HACKER_CHALLENGES_CHANNEL_ID: string;
   GITHUB_TOKEN?: string; // Optional: server token for public Search/events pulse fallback
   /** OAuth app Client ID (public). */
   GITHUB_OAUTH_CLIENT_ID?: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import type { PortfolioResponse, Submission } from "@/lib/api";
+import { memberDisplayName } from "@/lib/member-label";
 import { githubProfileHref } from "@/lib/url";
 
 export function HallOfFame({ portfolio }: { portfolio: PortfolioResponse | null }) {
@@ -52,7 +53,7 @@ export function HallOfFame({ portfolio }: { portfolio: PortfolioResponse | null 
                   <span className="mono text-xs text-[var(--accent)]">▲ {sub.votes}</span>
                 </div>
                 <p className="mono text-xs text-white/50 mb-4">
-                  @{sub.user.discordId.slice(-8)}
+                  {memberDisplayName(sub.user)}
                   {gh && (
                     <>
                       {" · "}

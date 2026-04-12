@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { AboutStatsPayload } from "@/lib/about-stats";
+import { memberDisplayName } from "@/lib/member-label";
 import { githubProfileHref } from "@/lib/url";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -116,7 +117,7 @@ export function OpenStatsPanel({ data }: { data: AboutStatsPayload }) {
               Top contributor (all-time XP)
             </p>
             <div className="flex flex-wrap items-baseline gap-3">
-              <span className="text-2xl font-bold">@{data.topUser.discordId.slice(-8)}</span>
+              <span className="text-2xl font-bold">{memberDisplayName(data.topUser)}</span>
               <span className="text-[var(--accent)] font-bold mono">{data.topUser.points} XP</span>
               {ghTop && (
                 <a href={ghTop} target="_blank" rel="noopener noreferrer" className="btn text-xs py-1">

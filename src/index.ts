@@ -21,6 +21,8 @@ import { registerPulse } from "./commands/pulse";
 import { registerLinkGithub, registerUnlinkGithub } from "./commands/link-github";
 import { registerLeaderboard } from "./commands/leaderboard";
 import { registerCron } from "./commands/cron";
+import { registerEnroll } from "./commands/enroll";
+import { registerPostChallenge } from "./commands/post-challenge";
 
 let app = new DiscordHono<HonoWorkerEnv>();
 
@@ -35,6 +37,8 @@ app = registerLinkGithub(app);
 app = registerUnlinkGithub(app);
 app = registerLeaderboard(app);
 app = registerCron(app);
+app = registerEnroll(app);
+app = registerPostChallenge(app);
 
 app = app.component("", async (c) => {
   const customId: string = c.interaction?.data?.custom_id ?? "";
@@ -42,7 +46,12 @@ app = app.component("", async (c) => {
   if (customId.startsWith("review:")) {
     return c.update().resDefer(async (ctx) => {
       const prisma = getPrisma(ctx.env.DB);
-      await handleAdminReview(ctx, prisma, ctx.env.ADMIN_CHANNEL_ID);
+      await handleAdminReview(
+        ctx,
+        prisma,
+        ctx.env.ADMIN_CHANNEL_ID,
+        ctx.env.DISCORD_TOKEN,
+      );
     });
   }
 
@@ -66,6 +75,7 @@ function rootApiDiscoveryResponse(): Response {
       "/api/members",
       "/api/portfolio",
       "/api/leaderboard",
+      "/api/challenges",
       "/oauth/github/callback",
     ],
   };

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
+import { ChallengesSubNav } from "@/components/ChallengesSubNav";
 import { SplashScreen } from "@/components/SplashScreen";
 import { AmbientBackground } from "@/components/AmbientBackground";
 
@@ -43,13 +44,22 @@ export default function RootLayout({
         <SplashScreen />
         <AmbientBackground />
         <Navbar />
+        <ChallengesSubNav />
         <main>{children}</main>
         <footer className="footer">
-          <div className="container flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="container flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <span className="mono dim text-sm">
               © {new Date().getFullYear()} H4cknStack
             </span>
-            <span className="mono dim text-sm">Built by Cyphera</span>
+            <div className="flex flex-wrap gap-4 text-sm">
+              <a href="/terms" className="text-white/50 hover:text-[var(--accent)] no-underline">
+                Terms
+              </a>
+              <a href="/privacy" className="text-white/50 hover:text-[var(--accent)] no-underline">
+                Privacy
+              </a>
+              <span className="mono dim">Built by Cyphera</span>
+            </div>
           </div>
         </footer>
       </body>

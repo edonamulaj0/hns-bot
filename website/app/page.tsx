@@ -19,6 +19,7 @@ import { PhaseCountdownLine } from "@/components/PhaseCountdown";
 import { DiscordWidget } from "@/components/DiscordWidget";
 import { buildActivityFeed } from "@/lib/activity-feed";
 import { ActivityFeedList, SeeAllActivityLink } from "@/components/ActivityTimeline";
+import { memberDisplayName } from "@/lib/member-label";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const STAGGER_MS = 0.08;
@@ -305,7 +306,7 @@ export default function HomePage() {
                       <span className="text-2xl sm:text-3xl flex-shrink-0">{medals[i]}</span>
                       <div className="min-w-0">
                         <p className="mono text-xs sm:text-sm truncate">
-                          @{member.discordId.slice(-6)}
+                          {memberDisplayName(member)}
                         </p>
                         <p className="text-[var(--accent)] font-bold text-sm sm:text-base">
                           {member.points} XP
@@ -372,7 +373,7 @@ export default function HomePage() {
                   </h3>
                   <div className="mt-auto flex items-center justify-between gap-2">
                     <span className="mono dim text-[0.7rem]">
-                      @{blog.user.discordId.slice(-8)}
+                      {memberDisplayName(blog.user)}
                     </span>
                     <span className="mono text-[0.7rem] text-[var(--accent)]">
                       ▲ {blog.upvotes}

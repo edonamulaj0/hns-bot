@@ -3,10 +3,7 @@
 import Link from "next/link";
 import type { ActivityFeedItem } from "@/lib/activity-feed";
 import { formatFeedTime } from "@/lib/relative-time";
-
-function shortId(id: string) {
-  return id.slice(-8);
-}
+import { memberDisplayName } from "@/lib/member-label";
 
 export function ActivityFeedRow({
   item,
@@ -31,7 +28,7 @@ export function ActivityFeedRow({
         <span className="text-lg shrink-0 w-6 text-center leading-none pt-0.5">🚀</span>
         <div className="min-w-0 flex-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <p className={`text-sm text-white/80 ${compact ? "line-clamp-2" : ""}`}>
-            @{shortId(item.discordId)} shipped {item.title} — {item.tier} · {item.month}
+            {memberDisplayName(item)} shipped {item.title} — {item.tier} · {item.month}
           </p>
           <span className="mono text-[0.65rem] text-white/40">{time}</span>
         </div>
@@ -52,7 +49,7 @@ export function ActivityFeedRow({
       <span className="text-lg shrink-0 w-6 text-center leading-none pt-0.5">📝</span>
       <div className="min-w-0 flex-1 flex flex-wrap items-center gap-x-3 gap-y-1">
         <p className={`text-sm text-white/80 flex-1 min-w-[12rem] ${compact ? "line-clamp-2" : ""}`}>
-          @{shortId(item.discordId)} shared an article: {item.title}
+          {memberDisplayName(item)} shared an article: {item.title}
         </p>
         <span className="mono text-[0.65rem] text-white/40">{time}</span>
         <a

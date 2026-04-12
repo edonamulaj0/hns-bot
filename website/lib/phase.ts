@@ -1,12 +1,18 @@
 /** Mirrors `src/time.ts` getMonthlyPhase — UTC calendar days. */
 
-export type Phase = "BUILD" | "VOTE" | "PUBLISH" | "POST_PUBLISH";
+export type Phase =
+  | "BUILD"
+  | "VOTE"
+  | "REVIEW"
+  | "PUBLISH"
+  | "POST_PUBLISH";
 
 export function getMonthlyPhase(date = new Date()): Phase {
   const day = date.getUTCDate();
   if (day >= 1 && day <= 21) return "BUILD";
-  if (day >= 22 && day <= 29) return "VOTE";
-  if (day === 30) return "PUBLISH";
+  if (day >= 22 && day <= 25) return "VOTE";
+  if (day >= 26 && day <= 28) return "REVIEW";
+  if (day === 29) return "PUBLISH";
   return "POST_PUBLISH";
 }
 
@@ -19,20 +25,19 @@ export function getNextPhaseTransitionAt(now = new Date()): Date {
   const y = now.getUTCFullYear();
   const m = now.getUTCMonth();
   const phase = getMonthlyPhase(now);
-  const lastDay = utcLastDayOfMonth(y, m);
   const nextMonthStart = new Date(Date.UTC(y, m + 1, 1, 0, 0, 0, 0));
 
   if (phase === "BUILD") {
     return new Date(Date.UTC(y, m, 22, 0, 0, 0, 0));
   }
   if (phase === "VOTE") {
-    if (lastDay >= 30) {
-      return new Date(Date.UTC(y, m, 30, 0, 0, 0, 0));
-    }
-    return nextMonthStart;
+    return new Date(Date.UTC(y, m, 26, 0, 0, 0, 0));
+  }
+  if (phase === "REVIEW") {
+    return new Date(Date.UTC(y, m, 29, 0, 0, 0, 0));
   }
   if (phase === "PUBLISH") {
-    return new Date(Date.UTC(y, m, 30, 23, 59, 59, 999));
+    return new Date(Date.UTC(y, m, 30, 0, 0, 0, 0));
   }
   return nextMonthStart;
 }
@@ -64,6 +69,7 @@ export function phaseCountdownHeadline(phase: Phase, msLeft: number): string {
 
   if (phase === "BUILD") return `Submissions close in ${dh}`;
   if (phase === "VOTE") return `Voting closes in ${dh}`;
+  if (phase === "REVIEW") return `Admin review ends in ${dh}`;
   if (phase === "PUBLISH") return "Publishing today";
   return `New cycle starts in ${dh}`;
 }
@@ -82,7 +88,15 @@ export function phaseStatLine(phase: Phase, msLeft: number): string {
       ? `${days} day${days === 1 ? "" : "s"} left in BUILD`
       : `${hours}h left in BUILD`;
   }
-  return days > 0
-    ? `${days} day${days === 1 ? "" : "s"} left in VOTE`
-    : `${hours}h left in VOTE`;
+  if (phase === "VOTE") {
+    return days > 0
+      ? `${days} day${days === 1 ? "" : "s"} left in VOTE`
+      : `${hours}h left in VOTE`;
+  }
+  if (phase === "REVIEW") {
+    return days > 0
+      ? `${days} day${days === 1 ? "" : "s"} left in REVIEW`
+      : `${hours}h left in REVIEW`;
+  }
+  return "";
 }

@@ -4,59 +4,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { getPortfolio, PHASE_META, type PortfolioResponse } from "@/lib/api";
+import { memberDisplayName } from "@/lib/member-label";
 import { PhaseCountdown } from "@/components/PhaseCountdown";
 import type { Phase } from "@/lib/phase";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
-const STAGGER_MS = 0.08;
-
-const CHALLENGES = [
-  {
-    id: "developers-beginner",
-    category: "Developers",
-    level: "Beginner",
-    description: "Learn fundamental development practices by building small but complete projects.",
-    difficulty: 1,
-  },
-  {
-    id: "developers-intermediate",
-    category: "Developers",
-    level: "Intermediate",
-    description: "Build real-world applications with proper architecture and deployment.",
-    difficulty: 2,
-  },
-  {
-    id: "developers-advanced",
-    category: "Developers",
-    level: "Advanced",
-    description: "Enterprise-level projects pushing the boundaries of modern engineering.",
-    difficulty: 3,
-  },
-  {
-    id: "hackers-beginner",
-    category: "Hackers",
-    level: "Beginner",
-    description: "CTF writeups and basic security analysis. Great for learning offensive security.",
-    difficulty: 1,
-    challengeTypes: ["CTF Writeup"],
-  },
-  {
-    id: "hackers-intermediate",
-    category: "Hackers",
-    level: "Intermediate",
-    description: "Build security tools, analyze vulnerabilities, and document your methodology.",
-    difficulty: 2,
-    challengeTypes: ["Tool Build", "Vuln Research"],
-  },
-  {
-    id: "hackers-advanced",
-    category: "Hackers",
-    level: "Advanced",
-    description: "Red team simulations, complex exploit development, and original research.",
-    difficulty: 3,
-    challengeTypes: ["Red Team", "Vuln Research", "Tool Build"],
-  },
-];
 
 export default function ChallengesPage() {
   const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null);
@@ -66,25 +18,8 @@ export default function ChallengesPage() {
   }, []);
 
   const phase = portfolio?.phase ?? "BUILD";
-  const phaseMeta = PHASE_META[phase];
+  const phaseMeta = PHASE_META[phase] ?? PHASE_META.BUILD;
   const currentMonth = portfolio?.month ?? "";
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: STAGGER_MS, delayChildren: 0.15 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: EASE_OUT },
-    },
-  };
 
   const publishedEntries = Object.entries(portfolio?.published ?? {}).sort(
     (a, b) => b[0].localeCompare(a[0]),
@@ -158,14 +93,15 @@ export default function ChallengesPage() {
                 <h3 className="text-xl sm:text-2xl font-bold">Developer Track</h3>
               </div>
               <p className="text-white/60 text-sm sm:text-base mb-4 leading-relaxed">
-                Build a full project over a <strong className="text-white">21-day cycle</strong>.
-                Choose a tier (Beginner, Intermediate, or Advanced) and ship something real — an
+                Build a full project over the <strong className="text-white">monthly build window</strong>{" "}
+                (days 1–21). Choose a tier (Beginner, Intermediate, or Advanced) and ship something real — an
                 app, a library, a tool, anything.
               </p>
               <div className="flex flex-wrap gap-2">
                 <span className="tag tag-accent">Days 1–21: Build</span>
-                <span className="tag">Days 22–29: Vote</span>
-                <span className="tag">Day 30: Publish</span>
+                <span className="tag">Days 22–25: Vote</span>
+                <span className="tag">Days 26–28: Review</span>
+                <span className="tag">Day 29: Publish</span>
               </div>
             </motion.div>
 
@@ -181,13 +117,15 @@ export default function ChallengesPage() {
                 <h3 className="text-xl sm:text-2xl font-bold">Hacker Track</h3>
               </div>
               <p className="text-white/60 text-sm sm:text-base mb-4 leading-relaxed">
-                Security-focused <strong className="text-white">2-week cycles</strong> (A: days 1–14, B: days 15–28).
-                Submit CTF writeups, build security tools, research vulnerabilities, or run red team simulations.
+                Same <strong className="text-white">monthly calendar</strong> as the developer track. Submit CTF
+                writeups, build security tools, research vulnerabilities, or run red team simulations — all on the
+                same build, vote, and publish rhythm.
               </p>
               <div className="flex flex-wrap gap-2 mb-3">
-                <span className="tag tag-accent">Build: 11 days</span>
-                <span className="tag">Vote: 3 days</span>
-                <span className="tag">Buffer: days 29–31</span>
+                <span className="tag tag-accent">Days 1–21: Build</span>
+                <span className="tag">Days 22–25: Vote</span>
+                <span className="tag">Days 26–28: Review</span>
+                <span className="tag">Day 29: Publish</span>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {["CTF Writeup", "Tool Build", "Vuln Research", "Red Team"].map((t) => (
@@ -209,7 +147,7 @@ export default function ChallengesPage() {
         </div>
       </motion.section>
 
-      {/* ── Challenge Categories Grid ────────────────────────────────────── */}
+      {/* ── Track hubs ───────────────────────────────────────────────────── */}
       <motion.section
         className="section"
         initial={{ opacity: 0 }}
@@ -218,65 +156,60 @@ export default function ChallengesPage() {
         viewport={{ once: true, amount: 0.15 }}
       >
         <div className="container w-full">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-2 lg:mb-3">Challenge Categories</h2>
-          <p className="text-white/60 mb-6 sm:mb-8 lg:mb-12 max-w-2xl text-sm sm:text-base">
-            Choose your path and challenge level. Each month brings new prompts and opportunities to showcase your skills.
+          <h2 className="text-3xl sm:text-4xl font-bold mb-2 lg:mb-3">Browse by track</h2>
+          <p className="text-white/60 mb-6 sm:mb-8 max-w-2xl text-sm sm:text-base">
+            Each month we post three tiers per track (Beginner, Intermediate, Advanced). View briefs, enrollment
+            stats, and links to approved submissions.
           </p>
 
-          <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
-          >
-            {CHALLENGES.map((challenge) => (
-              <motion.div
-                key={challenge.id}
-                className="card p-4 sm:p-6"
-                variants={itemVariants}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <motion.div
+              className="card p-6 sm:p-8 flex flex-col gap-4 min-h-[220px]"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease: EASE_OUT }}
+              viewport={{ once: true, amount: 0.15 }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🛠</span>
+                <h3 className="text-2xl sm:text-3xl font-bold">Developer Track</h3>
+              </div>
+              <p className="text-white/60 text-sm sm:text-base leading-relaxed flex-1">
+                Ship apps, libraries, and tools. Monthly briefs with three difficulty tiers — enroll in Discord and
+                submit before the build window closes.
+              </p>
+              <Link href="/challenges/developers" className="btn btn-primary w-fit">
+                View challenges →
+              </Link>
+            </motion.div>
+
+            <motion.div
+              className="card p-6 sm:p-8 flex flex-col gap-4 min-h-[220px] border-[rgba(237,66,69,0.25)]"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.06, ease: EASE_OUT }}
+              viewport={{ once: true, amount: 0.15 }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🔒</span>
+                <h3 className="text-2xl sm:text-3xl font-bold">Hacker Track</h3>
+              </div>
+              <p className="text-white/60 text-sm sm:text-base leading-relaxed flex-1">
+                CTF writeups, tooling, vuln research, and red team work — same monthly rhythm as developers, with
+                security-focused briefs each tier.
+              </p>
+              <Link
+                href="/challenges/hackers"
+                className="btn w-fit"
+                style={{
+                  borderColor: "rgba(237,66,69,0.4)",
+                  color: "#ed4245",
+                }}
               >
-                <div className="mb-3 sm:mb-4 flex flex-wrap gap-2">
-                  <span className="tag text-xs">{challenge.category}</span>
-                  <span
-                    className="tag text-xs"
-                    style={{
-                      background: `rgba(204,255,0,${challenge.difficulty === 1 ? 0.1 : challenge.difficulty === 2 ? 0.15 : 0.2})`,
-                      borderColor: "rgba(204,255,0,0.3)",
-                    }}
-                  >
-                    {challenge.level}
-                  </span>
-                </div>
-                <h3 className="text-lg sm:text-xl font-bold mb-2">
-                  {challenge.level} — {challenge.category}
-                </h3>
-                <p className="text-white/60 text-sm sm:text-base mb-3">{challenge.description}</p>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-[var(--accent)] font-bold font-mono">
-                    {"⭐".repeat(challenge.difficulty)}
-                  </span>
-                  {"challengeTypes" in challenge && challenge.challengeTypes && (
-                    <div className="flex flex-wrap gap-1">
-                      {challenge.challengeTypes.map((t) => (
-                        <span
-                          key={t}
-                          className="tag text-[0.6rem]"
-                          style={{
-                            background: "rgba(237,66,69,0.08)",
-                            borderColor: "rgba(237,66,69,0.25)",
-                            color: "#ed4245",
-                          }}
-                        >
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+                View challenges →
+              </Link>
+            </motion.div>
+          </div>
         </div>
       </motion.section>
 
@@ -334,7 +267,9 @@ export default function ChallengesPage() {
                           </div>
                           <h4 className="text-base sm:text-lg font-bold">{sub.title}</h4>
                           <span className="mono dim text-[0.65rem]">
-                            @{sub.user?.discordId?.slice(-8) ?? "—"}
+                            {sub.user?.discordId
+                              ? memberDisplayName(sub.user)
+                              : "—"}
                           </span>
                           <div className="flex gap-2 mt-auto pt-2">
                             <a
@@ -389,7 +324,8 @@ export default function ChallengesPage() {
           <ul className="space-y-4 text-left text-sm text-white/70 sm:text-base">
             {[
               { cmd: "/setup-profile", desc: "Modal to set bio, GitHub, LinkedIn, and tech stack. Required for a full portfolio card." },
-              { cmd: "/submit", desc: "Submit your project or hacker challenge. Developer track: days 1–21. Hacker track: days 1–11 or 15–25." },
+              { cmd: "/enroll", desc: "Pick a monthly challenge (track + tier) before you can submit. Open during the build window (days 1–21)." },
+              { cmd: "/submit", desc: "Submit your enrolled challenge. Same monthly build window for both tracks (days 1–21)." },
               { cmd: "/share-blog", desc: "Share an article URL; earns XP and appears on the site blog feed." },
               { cmd: "/pulse", desc: "Once per month, pulls public GitHub activity for your profile month and awards XP." },
               { cmd: "/leaderboard", desc: "Shows top builders by points for the current month in Discord." },

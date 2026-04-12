@@ -13,6 +13,10 @@ ADMIN_CHANNEL_ID = "1492652283807142130"
 VOTING_CHANNEL_ID = "1475220426077507676"
 # Set BLOG_CHANNEL_ID to your blog-sharing channel ID
 BLOG_CHANNEL_ID = ""
+# Admin role (snowflake) for /post-challenge; challenge announcement channels
+ADMIN_ROLE_ID = ""
+DEVELOPER_CHALLENGES_CHANNEL_ID = ""
+HACKER_CHALLENGES_CHANNEL_ID = ""
 
 # GitHub OAuth (/link-github → private-aware /pulse). Uncomment and set, plus secrets below.
 # WORKER_PUBLIC_URL = "https://hns-bot.edonaamulaj.workers.dev"

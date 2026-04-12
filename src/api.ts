@@ -61,6 +61,20 @@ export async function handleApiRequest(
       case "/api/blogs":
         body = await blogsResponse(prisma);
         break;
+      case "/api/challenges": {
+        const url = new URL(request.url);
+        const track = url.searchParams.get("track");
+        const monthQ = url.searchParams.get("month");
+        if (track !== "DEVELOPER" && track !== "HACKER") {
+          body = corsJson(
+            { error: "Invalid or missing track (use DEVELOPER or HACKER)" },
+            400,
+          );
+          break;
+        }
+        body = await challengesResponse(prisma, track, monthQ);
+        break;
+      }
       default:
         return null;
     }
@@ -109,6 +123,8 @@ async function portfolioResponse(
       user: {
         select: {
           discordId: true,
+          discordUsername: true,
+          displayName: true,
           bio: true,
           github: true,
           linkedin: true,
@@ -156,6 +172,8 @@ async function membersResponse(prisma: PrismaClient): Promise<Response> {
     },
     select: {
       discordId: true,
+      discordUsername: true,
+      displayName: true,
       bio: true,
       github: true,
       linkedin: true,
@@ -186,6 +204,8 @@ async function leaderboardResponse(prisma: PrismaClient): Promise<Response> {
     where: { points: { gt: 0 } },
     select: {
       discordId: true,
+      discordUsername: true,
+      displayName: true,
       bio: true,
       github: true,
       techStack: true,
@@ -203,10 +223,69 @@ async function leaderboardResponse(prisma: PrismaClient): Promise<Response> {
   );
 }
 
+const MONTH_PARAM_RE = /^\d{4}-\d{2}$/;
+
+async function challengesResponse(
+  prisma: PrismaClient,
+  track: string,
+  monthQ: string | null,
+): Promise<Response> {
+  const where: { track: string; month?: string } = { track };
+  if (monthQ && MONTH_PARAM_RE.test(monthQ)) {
+    where.month = monthQ;
+  }
+
+  const rows = await prisma.challenge.findMany({
+    where,
+    orderBy: [{ month: "desc" }, { tier: "asc" }],
+    include: {
+      _count: { select: { enrollments: true } },
+    },
+  });
+
+  const ids = rows.map((r) => r.id);
+  const subAgg =
+    ids.length === 0
+      ? []
+      : await prisma.submission.groupBy({
+          by: ["challengeId"],
+          where: {
+            isApproved: true,
+            challengeId: { in: ids },
+          },
+          _count: { id: true },
+        });
+  const subMap = new Map(
+    subAgg.map((s) => [s.challengeId as string, s._count.id]),
+  );
+
+  const challenges = rows.map((r) => ({
+    id: r.id,
+    month: r.month,
+    track: r.track,
+    tier: r.tier,
+    title: r.title,
+    description: r.description,
+    resources: r.resources,
+    publishedAt: r.publishedAt.toISOString(),
+    enrollmentCount: r._count.enrollments,
+    submissionCount: subMap.get(r.id) ?? 0,
+  }));
+
+  return corsJson({ challenges });
+}
+
 async function blogsResponse(prisma: PrismaClient): Promise<Response> {
   const rows = await prisma.blog.findMany({
     include: {
-      user: { select: { discordId: true, github: true } },
+      user: {
+        select: {
+          discordId: true,
+          discordUsername: true,
+          displayName: true,
+          github: true,
+        },
+      },
     },
     orderBy: [{ upvotes: "desc" }, { createdAt: "desc" }],
     take: 100,

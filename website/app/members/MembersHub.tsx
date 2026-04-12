@@ -20,6 +20,7 @@ import {
 import { ensureAbsoluteUrl, githubProfileHref } from "@/lib/url";
 import { HallOfFame } from "@/components/HallOfFame";
 import { BlogArticleCard } from "@/components/BlogArticleCard";
+import { memberDisplayName } from "@/lib/member-label";
 
 type View = "profiles" | "projects" | "articles";
 
@@ -172,6 +173,8 @@ export default function MembersHub() {
         const stack = formatTechStack(m.techStack);
         return (
           m.discordId.toLowerCase().includes(qLower) ||
+          (m.discordUsername ?? "").toLowerCase().includes(qLower) ||
+          (m.displayName ?? "").toLowerCase().includes(qLower) ||
           (m.bio ?? "").toLowerCase().includes(qLower) ||
           stack.some((t) => t.toLowerCase().includes(qLower))
         );
@@ -445,7 +448,7 @@ export default function MembersHub() {
                                     />
                                     <div className="min-w-0">
                                       <p className="mono text-xs truncate">
-                                        @{m.discordId.slice(-8)}
+                                        {memberDisplayName(m)}
                                       </p>
                                       <p className="text-[var(--accent)] font-bold text-sm">
                                         {m.points} XP · #{m.rank || "—"}
@@ -541,7 +544,7 @@ export default function MembersHub() {
                                   </div>
                                 )}
                                 <p className="mono text-[0.65rem] text-white/45 mb-3">
-                                  @{s.user.discordId.slice(-8)}
+                                  {memberDisplayName(s.user)}
                                 </p>
                                 <div className="flex flex-wrap gap-2">
                                   <a
@@ -642,7 +645,7 @@ export default function MembersHub() {
                                     </span>
                                     <div className="flex-1 min-w-0">
                                       <p className="mono text-[0.65rem] truncate mb-0.5">
-                                        @{m.discordId.slice(-8)}
+                                        {memberDisplayName(m)}
                                       </p>
                                       <div className="h-1 rounded-full bg-[var(--border)] overflow-hidden">
                                         <div

@@ -21,7 +21,7 @@ export async function postVotePhaseFeed(
 
   // Post a header message
   await c.rest("POST", $channels$_$messages, [votingChannelId], {
-    content: `🗳️ **Voting is now open for ${targetMonth}!** Cast your votes on the projects below. You have one vote per project.`,
+    content: `🗳️ **Voting is now open for ${targetMonth}!** Cast your votes below. Each member has **4 votes per month** (max **2** on Developer submissions and **2** on Hacker submissions). One vote per project.`,
   });
 
   // Post each approved submission as its own message with a Vote button

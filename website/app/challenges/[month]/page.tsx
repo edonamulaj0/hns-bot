@@ -8,6 +8,7 @@ import {
   type Submission,
 } from "@/lib/api";
 import { githubProfileHref } from "@/lib/url";
+import { memberDisplayName } from "@/lib/member-label";
 
 export const revalidate = 60;
 
@@ -24,10 +25,13 @@ export async function generateMetadata({
 
 export default async function ChallengeMonthPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ month: string }>;
+  searchParams: Promise<{ track?: string; tier?: string }>;
 }) {
   const { month } = await params;
+  const sp = await searchParams;
   if (!MONTH_RE.test(month)) notFound();
 
   let data: PortfolioResponse | null = null;
@@ -37,9 +41,22 @@ export default async function ChallengeMonthPage({
     data = null;
   }
 
-  const subs = (data?.published?.[month] ?? []) as Submission[];
+  const allSubs = (data?.published?.[month] ?? []) as Submission[];
+  const trackFilter = (sp.track ?? "").toUpperCase();
+  let subs = allSubs;
+  if (trackFilter === "DEVELOPER" || trackFilter === "HACKER") {
+    subs = subs.filter((s) => (s.track ?? "DEVELOPER") === trackFilter);
+  }
+  const tierFilter = sp.tier?.trim();
+  if (tierFilter) {
+    subs = subs.filter((s) => s.tier === tierFilter);
+  }
+
   const phase = data?.phase;
-  const phaseMeta = phase ? PHASE_META[phase] : null;
+  const phaseMeta = phase ? (PHASE_META[phase] ?? PHASE_META.BUILD) : null;
+  const hasFilters = Boolean(
+    (trackFilter === "DEVELOPER" || trackFilter === "HACKER") || tierFilter,
+  );
 
   return (
     <>
@@ -60,6 +77,11 @@ export default async function ChallengeMonthPage({
             <Link href="/challenges" className="btn text-xs sm:text-sm">
               All months →
             </Link>
+            {hasFilters && (
+              <Link href={`/challenges/${month}`} className="btn text-xs sm:text-sm">
+                Clear filters
+              </Link>
+            )}
             {phaseMeta && data && (
               <span
                 className="phase-badge"
@@ -94,12 +116,37 @@ export default async function ChallengeMonthPage({
           ) : subs.length === 0 ? (
             <div className="empty-state">
               <p>
-                No published projects for <span className="mono">{month}</span>{" "}
-                yet. Check another month or visit after publish day.
+                {hasFilters ? (
+                  <>
+                    No published projects match these filters for{" "}
+                    <span className="mono">{month}</span>.{" "}
+                    <Link href={`/challenges/${month}`} className="text-[var(--accent)] underline">
+                      Show all for this month
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    No published projects for <span className="mono">{month}</span>{" "}
+                    yet. Check another month or visit after publish day.
+                  </>
+                )}
               </p>
             </div>
           ) : (
             <>
+              {hasFilters && (
+                <p className="text-sm text-white/55 mb-6">
+                  Filtered
+                  {trackFilter === "DEVELOPER" || trackFilter === "HACKER"
+                    ? ` · track: ${trackFilter}`
+                    : ""}
+                  {tierFilter ? ` · tier: ${tierFilter}` : ""}
+                  {" · "}
+                  <Link href={`/challenges/${month}`} className="text-[var(--accent)] underline">
+                    clear
+                  </Link>
+                </p>
+              )}
               <div className="flex flex-wrap items-end justify-between gap-4 mb-8 sm:mb-10">
                 <h2 className="text-xl sm:text-2xl font-bold">
                   {subs.length} project{subs.length !== 1 ? "s" : ""}
@@ -137,7 +184,7 @@ export default async function ChallengeMonthPage({
                       )}
                       <div className="pt-4 mt-auto border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
                         <span className="mono dim text-[0.65rem] sm:text-xs">
-                          @{sub.user.discordId.slice(-8)}
+                          {memberDisplayName(sub.user)}
                         </span>
                         <div className="flex flex-wrap gap-2">
                           {gh && (

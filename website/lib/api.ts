@@ -1,63 +1,70 @@
 /**
- * Browser: always same-origin `/hns-api/*` so Next rewrites proxy to the Worker (avoids CORS + bad placeholders).
- * Server: direct Worker URL from env, or localhost:8787 in development.
+ * Browser: same-origin `/hns-api/*` (Next rewrites to the bot Worker).
+ * Server: `NEXT_PUBLIC_API_URL` / `HNS_WORKER_URL`, or empty in production if unset.
  */
+
 function getServerWorkerBase(): string {
   const raw =
     process.env.HNS_WORKER_URL?.trim() ||
     process.env.NEXT_PUBLIC_API_URL?.trim() ||
     "";
   const base = raw.replace(/\/$/, "");
-  if (base && !base.includes("YOUR_SUBDOMAIN")) return base;
-  if (process.env.NODE_ENV === "development") return "http://127.0.0.1:8787";
-  return "";
+  if (base.includes("YOUR_SUBDOMAIN")) {
+    if (process.env.NODE_ENV === "development") {
+      throw new Error(
+        "NEXT_PUBLIC_API_URL (or HNS_WORKER_URL) must not contain YOUR_SUBDOMAIN in development — set your real Worker origin.",
+      );
+    }
+    return "";
+  }
+  if (!base) return "";
+  return base;
 }
 
-function portfolioUrl(): string {
+function portfolioUrl(): string | null {
   if (typeof window !== "undefined") return "/hns-api/portfolio";
   const base = getServerWorkerBase();
-  if (!base) {
-    throw new Error(
-      "Set HNS_WORKER_URL or NEXT_PUBLIC_API_URL to your Worker origin (e.g. https://hns-bot.xxx.workers.dev).",
-    );
-  }
+  if (!base) return null;
   return `${base}/api/portfolio`;
 }
 
-function membersUrl(): string {
+function membersUrl(): string | null {
   if (typeof window !== "undefined") return "/hns-api/members";
   const base = getServerWorkerBase();
-  if (!base) {
-    throw new Error(
-      "Set HNS_WORKER_URL or NEXT_PUBLIC_API_URL to your Worker origin.",
-    );
-  }
+  if (!base) return null;
   return `${base}/api/members`;
 }
 
-function leaderboardUrl(): string {
+function leaderboardUrl(): string | null {
   if (typeof window !== "undefined") return "/hns-api/leaderboard";
   const base = getServerWorkerBase();
-  if (!base) {
-    throw new Error(
-      "Set HNS_WORKER_URL or NEXT_PUBLIC_API_URL to your Worker origin.",
-    );
-  }
+  if (!base) return null;
   return `${base}/api/leaderboard`;
 }
 
-function blogsUrl(): string {
+function blogsUrl(): string | null {
   if (typeof window !== "undefined") return "/hns-api/blogs";
   const base = getServerWorkerBase();
-  if (!base) {
-    throw new Error(
-      "Set HNS_WORKER_URL or NEXT_PUBLIC_API_URL to your Worker origin.",
-    );
-  }
+  if (!base) return null;
   return `${base}/api/blogs`;
 }
 
-export type Phase = "BUILD" | "VOTE" | "PUBLISH" | "POST_PUBLISH";
+function challengesUrl(track: "DEVELOPER" | "HACKER", month?: string): string | null {
+  const qs = new URLSearchParams({ track });
+  if (month) qs.set("month", month);
+  const q = `?${qs.toString()}`;
+  if (typeof window !== "undefined") return `/hns-api/challenges${q}`;
+  const base = getServerWorkerBase();
+  if (!base) return null;
+  return `${base}/api/challenges${q}`;
+}
+
+export type Phase =
+  | "BUILD"
+  | "VOTE"
+  | "REVIEW"
+  | "PUBLISH"
+  | "POST_PUBLISH";
 
 export interface Submission {
   id: string;
@@ -77,6 +84,9 @@ export interface Submission {
 
 export interface MemberSummary {
   discordId: string;
+  discordUsername?: string | null;
+  displayName?: string | null;
+  avatarHash?: string | null;
   bio: string | null;
   github: string | null;
   linkedin: string | null;
@@ -105,7 +115,29 @@ export interface Blog {
   content?: string | null;
   upvotes: number;
   createdAt: string;
-  user: { discordId: string; github: string | null };
+  user: {
+    discordId: string;
+    discordUsername?: string | null;
+    displayName?: string | null;
+    github: string | null;
+  };
+}
+
+export interface ChallengeDto {
+  id: string;
+  month: string;
+  track: string;
+  tier: string;
+  title: string;
+  description: string;
+  resources: string | null;
+  publishedAt: string;
+  enrollmentCount: number;
+  submissionCount: number;
+}
+
+export interface ChallengesResponse {
+  challenges: ChallengeDto[];
 }
 
 export interface PortfolioResponse {
@@ -135,28 +167,80 @@ function fetchInit(): RequestInit & { next?: { revalidate: number } } {
   return { next: { revalidate: REVALIDATE } };
 }
 
+export const EMPTY_PORTFOLIO: PortfolioResponse = {
+  phase: "BUILD",
+  month: "",
+  published: {},
+};
+
+export const EMPTY_MEMBERS: MembersResponse = { members: [] };
+export const EMPTY_LEADERBOARD: LeaderboardResponse = { leaderboard: [] };
+export const EMPTY_BLOGS: BlogsResponse = { blogs: [] };
+export const EMPTY_CHALLENGES: ChallengesResponse = { challenges: [] };
+
 export async function getPortfolio(): Promise<PortfolioResponse> {
-  const res = await fetch(portfolioUrl(), fetchInit());
-  if (!res.ok) throw new Error("Failed to fetch portfolio");
-  return res.json();
+  const url = portfolioUrl();
+  if (!url) {
+    return EMPTY_PORTFOLIO;
+  }
+  try {
+    const res = await fetch(url, fetchInit());
+    if (!res.ok) throw new Error("Failed to fetch portfolio");
+    return res.json();
+  } catch {
+    return EMPTY_PORTFOLIO;
+  }
 }
 
 export async function getMembers(): Promise<MembersResponse> {
-  const res = await fetch(membersUrl(), fetchInit());
-  if (!res.ok) throw new Error("Failed to fetch members");
-  return res.json();
+  const url = membersUrl();
+  if (!url) return EMPTY_MEMBERS;
+  try {
+    const res = await fetch(url, fetchInit());
+    if (!res.ok) throw new Error("Failed to fetch members");
+    return res.json();
+  } catch {
+    return EMPTY_MEMBERS;
+  }
 }
 
 export async function getLeaderboard(): Promise<LeaderboardResponse> {
-  const res = await fetch(leaderboardUrl(), fetchInit());
-  if (!res.ok) throw new Error("Failed to fetch leaderboard");
-  return res.json();
+  const url = leaderboardUrl();
+  if (!url) return EMPTY_LEADERBOARD;
+  try {
+    const res = await fetch(url, fetchInit());
+    if (!res.ok) throw new Error("Failed to fetch leaderboard");
+    return res.json();
+  } catch {
+    return EMPTY_LEADERBOARD;
+  }
 }
 
 export async function getBlogs(): Promise<BlogsResponse> {
-  const res = await fetch(blogsUrl(), fetchInit());
-  if (!res.ok) throw new Error("Failed to fetch blogs");
-  return res.json();
+  const url = blogsUrl();
+  if (!url) return EMPTY_BLOGS;
+  try {
+    const res = await fetch(url, fetchInit());
+    if (!res.ok) throw new Error("Failed to fetch blogs");
+    return res.json();
+  } catch {
+    return EMPTY_BLOGS;
+  }
+}
+
+export async function getChallenges(
+  track: "DEVELOPER" | "HACKER",
+  month?: string,
+): Promise<ChallengesResponse> {
+  const url = challengesUrl(track, month);
+  if (!url) return EMPTY_CHALLENGES;
+  try {
+    const res = await fetch(url, fetchInit());
+    if (!res.ok) throw new Error("Failed to fetch challenges");
+    return res.json();
+  } catch {
+    return EMPTY_CHALLENGES;
+  }
 }
 
 export function formatTechStack(
@@ -193,16 +277,21 @@ export const PHASE_META: Record<
   VOTE: {
     label: "VOTE PHASE",
     color: "#8b5cf6",
-    description: "Days 22–29 · Cast your votes",
+    description: "Days 22–25 · Cast your votes",
+  },
+  REVIEW: {
+    label: "REVIEW PHASE",
+    color: "#f59e0b",
+    description: "Days 26–28 · Admin review",
   },
   PUBLISH: {
     label: "PUBLISH DAY",
     color: "#10b981",
-    description: "Day 30 · Results going live",
+    description: "Day 29 · Results going live",
   },
   POST_PUBLISH: {
     label: "RESULTS LIVE",
     color: "#10b981",
-    description: "Projects published to portfolio",
+    description: "Days 30–31 · Buffer before next cycle",
   },
 };

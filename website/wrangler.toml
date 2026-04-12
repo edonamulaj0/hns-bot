@@ -1,0 +1,6 @@
+# Cloudflare Pages — deploy after: npm run pages:build
+# Routes /auth/* should point to the hns-auth Worker (separate project) on your zone.
+name = "hns-website"
+compatibility_date = "2026-04-11"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"

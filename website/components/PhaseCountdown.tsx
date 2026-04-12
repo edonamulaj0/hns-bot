@@ -23,7 +23,10 @@ function useCountdownTarget(phaseFromApi?: Phase) {
   const phase = phaseFromApi ?? localPhase;
   const target = getNextPhaseTransitionAt(now);
   const msLeft = target.getTime() - now.getTime();
-  const urgent = msLeft < 86400000 && phase !== "PUBLISH";
+  const urgent =
+    msLeft < 86400000 &&
+    phase !== "PUBLISH" &&
+    phase !== "POST_PUBLISH";
 
   return { phase, msLeft, urgent, tick };
 }

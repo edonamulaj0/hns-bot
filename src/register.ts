@@ -40,6 +40,22 @@ async function main() {
     ),
     new Command("unlink-github", "Remove stored GitHub OAuth from this bot"),
     new Command("leaderboard", "See the top contributors this month"),
+    new Command("enroll", "Enroll in a monthly challenge before you submit"),
+    new Command("post-challenge", "Create or update a monthly challenge (admin)").options(
+      new Option("track", "Challenge track", "String")
+        .required()
+        .choices(
+          { name: "Developer", value: "DEVELOPER" },
+          { name: "Hacker", value: "HACKER" },
+        ),
+      new Option("tier", "Difficulty tier", "String")
+        .required()
+        .choices(
+          { name: "Beginner", value: "Beginner" },
+          { name: "Intermediate", value: "Intermediate" },
+          { name: "Advanced", value: "Advanced" },
+        ),
+    ),
   ];
 
   const message = await register(commands, applicationId, token, guildId);

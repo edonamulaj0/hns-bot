@@ -8,6 +8,7 @@ import { awardPoints, XP } from "../points";
 import { extractModalFields, getDiscordUserId } from "./helpers";
 import { getCommandAttachment, validateBlogFileAttachment } from "../discord-attachments";
 import { putPendingAttachment, takePendingAttachment } from "../pending-attachment";
+import { syncDiscordIdentity } from "../discord-identity";
 import {
   validateShareBlogArticleUrl,
   titleFromMediumOrArticleUrl,
@@ -33,6 +34,9 @@ export function registerShareBlog(app: DiscordHono<HonoWorkerEnv>) {
     .command("share-blog", async (c) => {
       const discordId = getDiscordUserId(c.interaction);
       if (!discordId) return c.res("Could not detect your Discord ID.");
+
+      const prisma0 = getPrisma(c.env.DB);
+      await syncDiscordIdentity(prisma0, discordId, c.interaction);
 
       const fileAtt = getCommandAttachment(c.interaction, "file");
       if (fileAtt) {
@@ -77,6 +81,8 @@ export function registerShareBlog(app: DiscordHono<HonoWorkerEnv>) {
           });
           return;
         }
+
+        await syncDiscordIdentity(prisma, discordId, ctx.interaction);
 
         const pending = await takePendingAttachment(prisma, discordId, "share_blog");
 

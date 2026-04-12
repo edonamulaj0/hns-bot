@@ -12,6 +12,7 @@ import {
   formatTechStackForModal,
   profilePayloadFromModal,
 } from "./helpers";
+import { syncDiscordIdentity } from "../discord-identity";
 
 type ProfileSaveCtx = {
   interaction: { data?: { custom_value?: string } };
@@ -74,6 +75,8 @@ export async function handleProfileSave(ctx: ProfileSaveCtx, prisma: PrismaClien
     });
     return;
   }
+
+  await syncDiscordIdentity(prisma, userId, ctx.interaction as any);
 
   const fields = extractModalFields(ctx.interaction as any);
   const payload = profilePayloadFromModal(fields);
@@ -145,6 +148,13 @@ export function registerSetupProfile(app: DiscordHono<HonoWorkerEnv>) {
     const userId = getDiscordUserId(c.interaction);
     if (!userId) return c.res("Could not detect your Discord ID.");
 
+    try {
+      const prisma = getPrisma(c.env.DB);
+      await syncDiscordIdentity(prisma, userId, c.interaction);
+    } catch (e) {
+      console.error(e);
+    }
+
     let existing: {
       bio: string | null;
       github: string | null;
@@ -176,6 +186,7 @@ export function registerUpdateProfile(app: DiscordHono<HonoWorkerEnv>) {
 
     try {
       const prisma = getPrisma(c.env.DB);
+      await syncDiscordIdentity(prisma, userId, c.interaction);
       const u = await prisma.user.findUnique({
         where: { discordId: userId },
         select: {

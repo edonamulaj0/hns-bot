@@ -1,6 +1,10 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
+/**
+ * For Cloudflare Pages, run `npm run pages:build` after `next build` (or use the combined
+ * `@cloudflare/next-on-pages` CLI per current Cloudflare docs). Local dev: `next dev` only.
+ */
 function workerBaseUrl(): string | null {
   const raw =
     process.env.HNS_WORKER_URL?.trim() ||
@@ -18,7 +22,6 @@ function workerBaseUrl(): string | null {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // Monorepo: parent repo has its own package-lock; keep file tracing scoped to repo root.
   outputFileTracingRoot: path.join(__dirname, ".."),
   async rewrites() {
     const worker = workerBaseUrl();

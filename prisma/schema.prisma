@@ -7,53 +7,97 @@ datasource db {
 }
 
 model User {
-  id           String       @id @default(cuid())
-  discordId    String       @unique
-  bio          String?
-  github       String?
-  linkedin     String?
-  techStack    Json?
-  points       Int          @default(0)
-  rank         Int          @default(0)
-  lastPulseMonth String?    // Tracks if user has run /pulse this month (dedup)
-  profileCompletedAt DateTime? // Set once on first /setup-profile save; canonical "has profile"
-  // GitHub OAuth (encrypted at rest; requires GITHUB_LINK_SECRET)
+  id                    String        @id @default(cuid())
+  discordId             String        @unique
+  discordUsername       String?
+  displayName           String?
+  avatarHash            String?
+  bio                   String?
+  github                String?
+  linkedin              String?
+  techStack             Json?
+  points                Int           @default(0)
+  rank                  Int           @default(0)
+  lastPulseMonth        String?
+  profileCompletedAt    DateTime?
   githubAccessTokenEnc  String?
   githubRefreshTokenEnc String?
   githubTokenExpiresAt  DateTime?
-  githubLinkedLogin     String? // GitHub login at link time (sanity check)
-  submissions  Submission[]
-  blogs        Blog[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  githubLinkedLogin     String?
+  /** Encrypted Discord OAuth access token (for membership re-verification). */
+  accessToken           String?
+  tokenExpiresAt        DateTime?
+  submissions           Submission[]
+  blogs                 Blog[]
+  enrollments           Enrollment[]
+  votesCast             Vote[]        @relation("VoteVoter")
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 
   @@index([profileCompletedAt])
 }
 
-model Submission {
-  id          String   @id @default(cuid())
-  userId      String
+model Challenge {
+  id          String       @id @default(cuid())
   month       String
+  track       String
   tier        String
   title       String
   description String
-  repoUrl     String
-  demoUrl     String?
-  isApproved  Boolean  @default(false)
-  votes       Int      @default(0)
-  // Hacker track fields
-  track          String  @default("DEVELOPER") // "DEVELOPER" | "HACKER"
-  challengeType  String? // For hacker submissions: "CTF_WRITEUP" | "TOOL_BUILD" | "VULN_RESEARCH" | "REDTEAM"
-  qualityWeight Float   @default(1.0) // Admin-settable quality modifier (0.5=superficial, 1.0=default, 1.5=exceptional)
-  attachmentUrl String? // Discord CDN URL for optional PDF/.txt/.md (URLs expire — re-upload to R2 recommended)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  resources   String?
+  deliverables String      @default("")
+  messageId   String?
+  threadId    String?
+  publishedAt DateTime     @default(now())
+  createdAt   DateTime     @default(now())
+  enrollments Enrollment[]
+  submissions Submission[]
 
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([month, track, tier])
+  @@index([month, track])
+}
+
+model Enrollment {
+  id          String   @id @default(cuid())
+  userId      String
+  challengeId String
+  enrolledAt  DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+}
+
+model Submission {
+  id            String    @id @default(cuid())
+  userId        String
+  month         String
+  tier          String
+  title         String
+  description   String
+  repoUrl       String
+  demoUrl       String?
+  isApproved    Boolean   @default(false)
+  votes         Int       @default(0)
+  track         String    @default("DEVELOPER")
+  challengeType String?
+  qualityWeight Float     @default(1.0)
+  attachmentUrl String?
+  challengeId   String?
+  redirectSlug  String?   @unique
+  revealed      Boolean   @default(false)
+  isLocked      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge? @relation(fields: [challengeId], references: [id])
   voteRecords Vote[]
 
   @@unique([userId, month, title])
   @@index([month, isApproved])
+  @@index([challengeId])
 }
 
 model Blog {
@@ -61,7 +105,7 @@ model Blog {
   userId    String
   title     String
   url       String
-  content   String?  // Raw markdown from uploaded .txt / .md (optional)
+  content   String?
   upvotes   Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -69,10 +113,9 @@ model Blog {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Slash-command attachment carried across to modal submit (modal interaction has no command options)
 model PendingDiscordAttachment {
   discordUserId String
-  kind          String // "submit" | "share_blog"
+  kind          String
   url           String
   filename      String?
   contentType   String?
@@ -91,24 +134,26 @@ model PendingGithubOAuth {
   @@index([expiresAt])
 }
 
-// Vote model for submission voting (prevents duplicate votes)
 model Vote {
-  id             String   @id @default(cuid())
-  submissionId   String
-  voterDiscordId String
-  createdAt     DateTime @default(now())
+  id               String   @id @default(cuid())
+  submissionId     String
+  voterDiscordId   String
+  createdAt        DateTime @default(now())
 
   submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  voter      User       @relation("VoteVoter", fields: [voterDiscordId], references: [discordId])
 
   @@unique([submissionId, voterDiscordId])
   @@index([submissionId])
+  @@index([voterDiscordId])
 }
 
-// Config table for cron idempotency tracking
 model Config {
   id                 String   @id @default(cuid())
-  lastVoteFeedMonth   String?  // Tracks last month vote feed was posted (cron dedup)
-  lastPublishMonth   String?  // Tracks last month publish was announced (cron dedup)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  lastVoteFeedMonth  String?
+  lastPublishMonth   String?
+  lastChallengeMonth String?
+  lastChallengeGenError String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }

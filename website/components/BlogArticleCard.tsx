@@ -1,6 +1,7 @@
 "use client";
 
 import type { Blog } from "@/lib/api";
+import { memberDisplayName } from "@/lib/member-label";
 import { formatFeedTime } from "@/lib/relative-time";
 
 export function articleBadge(blog: Blog): "Medium" | "Uploaded" | "External" {
@@ -35,7 +36,7 @@ export function BlogArticleCard({ blog }: { blog: Blog }) {
       )}
       <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[var(--border)]">
         <span className="mono text-[0.65rem] text-white/50">
-          @{blog.user.discordId.slice(-8)}
+          {memberDisplayName(blog.user)}
         </span>
         <div className="flex items-center gap-2">
           {blog.createdAt && (

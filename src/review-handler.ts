@@ -1,8 +1,11 @@
 import type { PrismaClient } from "@prisma/client/edge";
 import type { ComponentContext } from "discord-hono";
+import { Button, Components } from "discord-hono";
 import { MessageFlags } from "discord-api-types/v10";
 import type { HonoWorkerEnv } from "./worker-env";
 import { awardPoints, XP } from "./points";
+import { monthKey } from "./time";
+import { sendChannelMessage } from "./discord-api";
 
 type ReviewAction = "approve" | "reject";
 
@@ -27,10 +30,15 @@ function parseReviewCustomId(customId?: string): {
   return { action: actionRaw as ReviewAction, submissionId };
 }
 
+function trackLabel(track: string): string {
+  return track === "HACKER" ? "Hacker" : "Developer";
+}
+
 export async function handleAdminReview(
   c: AdminReviewCtx,
   prisma: PrismaClient,
   adminChannelId: string,
+  discordBotToken: string,
 ) {
   const actorDiscordId =
     c.interaction.member?.user?.id ?? c.interaction.user?.id ?? "unknown";
@@ -64,16 +72,24 @@ export async function handleAdminReview(
     const updated = await prisma.submission.update({
       where: { id: parsed.submissionId },
       data: { isApproved: approved },
-      include: { user: true },
+      include: { user: true, challenge: true },
     });
 
-    // Award XP only on first approval (not if toggling back and forth)
     if (approved && !wasAlreadyApproved?.isApproved) {
       await awardPoints(prisma, updated.userId, XP.SUBMISSION_APPROVED);
     }
 
     const statusLabel = approved ? "✅ APPROVED" : "❌ REJECTED";
     const statusColor = approved ? 0x57f287 : 0xed4245;
+
+    const challengeFields =
+      updated.challenge != null
+        ? [
+            { name: "Challenge", value: updated.challenge.title, inline: false },
+            { name: "Track", value: trackLabel(updated.challenge.track), inline: true },
+            { name: "Tier", value: updated.challenge.tier, inline: true },
+          ]
+        : [];
 
     await c.followup({
       embeds: [
@@ -93,6 +109,7 @@ export async function handleAdminReview(
               value: `<@${actorDiscordId}>`,
               inline: true,
             },
+            ...challengeFields,
             ...(approved
               ? [{ name: "XP Awarded", value: `+${XP.SUBMISSION_APPROVED} XP`, inline: true }]
               : []),
@@ -101,6 +118,36 @@ export async function handleAdminReview(
       ],
       components: [],
     });
+
+    if (
+      approved &&
+      !wasAlreadyApproved?.isApproved &&
+      updated.challengeId &&
+      updated.challenge?.threadId
+    ) {
+      await sendChannelMessage(discordBotToken, updated.challenge.threadId, {
+        embeds: [
+          {
+            title: updated.title,
+            description: updated.description.slice(0, 4096),
+            color: 0x5865f2,
+            fields: [
+              { name: "Builder", value: `<@${updated.user.discordId}>`, inline: true },
+              { name: "Tier", value: updated.tier, inline: true },
+              { name: "Votes", value: "0", inline: true },
+              { name: "Repo", value: updated.repoUrl, inline: false },
+              ...(updated.demoUrl
+                ? [{ name: "Demo", value: updated.demoUrl, inline: false }]
+                : []),
+            ],
+            footer: { text: "Vote with the button below" },
+          },
+        ],
+        components: new Components().row(
+          new Button(`vote:${updated.id}`, "🗳️ Vote", "Primary"),
+        ),
+      });
+    }
   } catch (err) {
     console.error("handleAdminReview error:", err);
     await c.followup({
@@ -111,10 +158,7 @@ export async function handleAdminReview(
   }
 }
 
-export async function handleVote(
-  c: AdminReviewCtx,
-  prisma: PrismaClient,
-) {
+export async function handleVote(c: AdminReviewCtx, prisma: PrismaClient) {
   const voterDiscordId =
     c.interaction.member?.user?.id ?? c.interaction.user?.id ?? null;
 
@@ -127,7 +171,6 @@ export async function handleVote(
   }
 
   const customId: string = c.interaction.data?.custom_id ?? "";
-  // format: vote:<submissionId>
   const [, submissionId] = customId.split(":");
 
   if (!submissionId) {
@@ -136,7 +179,19 @@ export async function handleVote(
   }
 
   try {
-    // Pre-flight check: have they already voted?
+    const submission = await prisma.submission.findUnique({
+      where: { id: submissionId },
+      select: { id: true, month: true, track: true },
+    });
+
+    if (!submission) {
+      await c.followup({
+        content: "That submission was not found.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
     const existingVote = await prisma.vote.findUnique({
       where: {
         submissionId_voterDiscordId: {
@@ -154,23 +209,54 @@ export async function handleVote(
       return;
     }
 
-    // Create vote
+    const currentMonth = monthKey();
+
+    const totalVotesThisMonth = await prisma.vote.count({
+      where: {
+        voterDiscordId,
+        submission: { month: currentMonth },
+      },
+    });
+
+    const trackVotesThisMonth = await prisma.vote.count({
+      where: {
+        voterDiscordId,
+        submission: { month: currentMonth, track: submission.track },
+      },
+    });
+
+    if (totalVotesThisMonth >= 4) {
+      await c.followup({
+        content: `You've used all 4 of your votes for **${currentMonth}**. Votes reset next month.`,
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    if (trackVotesThisMonth >= 2) {
+      const other =
+        submission.track === "HACKER" ? "Developer" : "Hacker";
+      await c.followup({
+        content: `You've already voted on 2 **${trackLabel(submission.track)}** submissions this month. You can still vote on **${other}** submissions.`,
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
     await prisma.vote.create({
       data: { submissionId, voterDiscordId },
     });
 
-    // Increment votes on submission
-    const submission = await prisma.submission.update({
+    const full = await prisma.submission.update({
       where: { id: submissionId },
       data: { votes: { increment: 1 } },
       include: { user: true },
     });
 
-    // Award XP to the submission author
-    await awardPoints(prisma, submission.userId, XP.VOTE_RECEIVED);
+    await awardPoints(prisma, full.userId, XP.VOTE_RECEIVED);
 
     await c.followup({
-      content: `You voted for **${submission.title}** by <@${submission.user.discordId}>! It now has **${submission.votes}** vote(s).`,
+      content: `You voted for **${full.title}** by <@${full.user.discordId}>! It now has **${full.votes}** vote(s).`,
       flags: MessageFlags.Ephemeral,
     });
   } catch (err: any) {

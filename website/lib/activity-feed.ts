@@ -9,6 +9,8 @@ export type ActivityFeedItem =
       tier: string;
       month: string;
       discordId: string;
+      discordUsername?: string | null;
+      displayName?: string | null;
     }
   | {
       type: "blog";
@@ -16,6 +18,8 @@ export type ActivityFeedItem =
       at: string;
       title: string;
       discordId: string;
+      discordUsername?: string | null;
+      displayName?: string | null;
       url: string;
     };
 
@@ -43,6 +47,8 @@ export function mergeActivityFeedItems(
         tier: s.tier,
         month: s.month,
         discordId: s.user.discordId,
+        discordUsername: s.user.discordUsername,
+        displayName: s.user.displayName,
       });
     }
   }
@@ -54,6 +60,8 @@ export function mergeActivityFeedItems(
       at: b.createdAt,
       title: b.title,
       discordId: b.user.discordId,
+      discordUsername: b.user.discordUsername,
+      displayName: b.user.displayName,
       url: b.url,
     });
   }

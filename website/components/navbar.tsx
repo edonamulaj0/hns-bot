@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AuthNav } from "@/components/AuthNav";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -83,12 +84,9 @@ export function Navbar() {
               </Link>
             );
           })}
-          <Link
-            href="/join"
-            className="btn btn-primary mt-2 justify-center md:mt-0 md:ml-2"
-          >
-            Join Us
-          </Link>
+          <div className="mt-2 flex flex-col gap-2 md:mt-0 md:ml-2 md:flex-row md:items-center">
+            <AuthNav />
+          </div>
         </div>
       </div>
     </nav>
