@@ -1,51 +1,83 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import {
   getPortfolio,
   getMembers,
   getLeaderboard,
   PHASE_META,
+  type MembersResponse,
+  type LeaderboardResponse,
+  type PortfolioResponse,
 } from "@/lib/api";
 
-export const revalidate = 60;
+export default function HomePage() {
+  const [data, setData] = useState<{
+    portfolio: PortfolioResponse | null;
+    members: MembersResponse | null;
+    leaderboard: LeaderboardResponse | null;
+  } | null>(null);
+  useEffect(() => {
+    Promise.allSettled([
+      getPortfolio(),
+      getMembers(),
+      getLeaderboard(),
+    ]).then(([portfolio, members, leaderboard]) => {
+      setData({
+        portfolio: portfolio.status === "fulfilled" ? portfolio.value : null,
+        members: members.status === "fulfilled" ? members.value : null,
+        leaderboard: leaderboard.status === "fulfilled" ? leaderboard.value : null,
+      });
+    });
+  }, []);
 
-export default async function HomePage() {
-  const [portfolio, members, leaderboard] = await Promise.allSettled([
-    getPortfolio(),
-    getMembers(),
-    getLeaderboard(),
-  ]);
+  const portfolioData = data?.portfolio ?? null;
+  const membersResponse = data?.members ?? null;
+  const leaderboardResponse = data?.leaderboard ?? null;
 
-  const portfolioData =
-    portfolio.status === "fulfilled" ? portfolio.value : null;
-  const membersData = members.status === "fulfilled" ? members.value : null;
-  const leaderboardData =
-    leaderboard.status === "fulfilled" ? leaderboard.value : null;
+  const membersData = (membersResponse?.members ?? []);
+  const leaderboardData = (leaderboardResponse?.leaderboard ?? []);
 
-  const phase = portfolioData?.phase ?? "BUILD";
+  const phase = (portfolioData?.phase ?? "BUILD") as keyof typeof PHASE_META;
   const phaseMeta = PHASE_META[phase];
   const totalSubmissions = Object.values(
     portfolioData?.published ?? {},
   ).flat().length;
-  const totalMembers = membersData?.members.length ?? 0;
-  const top3 = leaderboardData?.leaderboard.slice(0, 3) ?? [];
+  const totalMembers = membersData.length ?? 0;
+  const top3 = leaderboardData.slice(0, 3) ?? [];
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
+  };
 
   return (
     <>
-      <section
-        className="section grid-bg"
-        style={{ minHeight: "60vh", display: "flex", alignItems: "center" }}
+      <motion.section
+        className="section grid-bg flex min-h-hero items-center"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
       >
         <div className="container">
-          <div style={{ maxWidth: "720px" }}>
-            <div
-              className="fade-up"
-              style={{
-                marginBottom: "1.5rem",
-                display: "flex",
-                gap: "1rem",
-                alignItems: "center",
-              }}
-            >
+          <div className="max-w-[720px]">
+            <div className="fade-up mb-4 sm:mb-6 flex gap-4 items-center">
               <span
                 className="phase-badge"
                 style={{
@@ -60,72 +92,46 @@ export default async function HomePage() {
                 />
                 {phaseMeta.label}
               </span>
-              <span className="mono dim">{phaseMeta.description}</span>
+              <span className="mono dim text-xs sm:text-sm">{phaseMeta.description}</span>
             </div>
 
-            <h1
-              className="fade-up fade-up-1"
-              style={{
-                fontSize: "clamp(2.5rem, 7vw, 5rem)",
-                marginBottom: "1.5rem",
-              }}
-            >
+            <h1 className="fade-up fade-up-1 text-3xl sm:text-4xl lg:text-5xl xl:text-6xl mb-4 sm:mb-6">
               Build. Ship.{" "}
-              <span style={{ color: "var(--accent)", display: "block" }}>
+              <span className="text-[var(--accent)] block">
                 Get seen.
               </span>
             </h1>
 
-            <p
-              className="fade-up fade-up-2"
-              style={{
-                fontSize: "1.1rem",
-                color: "var(--text-dim)",
-                maxWidth: "540px",
-                marginBottom: "2.5rem",
-                lineHeight: "1.7",
-              }}
-            >
-              Monthly build challenges for Kosovo &amp; Albanian developers.
-              Submit your projects, earn XP, and build a portfolio that speaks
-              for itself.
+            <p className="fade-up fade-up-2 text-base sm:text-lg text-white/60 max-w-[540px] mb-6 sm:mb-8 lg:mb-10 leading-relaxed">
+              Monthly build challenges for developers worldwide. Submit your projects, earn XP, and build a portfolio that speaks for itself.
             </p>
 
-            <div
-              className="fade-up fade-up-3"
-              style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}
-            >
+            <div className="fade-up fade-up-3 flex gap-3 sm:gap-4 flex-wrap">
               <a
-                href="https://discord.gg/YOUR_INVITE"
+                href="https://discord.gg/hackandstack"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-primary"
               >
                 Join the Discord →
               </a>
-              <Link href="/projects" className="btn">
+              <Link href="/hackers" className="btn">
                 View Projects
               </Link>
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section
-        style={{
-          borderTop: "1px solid var(--border)",
-          borderBottom: "1px solid var(--border)",
-          padding: "2rem 0",
-        }}
+      <motion.section
+        className="border-t border-b border-[var(--border)] py-6 sm:py-8"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
       >
         <div className="container">
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-              gap: "2rem",
-            }}
-          >
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             <div className="stat-block">
               <span className="value">{totalMembers}</span>
               <span className="label">Members</span>
@@ -148,95 +154,64 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="section">
+      <motion.section
+        className="section"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
         <div className="container">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-end",
-              marginBottom: "2rem",
-            }}
-          >
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-6 sm:mb-8 lg:mb-10 gap-4">
             <div>
-              <p
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.72rem",
-                  color: "var(--accent)",
-                  letterSpacing: "0.15em",
-                  textTransform: "uppercase",
-                  marginBottom: "0.5rem",
-                }}
-              >
+              <p className="mono text-[0.7rem] text-[var(--accent)] tracking-wider uppercase mb-2">
                 Recent
               </p>
-              <h2 style={{ fontSize: "2rem" }}>Latest Projects</h2>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">Latest Projects</h2>
             </div>
-            <Link href="/projects" className="btn">
+            <Link href="/hackers" className="btn whitespace-nowrap">
               All projects →
             </Link>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-              gap: "1rem",
-            }}
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
           >
             {Object.entries(portfolioData?.published ?? {})
-              .flatMap(([, subs]) => subs)
+              .flatMap(([, subs]) => subs as any[])
               .slice(0, 6)
-              .map((sub) => (
-                <article
+              .map((sub: any) => (
+                <motion.article
                   key={sub.id}
-                  className="card card-lift"
-                  style={{ padding: "1.5rem" }}
+                  className="card card-lift p-4 sm:p-5 lg:p-6"
+                  variants={itemVariants}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      marginBottom: "0.75rem",
-                    }}
-                  >
-                    <span className="tag tag-accent">{sub.tier}</span>
-                    <span className="mono dim" style={{ fontSize: "0.7rem" }}>
+                  <div className="flex justify-between items-start mb-2 sm:mb-3">
+                    <span className="tag tag-accent text-xs sm:text-sm">{sub.tier}</span>
+                    <span className="mono dim text-[0.65rem] sm:text-xs">
                       {sub.month}
                     </span>
                   </div>
-                  <h3 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>
+                  <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3">
                     {sub.title}
                   </h3>
-                  <p
-                    style={{
-                      color: "var(--text-dim)",
-                      fontSize: "0.875rem",
-                      lineHeight: "1.6",
-                      marginBottom: "1.25rem",
-                    }}
-                  >
+                  <p className="text-white/60 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
                     {sub.description.slice(0, 120)}
                     {sub.description.length > 120 ? "…" : ""}
                   </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <div className="flex justify-between items-center gap-2">
+                    <div className="flex gap-2">
                       <a
                         href={sub.repoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn"
-                        style={{ fontSize: "0.72rem", padding: "0.3rem 0.7rem" }}
+                        className="btn text-[0.65rem] sm:text-xs py-1 px-2"
                       >
                         Repo
                       </a>
@@ -245,23 +220,19 @@ export default async function HomePage() {
                           href={sub.demoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="btn"
-                          style={{
-                            fontSize: "0.72rem",
-                            padding: "0.3rem 0.7rem",
-                          }}
+                          className="btn text-[0.65rem] sm:text-xs py-1 px-2"
                         >
                           Demo
                         </a>
                       )}
                     </div>
-                    <span className="mono dim" style={{ fontSize: "0.72rem" }}>
+                    <span className="mono dim text-[0.65rem] sm:text-xs whitespace-nowrap">
                       ▲ {sub.votes}
                     </span>
                   </div>
-                </article>
+                </motion.article>
               ))}
-          </div>
+          </motion.div>
 
           {totalSubmissions === 0 && (
             <div className="empty-state">
@@ -272,108 +243,82 @@ export default async function HomePage() {
             </div>
           )}
         </div>
-      </section>
+      </motion.section>
 
       {top3.length > 0 && (
-        <section
-          className="section"
-          style={{
-            background: "var(--bg-card)",
-            borderTop: "1px solid var(--border)",
-            borderBottom: "1px solid var(--border)",
-          }}
+        <motion.section
+          className="section bg-[var(--bg-card)] border-t border-b border-[var(--border)]"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
         >
           <div className="container">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-end",
-                marginBottom: "2rem",
-              }}
-            >
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-6 sm:mb-8 lg:mb-10 gap-4">
               <div>
-                <p
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.72rem",
-                    color: "var(--accent-2)",
-                    letterSpacing: "0.15em",
-                    textTransform: "uppercase",
-                    marginBottom: "0.5rem",
-                  }}
-                >
+                <p className="mono text-[0.7rem] text-[var(--accent-2)] tracking-wider uppercase mb-2">
                   Top builders
                 </p>
-                <h2 style={{ fontSize: "2rem" }}>Leaderboard</h2>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">Leaderboard</h2>
               </div>
-              <Link href="/leaderboard" className="btn">
+              <Link href="/developers" className="btn whitespace-nowrap">
                 Full rankings →
               </Link>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "1rem",
-              }}
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
             >
-              {top3.map((member, i) => {
+              {top3.map((member: any, i: number) => {
                 const medals = ["🥇", "🥈", "🥉"];
                 return (
-                  <div
+                  <motion.div
                     key={member.discordId}
-                    className="card"
-                    style={{
-                      padding: "1.5rem",
-                      display: "flex",
-                      gap: "1rem",
-                      alignItems: "center",
-                    }}
+                    className="card p-4 sm:p-5 lg:p-6 flex gap-4 items-center"
+                    variants={itemVariants}
                   >
-                    <span style={{ fontSize: "1.5rem" }}>{medals[i]}</span>
+                    <span className="text-2xl sm:text-3xl flex-shrink-0">{medals[i]}</span>
                     <div>
-                      <p className="mono" style={{ marginBottom: "0.2rem" }}>
+                      <p className="mono text-xs sm:text-sm mb-1">
                         @{member.discordId.slice(-6)}
                       </p>
-                      <p style={{ color: "var(--accent)", fontWeight: 700 }}>
+                      <p className="text-[var(--accent)] font-bold text-sm sm:text-base">
                         {member.points} XP
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
       )}
 
-      <section className="section">
+      <motion.section
+        className="section"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
         <div className="container">
-          <p
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.72rem",
-              color: "var(--accent)",
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              marginBottom: "0.75rem",
-            }}
-          >
+          <p className="mono text-[0.7rem] text-[var(--accent)] tracking-wider uppercase mb-2 sm:mb-3">
             The loop
           </p>
-          <h2 style={{ fontSize: "2rem", marginBottom: "3rem" }}>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-8 sm:mb-10 lg:mb-12">
             How It Works
           </h2>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-              gap: "1px",
-              background: "var(--border)",
-            }}
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--border)]"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
           >
             {[
               {
@@ -397,37 +342,25 @@ export default async function HomePage() {
                 body: "On day 30, results go live here. Your project lives permanently in the portfolio.",
               },
             ].map((item) => (
-              <div
+              <motion.div
                 key={item.step}
-                style={{ background: "var(--bg)", padding: "2rem 1.5rem" }}
+                className="bg-[var(--bg)] p-4 sm:p-5 lg:p-6"
+                variants={itemVariants}
               >
-                <p
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.72rem",
-                    color: "var(--text-dimmer)",
-                    marginBottom: "0.75rem",
-                  }}
-                >
+                <p className="mono text-[0.65rem] sm:text-xs text-white/40 mb-2 sm:mb-3">
                   {item.step}
                 </p>
-                <h3 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>
+                <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3">
                   {item.title}
                 </h3>
-                <p
-                  style={{
-                    color: "var(--text-dim)",
-                    fontSize: "0.875rem",
-                    lineHeight: "1.7",
-                  }}
-                >
+                <p className="text-white/60 text-xs sm:text-sm leading-relaxed">
                   {item.body}
                 </p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
     </>
   );
 }

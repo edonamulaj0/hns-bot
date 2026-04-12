@@ -3,13 +3,13 @@ import "./globals.css";
 import { Navbar } from "@/components/navbar";
 
 export const metadata: Metadata = {
-  title: "Hack & Stack — Kosovo Dev Community",
+  title: "H4cknStack — Global Hacker & Developer Community",
   description:
-    "Monthly build challenges, community projects, and developer profiles for the Kosovo & Albanian tech scene.",
+    "Monthly build challenges, community projects, and developer profiles for hackers and developers worldwide.",
   openGraph: {
-    title: "Hack & Stack",
+    title: "H4cknStack",
     description:
-      "Monthly build challenges for the Kosovo & Albanian tech community.",
+      "Monthly build challenges for the global hacker and developer community.",
     type: "website",
   },
 };
@@ -29,19 +29,23 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body>
+      <body style={{ fontFamily: "'Inter', sans-serif" }}>
         <Navbar />
         <main>{children}</main>
         <footer className="footer">
-          <div className="container">
-            <span className="mono dim">
-              © {new Date().getFullYear()} Hack & Stack
+          <div className="container flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span className="mono dim text-sm">
+              © {new Date().getFullYear()} H4cknStack
             </span>
-            <span className="mono dim">Built in Kosovo 🦅</span>
+            <span className="mono dim text-sm">Built by Cyphera</span>
           </div>
         </footer>
       </body>
