@@ -110,12 +110,15 @@ Set at **build time** (and production runtime where applicable):
 
 | Variable | Purpose |
 |----------|---------|
-| `NEXT_PUBLIC_BASE_URL` | Public site origin; server auth fetch uses this for `/auth/me` |
-| `NEXT_PUBLIC_API_URL` or `HNS_WORKER_URL` | Bot Worker origin (no trailing slash). **Required at build** so Next.js emits rewrites from `/hns-api/*` → Worker `/api/*` |
+| `NEXT_PUBLIC_BASE_URL` | Public site origin (no trailing slash). Must match auth Worker `BASE_URL` for OAuth. |
+| `NEXT_PUBLIC_API_URL` or `HNS_WORKER_URL` | Bot Worker origin (no trailing slash). **Required at build** so Next emits rewrites `/hns-api/*` → `/api/*` |
+| `HNS_AUTH_WORKER_URL` | Auth Worker origin (no trailing slash). **Required at build** unless your zone routes `YOUR_DOMAIN/auth/*` straight to the auth Worker. Enables Next rewrites `/auth/*` → the auth Worker (fixes `/auth/login` 404 on Pages-only setups). |
 | `NEXT_PUBLIC_DISCORD_GUILD_ID` | Widget + UI |
 | `NEXT_PUBLIC_DISCORD_CLIENT_ID` | Shown in UI / OAuth hints |
 
-If `NEXT_PUBLIC_API_URL` / `HNS_WORKER_URL` is missing at build, the `/hns-api` rewrites are omitted and API calls from the browser will 404.
+If `NEXT_PUBLIC_API_URL` / `HNS_WORKER_URL` is missing at build, `/hns-api` rewrites are omitted. If `HNS_AUTH_WORKER_URL` is missing **and** `/auth/*` is not routed to the auth Worker, **`/auth/login` returns 404**.
+
+**Local dev:** run the auth Worker on port **8788** (`cd auth && npx wrangler dev --port 8788`) so it does not clash with the bot on **8787**. Next.js defaults `HNS_AUTH_WORKER_URL` to `http://127.0.0.1:8788` in development when unset.
 
 ---
 
@@ -152,9 +155,14 @@ Or use the combined script if configured in `package.json` (`pages:deploy`). The
 
 ## 7. Routing
 
-**Auth** paths (`/auth/login`, `/auth/callback`, `/auth/me`, `/auth/logout`) are requested as **same origin** as the site (`NEXT_PUBLIC_BASE_URL`). You must route them to the **auth Worker**, not to Pages.
+**Auth** paths (`/auth/login`, `/auth/callback`, `/auth/me`, `/auth/logout`) are requested as **same origin** as the site. They must reach the **auth Worker**, not the Next app (which has no `/auth` routes).
 
-Typical Cloudflare setup:
+Pick **one** (or combine zone route + env for SSR):
+
+1. **Worker route (recommended):** e.g. `hns.gg/auth/*` → **hns-auth** Worker (more specific than Pages).
+2. **Next rewrite:** set **`HNS_AUTH_WORKER_URL`** at **Pages build time** so `/auth/*` is proxied to the auth Worker. The auth Worker uses **`BASE_URL`** for Discord `redirect_uri`, so OAuth still matches `https://hns.gg/auth/callback` even when the Worker’s hostname is `*.workers.dev`.
+
+Typical Cloudflare setup with a zone route:
 
 1. Attach the **Pages** project to `hns.gg` (and `www` if used).
 2. Add a **Worker route** with higher specificity, e.g. `hns.gg/auth/*` → **hns-auth** Worker.

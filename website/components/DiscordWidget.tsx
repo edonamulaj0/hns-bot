@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const DISCORD_INVITE = "https://discord.gg/hackandstack";
+const DISCORD_INVITE = "https://discord.gg/xrxTUsgdv9";
 
 export function DiscordWidget({ className = "" }: { className?: string }) {
   const guildId = process.env.NEXT_PUBLIC_DISCORD_GUILD_ID?.trim() ?? "";
@@ -50,9 +50,13 @@ export function DiscordWidget({ className = "" }: { className?: string }) {
       <iframe
         title="Discord server widget"
         src={`https://discord.com/widget?id=${encodeURIComponent(guildId)}&theme=dark`}
-        width="100%"
-        height={320}
-        className="w-full border-0 bg-[var(--bg)] min-h-[280px]"
+        width={350}
+        height={500}
+        allowTransparency
+        frameBorder={0}
+        sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+        className="mx-auto block max-w-full border-0 bg-[var(--bg)]"
+        style={{ width: "100%", maxWidth: 350, height: 500 }}
         loading="lazy"
         onError={() => setFailed(true)}
       />

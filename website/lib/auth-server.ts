@@ -4,21 +4,25 @@ import type { SessionUser } from "./auth-shared";
 
 export type { SessionUser };
 
-function authMeBase(): string {
-  return (
-    process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "") ||
-    process.env.NEXT_PUBLIC_AUTH_URL?.replace(/\/$/, "") ||
-    ""
-  );
+/** Where server-side code calls `/auth/me` (cookie header forwarded). Prefer auth Worker URL when set — public URL may not reach the auth Worker during SSR. */
+function authMeUrl(): string | null {
+  const w =
+    process.env.HNS_AUTH_WORKER_URL?.trim().replace(/\/$/, "") ||
+    process.env.NEXT_PUBLIC_AUTH_URL?.trim().replace(/\/$/, "") ||
+    "";
+  if (w && !w.includes("YOUR_SUBDOMAIN")) return `${w}/auth/me`;
+  const site =
+    process.env.NEXT_PUBLIC_BASE_URL?.trim().replace(/\/$/, "") || "";
+  return site ? `${site}/auth/me` : null;
 }
 
 async function loadSession(): Promise<SessionUser | null> {
-  const base = authMeBase();
-  if (!base) return null;
+  const meUrl = authMeUrl();
+  if (!meUrl) return null;
   const h = await headers();
   const cookie = h.get("cookie") ?? "";
   try {
-    const res = await fetch(`${base}/auth/me`, {
+    const res = await fetch(meUrl, {
       headers: { cookie },
       cache: "no-store",
     });

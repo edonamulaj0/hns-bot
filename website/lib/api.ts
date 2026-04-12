@@ -277,7 +277,7 @@ export const PHASE_META: Record<
   },
   VOTE: {
     label: "VOTE PHASE",
-    color: "#8b5cf6",
+    color: "#7c2feb",
     description: "Days 22–25 · Cast your votes",
   },
   REVIEW: {

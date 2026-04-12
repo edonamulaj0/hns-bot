@@ -12,10 +12,10 @@
   --text: #FFFFFF;
   --text-dim: #888888;
   --text-dimmer: #666666;
-  --accent: #CCFF00;       /* Electric Lime / Volt */
-  --accent-dim: #99cc00;
-  --accent-2: #CCFF00;     /* Volt */
-  --accent-3: #CCFF00;     /* Volt */
+  --accent: #7c2feb;
+  --accent-dim: #5b21b6;
+  --accent-2: #9333ea;
+  --accent-3: #a78bfa;
   --font-display: 'Space Grotesk', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
@@ -168,14 +168,14 @@ h1, h2, h3, h4 {
 .btn-primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #000;
+  color: #fff;
   font-weight: 700;
 }
 
 .btn-primary:hover {
-  background: #BBEE00;
-  border-color: #BBEE00;
-  color: #000;
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+  color: #fff;
 }
 
 .btn-outline {

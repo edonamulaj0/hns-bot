@@ -39,7 +39,7 @@ export function AmbientBackground() {
       <motion.div
         className="absolute top-[10%] left-[10%] w-[600px] h-[600px] rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(204,255,0,0.03) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(124,47,235,0.06) 0%, transparent 70%)",
         }}
         animate={{
           x: ["-8vw", "8vw", "-8vw"],
@@ -57,7 +57,7 @@ export function AmbientBackground() {
       <motion.div
         className="absolute bottom-[10%] right-[10%] w-[600px] h-[600px] rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(204,255,0,0.03) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(124,47,235,0.06) 0%, transparent 70%)",
           y: y2,
         }}
         animate={{

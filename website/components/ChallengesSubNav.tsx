@@ -27,7 +27,7 @@ export function ChallengesSubNav() {
               href={l.href}
               className={`rounded px-2 py-1.5 font-display no-underline transition-colors ${
                 active
-                  ? "text-[var(--accent)] border border-[rgba(204,255,0,0.25)] bg-[rgba(204,255,0,0.06)]"
+                  ? "text-[var(--accent)] border border-[rgba(124,47,235,0.25)] bg-[rgba(124,47,235,0.06)]"
                   : "text-white/50 hover:text-white/90"
               }`}
             >

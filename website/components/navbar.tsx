@@ -78,7 +78,7 @@ export function Navbar() {
                 href={link.href}
                 className={`rounded px-3 py-2.5 font-display text-sm no-underline transition-colors md:py-1.5 ${
                   active
-                    ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
+                    ? "border border-[rgba(124,47,235,0.35)] bg-[rgba(124,47,235,0.1)] text-[var(--accent)]"
                     : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
                 }`}
               >
@@ -90,7 +90,7 @@ export function Navbar() {
             href={`/vote/${voteMonth}`}
             className={`rounded px-3 py-2.5 font-display text-sm no-underline transition-colors md:py-1.5 ${
               pathname.startsWith("/vote/")
-                ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
+                ? "border border-[rgba(124,47,235,0.35)] bg-[rgba(124,47,235,0.1)] text-[var(--accent)]"
                 : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
             }`}
           >

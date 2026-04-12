@@ -20,18 +20,37 @@ function workerBaseUrl(): string | null {
   return base;
 }
 
+/** Auth Worker (separate from bot). Proxies /auth/* so /auth/login is not a 404 on the Next app. */
+function authWorkerBaseUrl(): string | null {
+  const raw = process.env.HNS_AUTH_WORKER_URL?.trim() || "";
+  const base = raw.replace(/\/$/, "");
+  if (base && !base.includes("YOUR_SUBDOMAIN")) return base;
+  if (process.env.NODE_ENV === "development") {
+    return "http://127.0.0.1:8788";
+  }
+  return null;
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: path.join(__dirname, ".."),
   async rewrites() {
     const worker = workerBaseUrl();
-    if (!worker) return [];
-    return [
-      {
+    const auth = authWorkerBaseUrl();
+    const rules: { source: string; destination: string }[] = [];
+    if (worker) {
+      rules.push({
         source: "/hns-api/:path*",
         destination: `${worker}/api/:path*`,
-      },
-    ];
+      });
+    }
+    if (auth) {
+      rules.push({
+        source: "/auth/:path*",
+        destination: `${auth}/auth/:path*`,
+      });
+    }
+    return rules;
   },
 };
 

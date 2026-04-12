@@ -123,7 +123,7 @@ export default async function JoinPage({
                     </div>
                     <div className="card p-4 sm:p-5">
                       <p className="text-xl mb-2">🔐</p>
-                      <h3 className="font-bold text-[#ed4245] mb-2">Hacker Track</h3>
+                      <h3 className="font-bold text-[var(--accent)] mb-2">Hacker Track</h3>
                       <p className="text-sm text-white/60 leading-relaxed">
                         2-week cycles. CTF writeups, security tool builds, vulnerability research. Submit with{" "}
                         <code className="mono text-[var(--accent)]">/submit —track hacker</code>.

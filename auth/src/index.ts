@@ -120,6 +120,11 @@ function parseCookies(h: string | null): Record<string, string> {
   return out;
 }
 
+/** Public site origin for OAuth redirect_uri (must match Discord app URLs, not the Worker’s hostname when proxied). */
+function publicOrigin(env: Env, url: URL): string {
+  return env.BASE_URL.replace(/\/$/, "") || url.origin;
+}
+
 function cookieAttrs(env: Env, url: URL, maxAge: number, clear = false): string {
   const secure = url.protocol === "https:";
   const domain = env.COOKIE_DOMAIN?.trim();
@@ -214,7 +219,7 @@ export default {
     let path = url.pathname;
     if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
 
-    const allowOrigin = env.BASE_URL.replace(/\/$/, "") || url.origin;
+    const allowOrigin = publicOrigin(env, url);
     const corsJson = (body: unknown, status = 200) =>
       new Response(JSON.stringify(body), {
         status,
@@ -256,7 +261,7 @@ export default {
             },
           });
         }
-        const redirectUri = `${url.origin}/auth/callback`;
+        const redirectUri = `${publicOrigin(env, url)}/auth/callback`;
         let access: string;
         let expiresIn: number;
         try {
