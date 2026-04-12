@@ -16,11 +16,13 @@ model User {
   points       Int          @default(0)
   rank         Int          @default(0)
   lastPulseMonth String?    // Tracks if user has run /pulse this month (dedup)
+  profileCompletedAt DateTime? // Set once on first /setup-profile save; canonical "has profile"
   submissions  Submission[]
   blogs        Blog[]
-  votes        Vote[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+
+  @@index([profileCompletedAt])
 }
 
 model Submission {
@@ -38,11 +40,12 @@ model Submission {
   track          String  @default("DEVELOPER") // "DEVELOPER" | "HACKER"
   challengeType  String? // For hacker submissions: "CTF_WRITEUP" | "TOOL_BUILD" | "VULN_RESEARCH" | "REDTEAM"
   qualityWeight Float   @default(1.0) // Admin-settable quality modifier (0.5=superficial, 1.0=default, 1.5=exceptional)
+  attachmentUrl String? // Discord CDN URL for optional PDF/.txt/.md (URLs expire — re-upload to R2 recommended)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  votes      Vote[]  // Inverse relation for Vote model
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voteRecords Vote[]
 
   @@unique([userId, month, title])
   @@index([month, isApproved])
@@ -53,11 +56,26 @@ model Blog {
   userId    String
   title     String
   url       String
+  content   String?  // Raw markdown from uploaded .txt / .md (optional)
   upvotes   Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Slash-command attachment carried across to modal submit (modal interaction has no command options)
+model PendingDiscordAttachment {
+  discordUserId String
+  kind          String // "submit" | "share_blog"
+  url           String
+  filename      String?
+  contentType   String?
+  size          Int?
+  expiresAt     DateTime
+
+  @@id([discordUserId, kind])
+  @@index([expiresAt])
 }
 
 // Vote model for submission voting (prevents duplicate votes)

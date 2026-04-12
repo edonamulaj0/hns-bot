@@ -66,6 +66,7 @@ export interface Submission {
   tier: string;
   repoUrl: string;
   demoUrl: string | null;
+  attachmentUrl?: string | null;
   votes: number;
   month: string;
   user: MemberSummary;
@@ -97,6 +98,8 @@ export interface Blog {
   id: string;
   title: string;
   url: string;
+  /** Up to 500 chars excerpt when sourced from uploaded markdown */
+  content?: string | null;
   upvotes: number;
   createdAt: string;
   user: { discordId: string; github: string | null };

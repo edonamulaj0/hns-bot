@@ -7,6 +7,19 @@ import { getBlogs, type Blog } from "@/lib/api";
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const STAGGER_MS = 0.08;
 
+function hasUploadedContent(b: Blog): boolean {
+  return Boolean(b.content?.trim());
+}
+
+/** First ~200 chars for card preview when API returned truncated `content`. */
+function blogCardExcerpt(b: Blog): string | null {
+  const raw = b.content?.trim();
+  if (!raw) return null;
+  const normalized = raw.replace(/\s+/g, " ");
+  if (normalized.length <= 200) return normalized;
+  return `${normalized.slice(0, 200)}…`;
+}
+
 function relativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -60,7 +73,8 @@ export default function BlogPage() {
       list = list.filter(
         (b) =>
           b.title.toLowerCase().includes(q) ||
-          b.user.discordId.toLowerCase().includes(q),
+          b.user.discordId.toLowerCase().includes(q) ||
+          (b.content ?? "").toLowerCase().includes(q),
       );
     }
 
@@ -78,6 +92,7 @@ export default function BlogPage() {
 
   const hero = filtered[0] ?? null;
   const rest = filtered.slice(1);
+  const heroExcerpt = hero ? blogCardExcerpt(hero) : null;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -139,8 +154,13 @@ export default function BlogPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, ease: EASE_OUT }}
                 >
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
                     <span className="tag tag-accent text-[0.65rem]">Featured</span>
+                    {hasUploadedContent(hero) && (
+                      <span className="tag text-[0.65rem] border border-[var(--border)] bg-transparent text-white/70">
+                        Markdown
+                      </span>
+                    )}
                     {hero.createdAt && (
                       <span className="mono dim text-[0.65rem]">{relativeTime(hero.createdAt)}</span>
                     )}
@@ -148,6 +168,11 @@ export default function BlogPage() {
                   <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 leading-tight">
                     {hero.title}
                   </h2>
+                  {heroExcerpt && (
+                    <p className="text-sm text-white/55 mb-4 leading-relaxed line-clamp-4">
+                      {heroExcerpt}
+                    </p>
+                  )}
                   <div className="flex items-center gap-4">
                     <span className="mono text-xs text-white/60">
                       @{hero.user.discordId.slice(-8)}
@@ -155,7 +180,9 @@ export default function BlogPage() {
                     <span className="mono text-xs text-[var(--accent)] font-bold">
                       ▲ {hero.upvotes}
                     </span>
-                    <span className="mono text-xs text-white/40 ml-auto">↗ Read article</span>
+                    <span className="mono text-xs text-white/40 ml-auto">
+                      {hasUploadedContent(hero) ? "Read" : "↗ Read article"}
+                    </span>
                   </div>
                 </motion.a>
               )}
@@ -202,7 +229,10 @@ export default function BlogPage() {
                   animate="visible"
                   key={`${search}-${sortBy}`}
                 >
-                  {rest.map((blog) => (
+                  {rest.map((blog) => {
+                    const excerpt = blogCardExcerpt(blog);
+                    const uploaded = hasUploadedContent(blog);
+                    return (
                     <motion.a
                       key={blog.id}
                       href={blog.url}
@@ -211,10 +241,22 @@ export default function BlogPage() {
                       className="card card-lift p-4 sm:p-5 no-underline text-[var(--text)] flex flex-col"
                       variants={itemVariants}
                     >
-                      <h3 className="text-base sm:text-lg font-bold mb-3 leading-tight flex-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        {uploaded && (
+                          <span className="tag text-[0.6rem] border border-[var(--border)] bg-transparent text-white/70 shrink-0">
+                            Markdown
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-base sm:text-lg font-bold mb-2 leading-tight flex-1">
                         {blog.title}
                       </h3>
-                      <div className="flex items-center justify-between gap-2 pt-3 border-t border-[var(--border)]">
+                      {excerpt && (
+                        <p className="text-xs text-white/50 mb-3 leading-relaxed line-clamp-3">
+                          {excerpt}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between gap-2 pt-3 border-t border-[var(--border)] mt-auto">
                         <span className="mono text-[0.65rem] text-white/60">
                           @{blog.user.discordId.slice(-8)}
                         </span>
@@ -227,10 +269,14 @@ export default function BlogPage() {
                               {relativeTime(blog.createdAt)}
                             </span>
                           )}
+                          <span className="mono text-[0.6rem] text-white/40">
+                            {uploaded ? "Read" : "↗ Read article"}
+                          </span>
                         </div>
                       </div>
                     </motion.a>
-                  ))}
+                    );
+                  })}
                 </motion.div>
               )}
             </>

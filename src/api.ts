@@ -67,6 +67,7 @@ async function portfolioResponse(
       description: item.description,
       repoUrl: item.repoUrl,
       demoUrl: item.demoUrl,
+      attachmentUrl: item.attachmentUrl,
       votes: item.votes,
       month: item.month,
       user: item.user,
@@ -80,6 +81,14 @@ async function portfolioResponse(
 
 async function membersResponse(prisma: PrismaClient): Promise<Response> {
   const members = await prisma.user.findMany({
+    where: {
+      OR: [
+        { profileCompletedAt: { not: null } },
+        { bio: { not: null } },
+        { github: { not: null } },
+        { linkedin: { not: null } },
+      ],
+    },
     select: {
       discordId: true,
       bio: true,
@@ -122,13 +131,23 @@ async function leaderboardResponse(prisma: PrismaClient): Promise<Response> {
 }
 
 async function blogsResponse(prisma: PrismaClient): Promise<Response> {
-  const blogs = await prisma.blog.findMany({
+  const rows = await prisma.blog.findMany({
     include: {
       user: { select: { discordId: true, github: true } },
     },
     orderBy: [{ upvotes: "desc" }, { createdAt: "desc" }],
     take: 100,
   });
+
+  const blogs = rows.map((b) => ({
+    id: b.id,
+    title: b.title,
+    url: b.url,
+    upvotes: b.upvotes,
+    createdAt: b.createdAt,
+    user: b.user,
+    content: b.content ? b.content.slice(0, 500) : null,
+  }));
 
   return corsJson({ blogs });
 }

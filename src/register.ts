@@ -1,4 +1,4 @@
-import { Command, register } from "discord-hono";
+import { Command, Option, register } from "discord-hono";
 import dotenv from "dotenv";
 import process from "node:process";
 
@@ -19,8 +19,20 @@ async function main() {
 
   const commands = [
     new Command("setup-profile", "Set up your developer portfolio profile"),
-    new Command("submit", "Submit a project for the monthly challenge (days 1–21 only)"),
-    new Command("share-blog", "Share a technical blog post or article"),
+    new Command("update-profile", "Update your existing developer profile"),
+    new Command("profile", "View a member portfolio profile").options(
+      new Option("user", "Member to view (optional — defaults to you)", "User"),
+    ),
+    new Command("submit", "Submit your monthly project").options(
+      new Option(
+        "attachment",
+        "PDF writeup or supporting document (optional)",
+        "Attachment",
+      ),
+    ),
+    new Command("share-blog", "Share a technical blog post or article").options(
+      new Option("file", "Upload a .txt or .md markdown article (optional)", "Attachment"),
+    ),
     new Command("pulse", "Sync your GitHub activity and earn XP (once per month)"),
     new Command("leaderboard", "See the top contributors this month"),
   ];

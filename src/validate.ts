@@ -86,6 +86,65 @@ export function validateUrl(url: string | undefined, fieldName: string): Validat
   }
 }
 
+/** True if host is medium.com or *.medium.com */
+export function isMediumHostname(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  return h === "medium.com" || h.endsWith(".medium.com");
+}
+
+/**
+ * Article URL for /share-blog: must be valid https URL; Medium hosts are explicitly supported.
+ */
+export function validateShareBlogArticleUrl(url: string | undefined): ValidationError | null {
+  if (!url?.trim()) {
+    return { field: "url", message: "Enter an article URL or upload a .txt/.md file." };
+  }
+  try {
+    const u = new URL(url.trim());
+    if (u.protocol !== "https:" && u.protocol !== "http:") {
+      return { field: "url", message: "URL must start with http:// or https://" };
+    }
+    return null;
+  } catch {
+    return { field: "url", message: "Please enter a valid URL" };
+  }
+}
+
+/** Derive a title from the last path segment of a Medium-style URL slug. */
+export function titleFromMediumOrArticleUrl(url: string): string | null {
+  try {
+    const u = new URL(url.trim());
+    const parts = u.pathname.split("/").filter(Boolean);
+    const slug = parts[parts.length - 1];
+    if (!slug) return null;
+    return humanizeSlug(slug);
+  } catch {
+    return null;
+  }
+}
+
+function humanizeSlug(slug: string): string {
+  const decoded = decodeURIComponent(slug.replace(/\+/g, " "));
+  return decoded
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export function titleFromMarkdownFirstHeading(markdown: string, fallbackTitle: string): string {
+  const m = markdown.match(/^\s*#\s+(.+)$/m);
+  if (m?.[1]) return m[1].trim().slice(0, 200);
+  return fallbackTitle.slice(0, 200);
+}
+
+export function humanizeFilenameBase(filename: string): string {
+  const base = filename.replace(/^.*[/\\]/, "").replace(/\.[^.]+$/, "");
+  const spaced = base.replace(/[-_]+/g, " ").trim();
+  if (!spaced) return "Article";
+  return spaced.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 /**
  * Validates a tier enum value.
  * Returns error message if invalid.

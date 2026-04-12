@@ -7,10 +7,28 @@ import { getPrisma } from "../db";
 import { getMonthlyPhase, monthKey, getHackerPhase, isHackerSubmissionOpen } from "../time";
 import { extractModalFields, getDiscordUserId } from "./helpers";
 import { validateTier, validateChallengeType, validateUrl } from "../validate";
+import { getCommandAttachment, validateSubmitAttachment } from "../discord-attachments";
+import { putPendingAttachment, takePendingAttachment } from "../pending-attachment";
 
 export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
   return app
     .command("submit", async (c) => {
+      const discordId = getDiscordUserId(c.interaction);
+      if (!discordId) return c.res("Could not detect your Discord ID.");
+
+      const cmdAtt = getCommandAttachment(c.interaction, "attachment");
+      if (cmdAtt) {
+        const attErr = validateSubmitAttachment(cmdAtt);
+        if (attErr) return c.flags("EPHEMERAL").res(attErr);
+        const prisma = getPrisma(c.env.DB);
+        await putPendingAttachment(prisma, discordId, "submit", {
+          url: cmdAtt.url,
+          filename: cmdAtt.filename,
+          contentType: cmdAtt.content_type,
+          size: cmdAtt.size,
+        });
+      }
+
       const devPhase = getMonthlyPhase();
       const hackerOpen = isHackerSubmissionOpen();
       const devOpen = devPhase === "BUILD";
@@ -52,7 +70,7 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
     })
 
     .modal("submit-project-modal", async (c) =>
-      c.resDefer(async (ctx) => {
+      c.flags("EPHEMERAL").resDefer(async (ctx) => {
         const prisma = getPrisma(ctx.env.DB);
         const adminChannelId = ctx.env.ADMIN_CHANNEL_ID;
         const discordId = getDiscordUserId(ctx.interaction);
@@ -80,6 +98,24 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
           return;
         }
 
+        const pending = await takePendingAttachment(prisma, discordId, "submit");
+        let attachmentUrl: string | null = null;
+        if (pending) {
+          const reErr = validateSubmitAttachment({
+            id: "",
+            url: pending.url,
+            filename: pending.filename ?? undefined,
+            content_type: pending.contentType ?? undefined,
+            size: pending.size ?? undefined,
+          });
+          if (reErr) {
+            await ctx.followup({ content: reErr, flags: MessageFlags.Ephemeral });
+            return;
+          }
+          // Discord CDN URLs for attachments expire; long-term archive should re-upload to R2 / object storage.
+          attachmentUrl = pending.url;
+        }
+
         try {
           const user = await prisma.user.upsert({
             where: { discordId },
@@ -99,8 +135,24 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
               track: "DEVELOPER",
               isApproved: false,
               votes: 0,
+              attachmentUrl,
             },
           });
+
+          const embedFields: object[] = [
+            { name: "Track", value: "🛠 Developer", inline: true },
+            { name: "Month", value: submission.month, inline: true },
+            { name: "Tier", value: submission.tier, inline: true },
+            { name: "Repository", value: submission.repoUrl, inline: false },
+            { name: "Demo", value: submission.demoUrl ?? "N/A", inline: false },
+          ];
+          if (submission.attachmentUrl) {
+            embedFields.push({
+              name: "Document",
+              value: submission.attachmentUrl.slice(0, 1024),
+              inline: false,
+            });
+          }
 
           await ctx.rest("POST", $channels$_$messages, [adminChannelId], {
             content: `📬 New submission pending review from <@${discordId}>`,
@@ -109,13 +161,7 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
                 title: submission.title,
                 description: submission.description,
                 color: 0x5865f2,
-                fields: [
-                  { name: "Track", value: "🛠 Developer", inline: true },
-                  { name: "Month", value: submission.month, inline: true },
-                  { name: "Tier", value: submission.tier, inline: true },
-                  { name: "Repository", value: submission.repoUrl, inline: false },
-                  { name: "Demo", value: submission.demoUrl ?? "N/A", inline: false },
-                ],
+                fields: embedFields,
                 footer: { text: `ID: ${submission.id}` },
               },
             ],
@@ -125,7 +171,10 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
             ),
           });
 
-          await ctx.followup("📬 Submission received! It's pending admin review.");
+          await ctx.followup({
+            content: "📬 Submission received! It's pending admin review.",
+            flags: MessageFlags.Ephemeral,
+          });
         } catch (err: any) {
           console.error(err);
           if (err?.code === "P2002") {
@@ -144,7 +193,7 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
     )
 
     .modal("submit-hacker-modal", async (c) =>
-      c.resDefer(async (ctx) => {
+      c.flags("EPHEMERAL").resDefer(async (ctx) => {
         const prisma = getPrisma(ctx.env.DB);
         const adminChannelId = ctx.env.ADMIN_CHANNEL_ID;
         const discordId = getDiscordUserId(ctx.interaction);
@@ -176,6 +225,23 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
         const challengeType = (fields.challenge_type ?? "").trim().toUpperCase();
         const cycleKey = `${currentMonth}-${hackerState.cycle}`;
 
+        const pending = await takePendingAttachment(prisma, discordId, "submit");
+        let attachmentUrl: string | null = null;
+        if (pending) {
+          const reErr = validateSubmitAttachment({
+            id: "",
+            url: pending.url,
+            filename: pending.filename ?? undefined,
+            content_type: pending.contentType ?? undefined,
+            size: pending.size ?? undefined,
+          });
+          if (reErr) {
+            await ctx.followup({ content: reErr, flags: MessageFlags.Ephemeral });
+            return;
+          }
+          attachmentUrl = pending.url;
+        }
+
         try {
           const user = await prisma.user.upsert({
             where: { discordId },
@@ -198,6 +264,7 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
               challengeType,
               isApproved: false,
               votes: 0,
+              attachmentUrl,
             },
           });
 
@@ -208,6 +275,21 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
             REDTEAM: "🎯 Red Team Simulation",
           };
 
+          const hFields: object[] = [
+            { name: "Track", value: "🔒 Hacker", inline: true },
+            { name: "Cycle", value: `${currentMonth} Cycle ${hackerState.cycle}`, inline: true },
+            { name: "Type", value: typeLabels[challengeType] ?? challengeType, inline: true },
+            { name: "Writeup", value: submission.repoUrl, inline: false },
+            ...(submission.demoUrl ? [{ name: "Repo", value: submission.demoUrl, inline: false }] : []),
+          ];
+          if (submission.attachmentUrl) {
+            hFields.push({
+              name: "Document",
+              value: submission.attachmentUrl.slice(0, 1024),
+              inline: false,
+            });
+          }
+
           await ctx.rest("POST", $channels$_$messages, [adminChannelId], {
             content: `📬 New **Hacker** submission pending review from <@${discordId}>`,
             embeds: [
@@ -215,13 +297,7 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
                 title: submission.title,
                 description: submission.description,
                 color: 0xed4245,
-                fields: [
-                  { name: "Track", value: "🔒 Hacker", inline: true },
-                  { name: "Cycle", value: `${currentMonth} Cycle ${hackerState.cycle}`, inline: true },
-                  { name: "Type", value: typeLabels[challengeType] ?? challengeType, inline: true },
-                  { name: "Writeup", value: submission.repoUrl, inline: false },
-                  ...(submission.demoUrl ? [{ name: "Repo", value: submission.demoUrl, inline: false }] : []),
-                ],
+                fields: hFields,
                 footer: { text: `ID: ${submission.id}` },
               },
             ],
@@ -231,7 +307,10 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
             ),
           });
 
-          await ctx.followup("📬 Hacker submission received! It's pending admin review.");
+          await ctx.followup({
+            content: "📬 Hacker submission received! It's pending admin review.",
+            flags: MessageFlags.Ephemeral,
+          });
         } catch (err: any) {
           console.error(err);
           if (err?.code === "P2002") {

@@ -33,6 +33,14 @@ export function formatTechStackForModal(stored: Prisma.JsonValue | null | undefi
   return "";
 }
 
+/** Stored JSON tech stack → string list */
+export function formatTechStackList(stored: Prisma.JsonValue | null | undefined): string[] {
+  if (stored == null) return [];
+  if (Array.isArray(stored)) return stored.map(String);
+  if (typeof stored === "string") return [stored];
+  return [];
+}
+
 export function truncatePrefill(text: string, maxLen: number): string {
   return text.length <= maxLen ? text : text.slice(0, maxLen);
 }
