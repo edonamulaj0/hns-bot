@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import MembersHub from "./MembersHub";
 
 export const metadata: Metadata = {
-  title: "Members | H4cknStack",
+  title: "Members | H4ck&Stack",
   description:
     "Community profiles, shipped projects, and articles — explore members, tech stacks, and hall of fame winners.",
 };

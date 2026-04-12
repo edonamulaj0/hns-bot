@@ -5,7 +5,7 @@ import ChallengesTrackPage from "../ChallengesTrackPage";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Developer Challenges | H4cknStack",
+  title: "Developer Challenges | H4ck&Stack",
   description: "Monthly developer track briefs — Beginner, Intermediate, and Advanced.",
 };
 

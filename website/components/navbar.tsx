@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AuthNav } from "@/components/AuthNav";
 import { utcMonthKey } from "@/lib/month";
+import { BRAND_LOGO_PNG, BRAND_LOGO_SVG, BRAND_NAME } from "@/lib/branding";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -17,6 +18,29 @@ const NAV_LINKS = [
 function linkActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function NavBrand() {
+  const [step, setStep] = useState<"png" | "svg" | "text">("png");
+  if (step === "text") {
+    return (
+      <span className="font-mono text-lg font-bold tracking-tight text-[var(--accent)]">
+        {BRAND_NAME}
+      </span>
+    );
+  }
+  const src = step === "png" ? BRAND_LOGO_PNG : BRAND_LOGO_SVG;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={BRAND_NAME}
+      width={220}
+      height={40}
+      className="h-8 w-auto max-h-9 max-w-[min(220px,58vw)] object-contain object-left"
+      onError={() => setStep((s) => (s === "png" ? "svg" : "text"))}
+    />
+  );
 }
 
 export function Navbar() {
@@ -33,9 +57,9 @@ export function Navbar() {
       <div className="container flex min-h-[3.5rem] w-full items-center justify-between gap-3 py-2">
         <Link
           href="/"
-          className="font-mono text-lg font-bold tracking-tight text-[var(--accent)] no-underline shrink-0"
+          className="flex items-center no-underline shrink-0 min-w-0"
         >
-          H4cknStack
+          <NavBrand />
         </Link>
 
         <button
@@ -78,7 +102,7 @@ export function Navbar() {
                 href={link.href}
                 className={`rounded px-3 py-2.5 font-display text-sm no-underline transition-colors md:py-1.5 ${
                   active
-                    ? "border border-[rgba(124,47,235,0.35)] bg-[rgba(124,47,235,0.1)] text-[var(--accent)]"
+                    ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
                     : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
                 }`}
               >
@@ -90,7 +114,7 @@ export function Navbar() {
             href={`/vote/${voteMonth}`}
             className={`rounded px-3 py-2.5 font-display text-sm no-underline transition-colors md:py-1.5 ${
               pathname.startsWith("/vote/")
-                ? "border border-[rgba(124,47,235,0.35)] bg-[rgba(124,47,235,0.1)] text-[var(--accent)]"
+                ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
                 : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
             }`}
           >

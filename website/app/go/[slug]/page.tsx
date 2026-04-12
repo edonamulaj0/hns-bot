@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+export const runtime = "edge";
+
 function serverWorkerBase(): string {
   const raw =
     process.env.HNS_WORKER_URL?.trim() ||

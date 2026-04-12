@@ -35,7 +35,7 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
       >
         <div className="container">
           <div className="label">Our Story</div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl mb-3 sm:mb-4 font-bold">About H4cknStack</h1>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl mb-3 sm:mb-4 font-bold">About H4ck&Stack</h1>
           <p className="text-white/60 max-w-[600px] text-sm sm:text-base">
             A community-driven initiative to elevate the global developer ecosystem through collaboration,
             innovation, and continuous learning.
@@ -54,7 +54,7 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
           <div className="max-w-[800px] mx-auto">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Our Mission</h2>
             <p className="text-white/60 mb-6 sm:mb-8 leading-relaxed text-sm sm:text-base">
-              H4cknStack exists to foster a vibrant developer community where talented individuals around the world can
+              H4ck&Stack exists to foster a vibrant developer community where talented individuals around the world can
               collaborate, build innovative projects, and grow together. We believe that by bringing developers together
               through challenges and shared projects, we can accelerate technological progress globally.
             </p>
@@ -101,7 +101,7 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
           <div className="max-w-[800px] mx-auto">
             <div className="leading-relaxed text-white/60 space-y-3 sm:space-y-4 text-xs sm:text-sm">
               <p>
-                H4cknStack began as a passion project from developers who believed that the global tech scene had immense
+                H4ck&Stack began as a passion project from developers who believed that the global tech scene had immense
                 potential. We saw talented developers scattered across the world with limited opportunities to connect
                 and collaborate.
               </p>
@@ -110,7 +110,7 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
                 grew into a thriving community of builders, thinkers, and innovators.
               </p>
               <p>
-                Today, H4cknStack connects hundreds of developers, hosts monthly challenges, and provides a platform for
+                Today, H4ck&Stack connects hundreds of developers, hosts monthly challenges, and provides a platform for
                 ideas to become reality. We&apos;re just getting started, and the best is yet to come.
               </p>
             </div>
@@ -198,7 +198,7 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
         <div className="container">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Built by Cyphera</h2>
           <p className="text-white/60 max-w-[600px] mx-auto text-xs sm:text-sm">
-            H4cknStack is a community project built by developers, for developers. We&apos;re proud to be part of the growing
+            H4ck&Stack is a community project built by developers, for developers. We&apos;re proud to be part of the growing
             global tech ecosystem.
           </p>
         </div>

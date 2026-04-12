@@ -10,7 +10,7 @@ export function registerDeleteAccount(app: DiscordHono<HonoWorkerEnv>) {
     .command("delete-account", async (c) => {
       return c.flags("EPHEMERAL").res({
         content:
-          "This **permanently** deletes your H4cknStack account and all submissions, votes, enrollments, and blogs. This cannot be undone.\n\nYou can also delete from the website: **Profile → Danger zone**.",
+          "This **permanently** deletes your H4ck&Stack account and all submissions, votes, enrollments, and blogs. This cannot be undone.\n\nYou can also delete from the website: **Profile → Danger zone**.",
         components: new Components().row(
           new Button("delete_account_confirm", "Yes, delete my account", "Danger"),
         ),

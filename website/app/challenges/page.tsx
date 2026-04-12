@@ -152,7 +152,7 @@ export default function ChallengesPage() {
                     style={{
                       background: "rgba(237,66,69,0.1)",
                       borderColor: "rgba(237,66,69,0.3)",
-                      color: "#7c2feb",
+                      color: "#ccff00",
                     }}
                   >
                     {t}
@@ -220,7 +220,7 @@ export default function ChallengesPage() {
                 className="btn w-fit"
                 style={{
                   borderColor: "rgba(237,66,69,0.4)",
-                  color: "#7c2feb",
+                  color: "#ccff00",
                 }}
               >
                 View challenges →

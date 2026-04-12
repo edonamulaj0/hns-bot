@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — H4cknStack",
+  title: "Privacy Policy — H4ck&Stack",
 };
 
 export default function PrivacyPage() {
@@ -11,7 +11,7 @@ export default function PrivacyPage() {
       <p className="label">Legal</p>
       <h1 className="text-3xl sm:text-4xl font-bold mb-8">Privacy Policy</h1>
       <p className="text-white/60 text-sm mb-10">
-        Last updated: April 12, 2026. This policy describes how H4cknStack collects and uses data
+        Last updated: April 12, 2026. This policy describes how H4ck&Stack collects and uses data
         when you use our website, Discord OAuth sign-in, and related services.
       </p>
 

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+export const runtime = "edge";
 import {
   getPortfolio,
   PHASE_META,
@@ -20,7 +22,7 @@ export async function generateMetadata({
   params: Promise<{ month: string }>;
 }) {
   const { month } = await params;
-  return { title: `${month} — Challenges — H4cknStack` };
+  return { title: `${month} — Challenges — H4ck&Stack` };
 }
 
 export default async function ChallengeMonthPage({

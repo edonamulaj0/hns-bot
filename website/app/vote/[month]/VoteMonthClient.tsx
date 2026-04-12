@@ -124,7 +124,7 @@ export function VoteMonthClient({ month }: { month: string }) {
       <section className="section flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4 max-w-lg mx-auto text-center">
         <h1 className="text-2xl font-bold">Vote — {month}</h1>
         <p className="text-white/60 text-sm">
-          Your Discord account is signed in, but we could not verify membership in the H4cknStack server.
+          Your Discord account is signed in, but we could not verify membership in the H4ck&Stack server.
           Join the server, then try again.
         </p>
         <a href={notMemberUrl} className="btn btn-primary">

@@ -32,7 +32,7 @@ async function main() {
     new Command("enroll", "Enroll in a monthly challenge before you submit on the web"),
     new Command(
       "delete-account",
-      "Permanently delete your H4cknStack account (same as website danger zone)",
+      "Permanently delete your H4ck&Stack account (same as website danger zone)",
     ),
   ];
 

@@ -2,8 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-
-const BRAND_NAME = "H4cknStack";
+import { BRAND_NAME } from "@/lib/branding";
 const TOTAL_DURATION = 2500; // ms
 
 export function SplashScreen() {
@@ -36,9 +35,9 @@ export function SplashScreen() {
 
   if (!show) return null;
 
-  // Split brand name into characters, highlighting '4' and 'S'
+  // Split brand name into characters, highlighting 4, &, and S
   const characters = BRAND_NAME.split("").map((char, i) => {
-    const isHighlight = char === "4" || char === "S";
+    const isHighlight = char === "4" || char === "S" || char === "&";
     return { char, isHighlight, index: i };
   });
 

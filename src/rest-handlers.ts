@@ -87,7 +87,7 @@ async function validateRepoReachable(urlStr: string): Promise<boolean> {
       method: "HEAD",
       redirect: "follow",
       signal: ctrl.signal,
-      headers: { "User-Agent": "H4cknStack-Bot/1.0" },
+      headers: { "User-Agent": "H4ck&Stack-Bot/1.0" },
     });
     clearTimeout(t);
     return res.ok || res.status === 405 || res.status === 403;

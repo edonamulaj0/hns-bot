@@ -112,7 +112,7 @@ export function OpenStatsPanel({ data }: { data: AboutStatsPayload }) {
         </div>
 
         {data.topUser && (
-          <div className="card p-6 border-[var(--accent)]/35 bg-[rgba(124,47,235,0.06)]">
+          <div className="card p-6 border-[var(--accent)]/35 bg-[rgba(204,255,0,0.04)]">
             <p className="mono text-[0.65rem] text-[var(--accent)] uppercase tracking-wider mb-2">
               Top contributor (all-time XP)
             </p>

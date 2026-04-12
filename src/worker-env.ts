@@ -2,7 +2,7 @@ import type { D1Database } from "@cloudflare/workers-types";
 
 export type WorkerBindings = {
   DB: D1Database;
-  /** Public website origin (no trailing slash), e.g. https://hns.gg — used in Discord + cron copy. */
+  /** Public website origin (no trailing slash), e.g. https://h4cknstack.com — used in Discord + cron copy. */
   BASE_URL?: string;
   /** Same secret as auth Worker; verifies `hns_session` and decrypts stored Discord tokens. */
   SESSION_SECRET?: string;

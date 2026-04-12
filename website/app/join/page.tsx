@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+
+export const runtime = "edge";
 import { DiscordWidget } from "@/components/DiscordWidget";
 
 export const metadata: Metadata = {
-  title: "Join Us | H4cknStack",
+  title: "Join Us | H4ck&Stack",
   description:
-    "Start building with H4cknStack: join Discord, set up your profile, pick a track, and ship your first project.",
+    "Start building with H4ck&Stack: join Discord, set up your profile, pick a track, and ship your first project.",
 };
 
 const DISCORD_INVITE = "https://discord.gg/xrxTUsgdv9";
@@ -39,7 +41,7 @@ export default async function JoinPage({
                 background: "rgba(237,66,69,0.08)",
               }}
             >
-              Sign-in requires membership in the H4cknStack Discord. Join with the link below, then try{" "}
+              Sign-in requires membership in the H4ck&Stack Discord. Join with the link below, then try{" "}
               <strong className="text-white">Sign in with Discord</strong> again.
             </div>
           )}
@@ -55,7 +57,7 @@ export default async function JoinPage({
             </div>
           )}
           <p className="text-base sm:text-lg text-white/65 leading-relaxed mb-8 max-w-2xl">
-            H4cknStack is a global community where developers and security researchers ship real work every month — projects,
+            H4ck&Stack is a global community where developers and security researchers ship real work every month — projects,
             writeups, and tools — and earn XP with a public portfolio on the site. Everything runs through Discord: submissions,
             voting, and feedback, with dedicated spaces for builders and for security-focused work.
           </p>

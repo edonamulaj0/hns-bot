@@ -51,7 +51,7 @@ export default function ActivityPageClient() {
           <p className="label">Community</p>
           <h1 className="mb-3 text-3xl font-bold sm:text-4xl md:text-5xl">Activity</h1>
           <p className="text-white/60 max-w-2xl text-sm sm:text-base">
-            Submissions, articles, and milestones — everything happening across H4cknStack.
+            Submissions, articles, and milestones — everything happening across H4ck&Stack.
           </p>
         </div>
       </section>

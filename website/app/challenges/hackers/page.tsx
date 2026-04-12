@@ -5,7 +5,7 @@ import ChallengesTrackPage from "../ChallengesTrackPage";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Hacker Challenges | H4cknStack",
+  title: "Hacker Challenges | H4ck&Stack",
   description: "Monthly security track briefs — writeups, tools, and research.",
 };
 

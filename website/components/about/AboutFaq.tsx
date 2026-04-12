@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const FAQ: { q: string; a: string }[] = [
   {
-    q: "What is H4cknStack?",
-    a: "H4cknStack is a global community for developers and security researchers. Each month we run structured challenge cycles: a developer track for shipping software projects and a hacker track for security work like CTF writeups, tools, and research. You join on Discord, submit through the bot, vote during the vote window, and see approved work published on this site with XP and rankings.",
+    q: "What is H4ck&Stack?",
+    a: "H4ck&Stack is a global community for developers and security researchers. Each month we run structured challenge cycles: a developer track for shipping software projects and a hacker track for security work like CTF writeups, tools, and research. You join on Discord, submit through the bot, vote during the vote window, and see approved work published on this site with XP and rankings.",
   },
   {
     q: "Who can join?",

@@ -277,6 +277,7 @@ export const PHASE_META: Record<
   },
   VOTE: {
     label: "VOTE PHASE",
+    /** Subtle secondary accent (main brand stays volt green in CSS). */
     color: "#7c2feb",
     description: "Days 22–25 · Cast your votes",
   },

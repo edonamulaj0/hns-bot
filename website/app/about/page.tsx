@@ -3,9 +3,9 @@ import { getAboutStats } from "@/lib/about-stats";
 import AboutClient from "./AboutClient";
 
 export const metadata: Metadata = {
-  title: "About | H4cknStack",
+  title: "About | H4ck&Stack",
   description:
-    "Mission, community stats, and FAQ for H4cknStack — monthly build and security challenges for developers worldwide.",
+    "Mission, community stats, and FAQ for H4ck&Stack — monthly build and security challenges for developers worldwide.",
 };
 
 export const revalidate = 60;

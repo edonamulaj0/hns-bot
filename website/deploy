@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+/**
+ * Entry for `node deploy` (e.g. Cursor deploy) — runs Cloudflare Pages build + deploy.
+ */
+const { spawnSync } = require("node:child_process");
+
+const cwd = __dirname;
+const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+const r = spawnSync(npm, ["run", "pages:deploy"], {
+  cwd,
+  stdio: "inherit",
+  shell: process.platform === "win32",
+});
+process.exit(r.status ?? 1);

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — H4cknStack",
+  title: "Terms of Service — H4ck&Stack",
 };
 
 export default function TermsPage() {
@@ -11,14 +11,14 @@ export default function TermsPage() {
       <p className="label">Legal</p>
       <h1 className="text-3xl sm:text-4xl font-bold mb-8">Terms of Service</h1>
       <p className="text-white/60 text-sm mb-10">
-        Last updated: April 12, 2026. H4cknStack (“we”, “us”) operates the website and Discord
-        community at <span className="mono">hns.gg</span> and related services.
+        Last updated: April 12, 2026. H4ck&Stack (“we”, “us”) operates the website and Discord
+        community at <span className="mono">h4cknstack.com</span> and related services.
       </p>
 
       <section className="space-y-4 mb-10">
-        <h2 className="text-xl font-bold">What H4cknStack is</h2>
+        <h2 className="text-xl font-bold">What H4ck&Stack is</h2>
         <p className="text-white/75 leading-[1.7]">
-          H4cknStack is a volunteer-run community for developers and security researchers. We run
+          H4ck&Stack is a volunteer-run community for developers and security researchers. We run
           monthly build and security-focused challenges, host project submissions and voting, and
           surface member portfolios and writing on our website. The platform includes a Discord
           server, a website, and automation (including bots and APIs) hosted on Cloudflare.
@@ -39,7 +39,7 @@ export default function TermsPage() {
         <h2 className="text-xl font-bold">Your content</h2>
         <p className="text-white/75 leading-[1.7]">
           You retain ownership of submissions, articles, and profile content you provide. By
-          submitting content, you grant H4cknStack a <strong className="text-white">non-exclusive,
+          submitting content, you grant H4ck&Stack a <strong className="text-white">non-exclusive,
           worldwide licence</strong> to host, display, reproduce, and distribute that content on
           the website, in Discord, and in community announcements, for as long as we operate the
           service or until you delete your account (subject to reasonable backup retention).
@@ -70,7 +70,7 @@ export default function TermsPage() {
         <h2 className="text-xl font-bold">Limitation of liability</h2>
         <p className="text-white/75 leading-[1.7]">
           The service is provided <strong className="text-white">“as is”</strong> without
-          warranties of any kind. To the fullest extent permitted by law, H4cknStack and its
+          warranties of any kind. To the fullest extent permitted by law, H4ck&Stack and its
           operators are not liable for indirect, incidental, or consequential damages, or for loss
           of data, profits, or goodwill arising from your use of the community or website.
         </p>

@@ -12,10 +12,12 @@
   --text: #FFFFFF;
   --text-dim: #888888;
   --text-dimmer: #666666;
-  --accent: #7c2feb;
-  --accent-dim: #5b21b6;
-  --accent-2: #9333ea;
-  --accent-3: #a78bfa;
+  --accent: #ccff00;
+  --accent-dim: #99cc00;
+  --accent-2: #ccff00;
+  --accent-3: #ccff00;
+  /** Rare tiny highlights only (e.g. one background orb, vote-phase token) — not main UI chrome */
+  --accent-subtle: #7c2feb;
   --font-display: 'Space Grotesk', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
@@ -168,14 +170,14 @@ h1, h2, h3, h4 {
 .btn-primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: #000;
   font-weight: 700;
 }
 
 .btn-primary:hover {
-  background: var(--accent-2);
-  border-color: var(--accent-2);
-  color: #fff;
+  background: #bbee00;
+  border-color: #bbee00;
+  color: #000;
 }
 
 .btn-outline {

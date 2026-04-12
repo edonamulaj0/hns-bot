@@ -14,7 +14,7 @@ function trackLabel(track: string): string {
 }
 
 function webBase(env: { BASE_URL?: string }): string {
-  return env.BASE_URL?.replace(/\/$/, "") || "https://hns.gg";
+  return env.BASE_URL?.replace(/\/$/, "") || "https://h4cknstack.com";
 }
 
 async function requireProfile(

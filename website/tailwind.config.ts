@@ -8,7 +8,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        volt: "#7c2feb",
+        volt: "#CCFF00",
         charcoal: "#222222",
       },
       fontFamily: {

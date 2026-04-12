@@ -4,7 +4,7 @@ import { sendChannelMessage } from "../discord-api";
 import { generateAndPostChallenges } from "../challenge-generator";
 
 function webBase(env: { BASE_URL?: string }): string {
-  return env.BASE_URL?.replace(/\/$/, "") || "https://hns.gg";
+  return env.BASE_URL?.replace(/\/$/, "") || "https://h4cknstack.com";
 }
 
 async function postVotingWebAnnouncement(c: any, currentMonth: string) {

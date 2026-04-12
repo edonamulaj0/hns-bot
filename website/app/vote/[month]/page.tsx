@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+
+export const runtime = "edge";
 import { VoteMonthClient } from "./VoteMonthClient";
 
 const MONTH_RE = /^\d{4}-\d{2}$/;
@@ -10,7 +12,7 @@ export async function generateMetadata({
   params: Promise<{ month: string }>;
 }): Promise<Metadata> {
   const { month } = await params;
-  return { title: `Vote ${month} — H4cknStack` };
+  return { title: `Vote ${month} — H4ck&Stack` };
 }
 
 export default async function VoteMonthPage({

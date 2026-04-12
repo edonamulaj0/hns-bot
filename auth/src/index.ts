@@ -1,5 +1,5 @@
 /**
- * H4cknStack auth Worker — Discord OAuth, session cookie (hns_session), D1 User upsert.
+ * H4ck&Stack auth Worker — Discord OAuth, session cookie (hns_session), D1 User upsert.
  */
 /// <reference types="@cloudflare/workers-types" />
 
@@ -232,7 +232,7 @@ export default {
 
     try {
       if (path === "/auth/login" && request.method === "GET") {
-        const redirectUri = `${url.origin}/auth/callback`;
+        const redirectUri = `${publicOrigin(env, url)}/auth/callback`;
         const state = crypto.randomUUID();
         const loc = new URL("https://discord.com/api/oauth2/authorize");
         loc.searchParams.set("client_id", env.DISCORD_CLIENT_ID);

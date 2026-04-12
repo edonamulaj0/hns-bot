@@ -121,7 +121,7 @@ Do not repeat recent topics: ${recent}
 Respond ONLY with a JSON array of 6 objects. No markdown fences.
 Each object: track (DEVELOPER|HACKER), tier (Beginner|Intermediate|Advanced), title, description (markdown string), resources (markdown bullets), deliverables (markdown bullets).`;
 
-  const system = `You are the challenge designer for H4cknStack. Generate 6 unique monthly challenges: 3 Developer (shipped software) and 3 Hacker (security research, tools, CTF, vuln writeups, red team methodology). Each completable solo in 21 days. No paid APIs required.`;
+  const system = `You are the challenge designer for H4ck&Stack. Generate 6 unique monthly challenges: 3 Developer (shipped software) and 3 Hacker (security research, tools, CTF, vuln writeups, red team methodology). Each completable solo in 21 days. No paid APIs required.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -161,7 +161,7 @@ export async function generateAndPostChallenges(
 ): Promise<void> {
   const month = monthKey(now);
   const token = c.env.DISCORD_TOKEN;
-  const base = c.env.BASE_URL?.replace(/\/$/, "") || "https://hns.gg";
+  const base = c.env.BASE_URL?.replace(/\/$/, "") || "https://h4cknstack.com";
 
   const recent = await prisma.challenge.findMany({
     where: { month: { not: month } },
