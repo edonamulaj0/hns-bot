@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getSessionClient,
   loginUrl,
   type SessionUser,
 } from "@/lib/auth-client";
+import { utcMonthKey } from "@/lib/month";
 
 function avatarUrl(u: SessionUser): string {
   if (u.avatarHash) {
@@ -20,6 +21,7 @@ export function AuthNav() {
   const [user, setUser] = useState<SessionUser | null | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const voteMonth = useMemo(() => utcMonthKey(), []);
 
   useEffect(() => {
     getSessionClient().then(setUser);
@@ -87,6 +89,13 @@ export function AuthNav() {
             onClick={() => setOpen(false)}
           >
             My Submission
+          </Link>
+          <Link
+            href={`/vote/${voteMonth}`}
+            className="block px-3 py-2 text-sm no-underline hover:bg-[var(--bg-raised)]"
+            onClick={() => setOpen(false)}
+          >
+            Vote this month
           </Link>
           <form action="/auth/logout" method="post">
             <button

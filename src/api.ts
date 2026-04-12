@@ -2,6 +2,21 @@ import { PrismaClient } from "@prisma/client/edge";
 import type { WorkerBindings } from "./worker-env";
 import { getMonthlyPhase, monthKey } from "./time";
 import { getPrisma } from "./db";
+import {
+  corsHeaders,
+  jsonResponse,
+  handleMe,
+  handleVotePost,
+  handleVoteStatus,
+  handleVoteQueue,
+  handleSubmissionGet,
+  handleRedirectSlug,
+  handleEnrollPost,
+  handleProfilePatch,
+  handleProfileDelete,
+  handleSubmitPost,
+  handleSubmitPatch,
+} from "./rest-handlers";
 
 /** Stable pathname for routing (collapse slashes, trim trailing slash, keep leading slash). */
 export function getNormalizedPathname(request: Request): string {
@@ -25,10 +40,25 @@ export function unknownApiRouteResponse(
       error: "unknown_api_route",
       pathname,
       requestUrl,
-      hint: "If pathname is not /api/..., a zone route or proxy may be stripping or prefixing paths. In Cloudflare, attach this Worker to * / * for the hostname you use.",
+      hint: "If pathname is not /api/..., a zone route or proxy may be stripping or prefixing paths.",
     },
     404,
   );
+}
+
+function corsJson(
+  data: unknown,
+  status = 200,
+  cacheControl = "public, max-age=60",
+): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Cache-Control": cacheControl,
+    },
+  });
 }
 
 export async function handleApiRequest(
@@ -39,15 +69,80 @@ export async function handleApiRequest(
   if (!pathname.startsWith("/api/")) return null;
 
   const method = request.method;
-  if (method !== "GET" && method !== "HEAD") return null;
-
   const prisma = getPrisma(env.DB);
   const now = new Date();
   const phase = getMonthlyPhase(now);
   const currentMonth = monthKey(now);
 
-  let body: Response;
+  if (method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders(env, request),
+    });
+  }
+
   try {
+    const subMatch = pathname.match(/^\/api\/submission\/([^/]+)$/);
+    if (subMatch && method === "GET") {
+      const body = await handleSubmissionGet(prisma, subMatch[1]!, env, request);
+      return tagApi(body, method);
+    }
+
+    const redirMatch = pathname.match(/^\/api\/redirect\/([^/]+)$/);
+    if (redirMatch && method === "GET") {
+      const body = await handleRedirectSlug(prisma, redirMatch[1]!, env, request);
+      return tagApi(body, method);
+    }
+
+    const patchSubmitMatch = pathname.match(/^\/api\/submit\/([^/]+)$/);
+    if (patchSubmitMatch && method === "PATCH") {
+      const body = await handleSubmitPatch(
+        prisma,
+        patchSubmitMatch[1]!,
+        request,
+        env,
+      );
+      return tagApi(body, method);
+    }
+
+    if (pathname === "/api/me" && method === "GET") {
+      return tagApi(await handleMe(prisma, request, env), method);
+    }
+
+    if (pathname === "/api/vote" && method === "POST") {
+      return tagApi(await handleVotePost(prisma, request, env), method);
+    }
+
+    if (pathname === "/api/vote/status" && method === "GET") {
+      return tagApi(await handleVoteStatus(prisma, request, env), method);
+    }
+
+    if (pathname === "/api/vote/queue" && method === "GET") {
+      return tagApi(await handleVoteQueue(prisma, request, env), method);
+    }
+
+    if (pathname === "/api/enroll" && method === "POST") {
+      return tagApi(await handleEnrollPost(prisma, request, env), method);
+    }
+
+    if (pathname === "/api/profile" && method === "PATCH") {
+      return tagApi(await handleProfilePatch(prisma, request, env), method);
+    }
+
+    if (pathname === "/api/profile" && method === "DELETE") {
+      return tagApi(await handleProfileDelete(prisma, request, env), method);
+    }
+
+    if (pathname === "/api/submit" && method === "POST") {
+      return tagApi(await handleSubmitPost(prisma, request, env), method);
+    }
+
+    if (method !== "GET" && method !== "HEAD") {
+      return null;
+    }
+
+    let body: Response;
+
     switch (pathname) {
       case "/api/portfolio":
         body = await portfolioResponse(prisma, phase, currentMonth);
@@ -78,32 +173,34 @@ export async function handleApiRequest(
       default:
         return null;
     }
+
+    return tagApi(body, method);
   } catch (err) {
     console.error("handleApiRequest:", err);
-    return corsJson(
-      {
-        error: "api_error",
-        message: err instanceof Error ? err.message : String(err),
-      },
-      500,
+    return tagApi(
+      corsJson(
+        {
+          error: "api_error",
+          message: err instanceof Error ? err.message : String(err),
+        },
+        500,
+      ),
+      request.method,
     );
   }
+}
 
+function tagApi(body: Response, method?: string): Response {
   const headers = new Headers(body.headers);
   headers.set("X-HNS-Route", "api");
-  const withTag = new Response(body.body, {
+  const out = new Response(body.body, {
     status: body.status,
     headers,
   });
-
   if (method === "HEAD") {
-    return new Response(null, {
-      status: withTag.status,
-      headers: withTag.headers,
-    });
+    return new Response(null, { status: out.status, headers: out.headers });
   }
-
-  return withTag;
+  return out;
 }
 
 async function portfolioResponse(
@@ -111,9 +208,9 @@ async function portfolioResponse(
   phase: string,
   currentMonth: string,
 ): Promise<Response> {
-  const approved = await prisma.submission.findMany({
+  const rows = await prisma.submission.findMany({
     where: {
-      isApproved: true,
+      revealed: true,
       month:
         phase === "PUBLISH" || phase === "POST_PUBLISH"
           ? { lte: currentMonth }
@@ -125,6 +222,7 @@ async function portfolioResponse(
           discordId: true,
           discordUsername: true,
           displayName: true,
+          avatarHash: true,
           bio: true,
           github: true,
           linkedin: true,
@@ -137,7 +235,7 @@ async function portfolioResponse(
     orderBy: [{ month: "desc" }, { votes: "desc" }, { createdAt: "desc" }],
   });
 
-  const grouped = approved.reduce<Record<string, unknown[]>>((acc, item) => {
+  const grouped = rows.reduce<Record<string, unknown[]>>((acc, item) => {
     const bucket = acc[item.month] ?? [];
     bucket.push({
       id: item.id,
@@ -150,6 +248,7 @@ async function portfolioResponse(
       attachmentUrl: item.attachmentUrl,
       votes: item.votes,
       month: item.month,
+      redirectSlug: item.redirectSlug,
       createdAt: item.createdAt.toISOString(),
       user: item.user,
     });
@@ -162,18 +261,12 @@ async function portfolioResponse(
 
 async function membersResponse(prisma: PrismaClient): Promise<Response> {
   const members = await prisma.user.findMany({
-    where: {
-      OR: [
-        { profileCompletedAt: { not: null } },
-        { bio: { not: null } },
-        { github: { not: null } },
-        { linkedin: { not: null } },
-      ],
-    },
+    where: { profileCompletedAt: { not: null } },
     select: {
       discordId: true,
       discordUsername: true,
       displayName: true,
+      avatarHash: true,
       bio: true,
       github: true,
       linkedin: true,
@@ -206,6 +299,7 @@ async function leaderboardResponse(prisma: PrismaClient): Promise<Response> {
       discordId: true,
       discordUsername: true,
       displayName: true,
+      avatarHash: true,
       bio: true,
       github: true,
       techStack: true,
@@ -250,7 +344,6 @@ async function challengesResponse(
       : await prisma.submission.groupBy({
           by: ["challengeId"],
           where: {
-            isApproved: true,
             challengeId: { in: ids },
           },
           _count: { id: true },
@@ -267,6 +360,7 @@ async function challengesResponse(
     title: r.title,
     description: r.description,
     resources: r.resources,
+    deliverables: r.deliverables,
     publishedAt: r.publishedAt.toISOString(),
     enrollmentCount: r._count.enrollments,
     submissionCount: subMap.get(r.id) ?? 0,
@@ -302,19 +396,4 @@ async function blogsResponse(prisma: PrismaClient): Promise<Response> {
   }));
 
   return corsJson({ blogs });
-}
-
-function corsJson(
-  data: unknown,
-  status = 200,
-  cacheControl = "public, max-age=60",
-): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Cache-Control": cacheControl,
-    },
-  });
 }

@@ -141,7 +141,7 @@ model Vote {
   createdAt        DateTime @default(now())
 
   submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  voter      User       @relation("VoteVoter", fields: [voterDiscordId], references: [discordId])
+  voter      User       @relation("VoteVoter", fields: [voterDiscordId], references: [discordId], onDelete: Cascade)
 
   @@unique([submissionId, voterDiscordId])
   @@index([submissionId])

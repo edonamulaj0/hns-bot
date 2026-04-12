@@ -98,8 +98,7 @@ export default function ActivityPageClient() {
             <div>
               <h2 className="text-2xl font-bold">Community Writing</h2>
               <p className="text-sm text-white/50 mt-2">
-                Share your own →{" "}
-                <code className="mono text-[var(--accent)] text-xs">/share-blog</code>
+                Article links shared by the community appear here. Ask in Discord if you would like yours listed.
               </p>
             </div>
             <label className="flex items-center gap-2 text-sm text-white/70">

@@ -258,7 +258,7 @@ export async function handleGithubOAuthCallback(
   if (!user) {
     return htmlPage(
       "GitHub OAuth",
-      "<p>No Discord user record found. Use the bot once (e.g. <code>/setup-profile</code>) then try linking again.</p>",
+      "<p>No Discord user record found. Sign in on the website (<strong>/profile</strong>) or use the bot once, then try linking again.</p>",
     );
   }
 
@@ -266,7 +266,7 @@ export async function handleGithubOAuthCallback(
   if (profileLogin && profileLogin.toLowerCase() !== login.toLowerCase()) {
     return htmlPage(
       "GitHub mismatch",
-      `<p>You signed in as <strong>@${login}</strong> but your profile GitHub URL points at <strong>@${profileLogin}</strong>. Update <code>/setup-profile</code> to match, then run <code>/link-github</code> again.</p>`,
+      `<p>You signed in as <strong>@${login}</strong> but your profile GitHub URL points at <strong>@${profileLogin}</strong>. Update your GitHub field on <strong>/profile</strong> to match, then run <code>/link-github</code> again.</p>`,
     );
   }
 

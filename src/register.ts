@@ -18,21 +18,10 @@ async function main() {
   }
 
   const commands = [
-    new Command("setup-profile", "Set up your developer portfolio profile"),
-    new Command("update-profile", "Update your existing developer profile"),
     new Command("profile", "View a member portfolio profile").options(
       new Option("user", "Member to view (optional — defaults to you)", "User"),
     ),
-    new Command("submit", "Submit your monthly project").options(
-      new Option(
-        "attachment",
-        "PDF writeup or supporting document (optional)",
-        "Attachment",
-      ),
-    ),
-    new Command("share-blog", "Share a technical blog post or article").options(
-      new Option("file", "Upload a .txt or .md markdown article (optional)", "Attachment"),
-    ),
+    new Command("submit", "Open the website to submit your monthly project"),
     new Command("pulse", "Sync your GitHub activity and earn XP (once per month)"),
     new Command(
       "link-github",
@@ -40,21 +29,10 @@ async function main() {
     ),
     new Command("unlink-github", "Remove stored GitHub OAuth from this bot"),
     new Command("leaderboard", "See the top contributors this month"),
-    new Command("enroll", "Enroll in a monthly challenge before you submit"),
-    new Command("post-challenge", "Create or update a monthly challenge (admin)").options(
-      new Option("track", "Challenge track", "String")
-        .required()
-        .choices(
-          { name: "Developer", value: "DEVELOPER" },
-          { name: "Hacker", value: "HACKER" },
-        ),
-      new Option("tier", "Difficulty tier", "String")
-        .required()
-        .choices(
-          { name: "Beginner", value: "Beginner" },
-          { name: "Intermediate", value: "Intermediate" },
-          { name: "Advanced", value: "Advanced" },
-        ),
+    new Command("enroll", "Enroll in a monthly challenge before you submit on the web"),
+    new Command(
+      "delete-account",
+      "Permanently delete your H4cknStack account (same as website danger zone)",
     ),
   ];
 

@@ -48,7 +48,7 @@ export function registerLinkGithub(app: DiscordHono<HonoWorkerEnv>) {
       });
       if (!user) {
         await safeFollowup(ctx, {
-          content: "Run `/setup-profile` first so we have your account.",
+          content: "Open the website and complete **/profile** first so we have your account.",
           flags: MessageFlags.Ephemeral,
         });
         return;

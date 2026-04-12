@@ -59,7 +59,7 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
 
         if (!user?.github) {
           await safeFollowup(ctx, {
-            content: "You haven't set a GitHub URL yet. Run `/setup-profile` first.",
+            content: "You haven't set a GitHub URL yet. Add it on the website: **/profile**.",
             flags: MessageFlags.Ephemeral,
           });
           return;
@@ -77,7 +77,7 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
         if (!username) {
           await safeFollowup(ctx, {
             content:
-              "Could not parse a GitHub username from your profile URL. Check `/setup-profile`.",
+              "Could not parse a GitHub username from your profile URL. Check **/profile** on the site.",
             flags: MessageFlags.Ephemeral,
           });
           return;
@@ -151,7 +151,7 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
         const detail =
           err instanceof GitHubApiError
             ? err.message
-            : "Could not fetch GitHub activity. Check your GitHub URL in `/setup-profile` and try again.";
+            : "Could not fetch GitHub activity. Check your GitHub URL on **/profile** and try again.";
         await safeFollowup(ctx, {
           content: detail.slice(0, 1900),
           flags: MessageFlags.Ephemeral,

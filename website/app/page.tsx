@@ -243,10 +243,10 @@ export default function HomePage() {
             viewport={{ once: true, amount: 0.15 }}
           >
             {[
-              { step: "01", title: "Join Discord", body: "Set up your profile with GitHub, LinkedIn, and tech stack via /setup-profile." },
-              { step: "02", title: "Build (Days 1–21)", body: "Ship a project of any tier. Submit it before day 22 with /submit." },
-              { step: "03", title: "Vote (Days 22–29)", body: "Community votes on approved submissions. Each vote earns the builder XP." },
-              { step: "04", title: "Get Published", body: "On day 30, results go live here. Your project lives permanently in the portfolio." },
+              { step: "01", title: "Join Discord", body: "Sign in on the site and complete your profile (GitHub, LinkedIn, tech stack) for your public card." },
+              { step: "02", title: "Build (Days 1–21)", body: "Ship a project of any tier. Enroll and submit before the vote window (UTC calendar)." },
+              { step: "03", title: "Vote (Days 22–25)", body: "Signed-in members vote on the site; each vote on your work earns you XP." },
+              { step: "04", title: "Get Published", body: "After results are revealed at month-end, winning work appears in the portfolio." },
             ].map((item) => (
               <motion.div
                 key={item.step}

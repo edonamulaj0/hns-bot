@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getPortfolio, PHASE_META, type PortfolioResponse } from "@/lib/api";
 import { memberDisplayName } from "@/lib/member-label";
 import { PhaseCountdown } from "@/components/PhaseCountdown";
 import type { Phase } from "@/lib/phase";
+import { utcMonthKey } from "@/lib/month";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 export default function ChallengesPage() {
   const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null);
+  const voteMonth = useMemo(() => utcMonthKey(), []);
 
   useEffect(() => {
     getPortfolio().then(setPortfolio).catch(console.error);
@@ -19,7 +21,7 @@ export default function ChallengesPage() {
 
   const phase = portfolio?.phase ?? "BUILD";
   const phaseMeta = PHASE_META[phase] ?? PHASE_META.BUILD;
-  const currentMonth = portfolio?.month ?? "";
+  const currentMonth = portfolio?.month ?? voteMonth;
 
   const publishedEntries = Object.entries(portfolio?.published ?? {}).sort(
     (a, b) => b[0].localeCompare(a[0]),
@@ -65,8 +67,23 @@ export default function ChallengesPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             Two challenge tracks. Three difficulty levels. One global community.
-            Build what you want, submit via Discord, and compete for recognition.
+            Build what you want, submit on the site or in Discord, and compete for recognition.
           </motion.p>
+          {phase === "VOTE" && currentMonth && (
+            <motion.div
+              className="mt-6 flex flex-wrap gap-3"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Link
+                href={`/vote/${currentMonth}`}
+                className="btn btn-primary text-sm sm:text-base"
+              >
+                Cast votes — {currentMonth}
+              </Link>
+            </motion.div>
+          )}
         </div>
       </motion.section>
 
@@ -323,12 +340,30 @@ export default function ChallengesPage() {
           </h2>
           <ul className="space-y-4 text-left text-sm text-white/70 sm:text-base">
             {[
-              { cmd: "/setup-profile", desc: "Modal to set bio, GitHub, LinkedIn, and tech stack. Required for a full portfolio card." },
-              { cmd: "/enroll", desc: "Pick a monthly challenge (track + tier) before you can submit. Open during the build window (days 1–21)." },
-              { cmd: "/submit", desc: "Submit your enrolled challenge. Same monthly build window for both tracks (days 1–21)." },
-              { cmd: "/share-blog", desc: "Share an article URL; earns XP and appears on the site blog feed." },
-              { cmd: "/pulse", desc: "Once per month, pulls public GitHub activity for your profile month and awards XP." },
-              { cmd: "/leaderboard", desc: "Shows top builders by points for the current month in Discord." },
+              {
+                cmd: "Website → Profile",
+                desc: "After signing in with Discord, complete your profile (bio, GitHub, LinkedIn, tech stack) for your public Members card. You can also use /profile in Discord.",
+              },
+              {
+                cmd: "/enroll",
+                desc: "Pick a monthly challenge (track + tier) before you can submit. Open during the build window (days 1–21 UTC).",
+              },
+              {
+                cmd: "/submit",
+                desc: "Opens a link to the submission page, or use Submit on the site when signed in.",
+              },
+              {
+                cmd: "Vote (site)",
+                desc: `During the vote window (days 22–25 UTC), cast up to 4 votes (2 per track) at /vote/${voteMonth}.`,
+              },
+              {
+                cmd: "/pulse",
+                desc: "Once per month, pulls public GitHub activity for your profile month and awards XP.",
+              },
+              {
+                cmd: "/leaderboard",
+                desc: "Shows top builders by points for the current month in Discord.",
+              },
             ].map((row) => (
               <li
                 key={row.cmd}

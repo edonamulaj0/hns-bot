@@ -7,9 +7,111 @@ import { getMonthlyPhase, monthKey } from "../time";
 import { getDiscordUserId } from "./helpers";
 import { syncDiscordIdentity } from "../discord-identity";
 import { sendDirectMessage } from "../discord-api";
+import type { PrismaClient } from "@prisma/client/edge";
 
 function trackLabel(track: string): string {
   return track === "HACKER" ? "Hacker" : "Developer";
+}
+
+function webBase(env: { BASE_URL?: string }): string {
+  return env.BASE_URL?.replace(/\/$/, "") || "https://hns.gg";
+}
+
+async function requireProfile(
+  prisma: PrismaClient,
+  discordId: string,
+  base: string,
+): Promise<{ ok: true; userId: string } | { ok: false; message: string }> {
+  const row = await prisma.user.findUnique({
+    where: { discordId },
+    select: { id: true, profileCompletedAt: true },
+  });
+  if (!row?.profileCompletedAt) {
+    return {
+      ok: false,
+      message: `Set up your profile first at ${base}/profile`,
+    };
+  }
+  return { ok: true, userId: row.id };
+}
+
+export async function processDiscordEnrollment(
+  ctx: {
+    env: HonoWorkerEnv["Bindings"];
+    followup: (opts: Record<string, unknown>) => Promise<void>;
+    interaction: { member?: { user?: { id?: string } }; user?: { id?: string } };
+  },
+  discordId: string,
+  challengeId: string,
+): Promise<void> {
+  const prisma = getPrisma(ctx.env.DB);
+  const base = webBase(ctx.env);
+
+  await syncDiscordIdentity(prisma, discordId, ctx.interaction);
+
+  const phase = getMonthlyPhase();
+  const m = monthKey();
+  if (phase !== "BUILD") {
+    await ctx.followup({
+      content: `Enrollment is closed for **${m}**. The build window has ended.`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const prof = await requireProfile(prisma, discordId, base);
+  if (!prof.ok) {
+    await ctx.followup({ content: prof.message, flags: MessageFlags.Ephemeral });
+    return;
+  }
+
+  const challenge = await prisma.challenge.findUnique({
+    where: { id: challengeId },
+  });
+  if (!challenge || challenge.month !== m) {
+    await ctx.followup({
+      content: "That challenge is not available for enrollment.",
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  await prisma.enrollment.upsert({
+    where: {
+      userId_challengeId: { userId: prof.userId, challengeId },
+    },
+    create: { userId: prof.userId, challengeId },
+    update: {},
+  });
+
+  const brief =
+    challenge.description.length > 300
+      ? `${challenge.description.slice(0, 300)}…`
+      : challenge.description;
+
+  await ctx.followup({
+    embeds: [
+      {
+        title: `✅ Enrolled in ${challenge.tier} ${trackLabel(challenge.track)} Challenge`,
+        color: 0xccff00,
+        fields: [
+          { name: "Challenge", value: challenge.title, inline: false },
+          { name: "Month", value: challenge.month, inline: true },
+          { name: "Track", value: trackLabel(challenge.track), inline: true },
+          { name: "Tier", value: challenge.tier, inline: true },
+          { name: "Brief", value: brief.slice(0, 1024), inline: false },
+        ],
+        footer: {
+          text: `Build and submit at ${base}/submit before day 21.`,
+        },
+      },
+    ],
+    flags: MessageFlags.Ephemeral,
+  });
+
+  await sendDirectMessage(ctx.env.DISCORD_TOKEN, discordId, {
+    content: `📋 **${challenge.title}** (${challenge.month})\n\n${challenge.description.slice(0, 3500)}${challenge.description.length > 3500 ? "…" : ""}${challenge.resources ? `\n\n**Resources**\n${challenge.resources.slice(0, 1500)}` : ""}`,
+  }).catch(() => {});
 }
 
 export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
@@ -21,6 +123,7 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
       }
 
       const prisma = getPrisma(c.env.DB);
+      const base = webBase(c.env);
       await syncDiscordIdentity(prisma, discordId, c.interaction);
 
       const phase = getMonthlyPhase();
@@ -29,6 +132,11 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
         return c.flags("EPHEMERAL").res(
           `Enrollment is closed for **${m}**. The build window has ended.`,
         );
+      }
+
+      const prof = await requireProfile(prisma, discordId, base);
+      if (!prof.ok) {
+        return c.flags("EPHEMERAL").res(prof.message);
       }
 
       const challenges = await prisma.challenge.findMany({
@@ -59,7 +167,6 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
     })
     .component("enroll_menu", (c) =>
       c.flags("EPHEMERAL").resDefer(async (ctx) => {
-        const prisma = getPrisma(ctx.env.DB);
         const discordId = getDiscordUserId(ctx.interaction);
         if (!discordId) {
           await ctx.followup({
@@ -68,8 +175,6 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
           });
           return;
         }
-
-        await syncDiscordIdentity(prisma, discordId, ctx.interaction);
 
         const challengeId = ctx.interaction.data?.values?.[0];
         if (!challengeId) {
@@ -80,60 +185,7 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
           return;
         }
 
-        const challenge = await prisma.challenge.findUnique({
-          where: { id: challengeId },
-        });
-        if (!challenge) {
-          await ctx.followup({
-            content: "That challenge no longer exists.",
-            flags: MessageFlags.Ephemeral,
-          });
-          return;
-        }
-
-        const user = await prisma.user.upsert({
-          where: { discordId },
-          create: { discordId },
-          update: {},
-        });
-
-        await prisma.enrollment.upsert({
-          where: {
-            userId_challengeId: { userId: user.id, challengeId },
-          },
-          create: { userId: user.id, challengeId },
-          update: {},
-        });
-
-        const brief =
-          challenge.description.length > 300
-            ? `${challenge.description.slice(0, 300)}…`
-            : challenge.description;
-
-        await ctx.followup({
-          embeds: [
-            {
-              title: `✅ Enrolled in ${challenge.tier} ${trackLabel(challenge.track)} Challenge`,
-              color: 0xccff00,
-              fields: [
-                { name: "Challenge", value: challenge.title, inline: false },
-                { name: "Month", value: challenge.month, inline: true },
-                { name: "Track", value: trackLabel(challenge.track), inline: true },
-                { name: "Tier", value: challenge.tier, inline: true },
-                { name: "Brief", value: brief.slice(0, 1024), inline: false },
-              ],
-              footer: {
-                text: "Submit your work with /submit before day 21. Full brief in #challenges.",
-              },
-            },
-          ],
-          flags: MessageFlags.Ephemeral,
-        });
-
-        const token = ctx.env.DISCORD_TOKEN;
-        await sendDirectMessage(token, discordId, {
-          content: `📋 **${challenge.title}** (${challenge.month})\n\n${challenge.description.slice(0, 3500)}${challenge.description.length > 3500 ? "…" : ""}${challenge.resources ? `\n\n**Resources**\n${challenge.resources.slice(0, 1500)}` : ""}`,
-        }).catch(() => {});
+        await processDiscordEnrollment(ctx, discordId, challengeId);
       }),
     );
 }

@@ -21,7 +21,7 @@ async function sha256Key(secret: string): Promise<ArrayBuffer> {
   return crypto.subtle.digest("SHA-256", new TextEncoder().encode(secret));
 }
 
-function bytesToB64Url(buf: ArrayBuffer): string {
+function bytesToB64Url(buf: ArrayBufferLike): string {
   const bytes = new Uint8Array(buf);
   let bin = "";
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]!);

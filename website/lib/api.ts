@@ -131,6 +131,7 @@ export interface ChallengeDto {
   title: string;
   description: string;
   resources: string | null;
+  deliverables?: string | null;
   publishedAt: string;
   enrollmentCount: number;
   submissionCount: number;

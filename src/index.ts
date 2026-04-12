@@ -1,6 +1,5 @@
 import { DiscordHono } from "discord-hono";
 import type { ExecutionContext } from "@cloudflare/workers-types";
-import { handleAdminReview, handleVote } from "./review-handler";
 import type { HonoWorkerEnv, WorkerBindings } from "./worker-env";
 import {
   getNormalizedPathname,
@@ -9,73 +8,73 @@ import {
 } from "./api";
 import { handleGithubOAuthCallback } from "./github-oauth";
 import { getPrisma } from "./db";
-import {
-  registerSetupProfile,
-  registerUpdateProfile,
-  registerProfileModal,
-} from "./commands/setup-profile";
 import { registerProfile } from "./commands/profile";
 import { registerSubmit } from "./commands/submit";
-import { registerShareBlog } from "./commands/share-blog";
 import { registerPulse } from "./commands/pulse";
 import { registerLinkGithub, registerUnlinkGithub } from "./commands/link-github";
 import { registerLeaderboard } from "./commands/leaderboard";
 import { registerCron } from "./commands/cron";
 import { registerEnroll } from "./commands/enroll";
-import { registerPostChallenge } from "./commands/post-challenge";
+import { registerDeleteAccount } from "./commands/delete-account";
+import { processDiscordEnrollment } from "./commands/enroll";
+import { getDiscordUserId } from "./commands/helpers";
+import { MessageFlags } from "discord-api-types/v10";
 
 let app = new DiscordHono<HonoWorkerEnv>();
 
-app = registerSetupProfile(app);
-app = registerUpdateProfile(app);
-app = registerProfileModal(app);
 app = registerProfile(app);
 app = registerSubmit(app);
-app = registerShareBlog(app);
 app = registerPulse(app);
 app = registerLinkGithub(app);
 app = registerUnlinkGithub(app);
 app = registerLeaderboard(app);
 app = registerCron(app);
 app = registerEnroll(app);
-app = registerPostChallenge(app);
+app = registerDeleteAccount(app);
 
 app = app.component("", async (c) => {
   const customId: string = c.interaction?.data?.custom_id ?? "";
-
-  if (customId.startsWith("review:")) {
-    return c.update().resDefer(async (ctx) => {
-      const prisma = getPrisma(ctx.env.DB);
-      await handleAdminReview(
-        ctx,
-        prisma,
-        ctx.env.ADMIN_CHANNEL_ID,
-        ctx.env.DISCORD_TOKEN,
-      );
-    });
+  if (!customId.startsWith("enroll:")) {
+    return c.res("Unknown component.");
   }
-
-  if (customId.startsWith("vote:")) {
-    return c.resDefer(async (ctx) => {
-      const prisma = getPrisma(ctx.env.DB);
-      await handleVote(ctx, prisma);
-    });
+  const challengeId = customId.slice("enroll:".length);
+  if (!challengeId) {
+    return c.res("Invalid enroll action.");
   }
-
-  return c.res("Unknown component.");
+  return c.flags("EPHEMERAL").resDefer(async (ctx) => {
+    const discordId = getDiscordUserId(ctx.interaction);
+    if (!discordId) {
+      await ctx.followup({
+        content: "Could not detect your Discord ID.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+    await processDiscordEnrollment(ctx, discordId, challengeId);
+  });
 });
 
 function rootApiDiscoveryResponse(): Response {
   const body = {
     service: "hns-bot",
     note:
-      "GET / is not the JSON API. discord-hono answers other GETs with Operational — use the paths below.",
+      "GET / is not the JSON API. Use the paths below (GET/POST/PATCH/DELETE as documented).",
     endpoints: [
       "/api/blogs",
       "/api/members",
       "/api/portfolio",
       "/api/leaderboard",
       "/api/challenges",
+      "/api/me",
+      "/api/vote",
+      "/api/vote/status",
+      "/api/vote/queue",
+      "/api/enroll",
+      "/api/profile",
+      "/api/submit",
+      "/api/submit/:id",
+      "/api/submission/:id",
+      "/api/redirect/:slug",
       "/oauth/github/callback",
     ],
   };
@@ -95,15 +94,19 @@ export default {
       return handleGithubOAuthCallback(request, env);
     }
 
-    const apiResponse = await handleApiRequest(request, env);
-    if (apiResponse) return apiResponse;
-
-    // Never send /api/* to discord-hono (it always responds GET with Operational🔥).
-    if (
-      pathname.startsWith("/api/") &&
-      (request.method === "GET" || request.method === "HEAD")
-    ) {
-      return unknownApiRouteResponse(pathname, request.url);
+    if (pathname.startsWith("/api/")) {
+      const apiResponse = await handleApiRequest(request, env);
+      if (apiResponse) return apiResponse;
+      if (request.method === "GET" || request.method === "HEAD") {
+        return unknownApiRouteResponse(pathname, request.url);
+      }
+      return new Response(JSON.stringify({ error: "not_found" }), {
+        status: 404,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
     }
 
     if (request.method === "GET" || request.method === "HEAD") {

@@ -101,12 +101,11 @@ export default async function JoinPage({
                 body: (
                   <>
                     <p className="text-white/65 text-sm sm:text-base leading-relaxed mb-4">
-                      Run <code className="mono text-[var(--accent)]">/setup-profile</code> in Discord. Add your GitHub,
-                      LinkedIn, bio, and tech stack. This creates your public profile card on the Members page.
+                      Sign in on this site with Discord, then open{" "}
+                      <strong className="text-white/85">Profile</strong> from your avatar menu. Add GitHub, LinkedIn,
+                      bio, and tech stack for your public Members card. In Discord you can also run{" "}
+                      <code className="mono text-[var(--accent)]">/profile</code> for a link to the same page.
                     </p>
-                    <pre className="rounded border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3 text-xs sm:text-sm mono text-white/80 overflow-x-auto">
-                      /setup-profile
-                    </pre>
                   </>
                 ),
               },
@@ -137,8 +136,9 @@ export default async function JoinPage({
                 title: "Submit your work",
                 body: (
                   <p className="text-white/65 text-sm sm:text-base leading-relaxed">
-                    Use <code className="mono text-[var(--accent)]">/submit</code> in Discord. Attach a repo link, optional
-                    demo URL, and an optional PDF or markdown writeup. Admin reviews it within 24 hours.
+                    Use <strong className="text-white/85">My Submission</strong> on the site (signed in) or{" "}
+                    <code className="mono text-[var(--accent)]">/submit</code> in Discord for a link to the form. Include a
+                    repo link, optional demo URL, and optional writeup. Submissions are reviewed for the challenge rules.
                   </p>
                 ),
               },
@@ -146,8 +146,9 @@ export default async function JoinPage({
                 title: "Vote and earn XP",
                 body: (
                   <p className="text-white/65 text-sm sm:text-base leading-relaxed">
-                    During the vote window, head to the voting channel and cast your votes. Every approved vote on your
-                    project earns you XP. Share your profile link to get more eyes on your work.
+                    During the vote window (days 22–25 UTC), open <strong className="text-white/85">Vote</strong> in the
+                    nav (or your avatar menu). You have 4 votes per month (2 per track). Votes on your project earn you
+                    XP.
                   </p>
                 ),
               },
@@ -172,7 +173,7 @@ export default async function JoinPage({
         <div className="container max-w-4xl">
           <h2 className="text-2xl sm:text-3xl font-bold mb-2">Server roles</h2>
           <p className="text-sm text-white/50 mb-8 mono">
-            (roles assigned automatically after /setup-profile)
+            (roles assigned automatically after you complete onboarding in Discord)
           </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {ROLES.map((r) => (

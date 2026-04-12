@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AuthNav } from "@/components/AuthNav";
+import { utcMonthKey } from "@/lib/month";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -21,6 +22,7 @@ function linkActive(pathname: string, href: string) {
 export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const voteMonth = useMemo(() => utcMonthKey(), []);
 
   useEffect(() => {
     setOpen(false);
@@ -84,6 +86,16 @@ export function Navbar() {
               </Link>
             );
           })}
+          <Link
+            href={`/vote/${voteMonth}`}
+            className={`rounded px-3 py-2.5 font-display text-sm no-underline transition-colors md:py-1.5 ${
+              pathname.startsWith("/vote/")
+                ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
+                : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
+            }`}
+          >
+            Vote
+          </Link>
           <div className="mt-2 flex flex-col gap-2 md:mt-0 md:ml-2 md:flex-row md:items-center">
             <AuthNav />
           </div>
