@@ -7,57 +7,68 @@ import { monthKey } from "../time";
 import { awardPoints, XP } from "../points";
 import { getDiscordUserId } from "./helpers";
 
+async function safeFollowup(
+  ctx: { followup: (data: object) => Promise<unknown> },
+  data: object,
+) {
+  try {
+    await ctx.followup(data);
+  } catch (e) {
+    console.error("pulse followup failed:", e);
+  }
+}
+
 export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
   return app.command("pulse", async (c) =>
-    c.resDefer(async (ctx) => {
-      const prisma = getPrisma(ctx.env.DB);
-      const discordId = getDiscordUserId(ctx.interaction);
-
-      if (!discordId) {
-        await ctx.followup({
-          content: "Could not detect your Discord ID.",
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
-      const currentMonth = monthKey();
-
-      const user = await prisma.user.findUnique({
-        where: { discordId },
-        select: { id: true, github: true, lastPulseMonth: true },
-      });
-
-      if (!user?.github) {
-        await ctx.followup({
-          content: "You haven't set a GitHub URL yet. Run `/setup-profile` first.",
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
-      if (user.lastPulseMonth === currentMonth) {
-        await ctx.followup({
-          content: `You've already run \`/pulse\` for **${currentMonth}**. Come back next month!`,
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
-      const username = extractGithubUsername(user.github);
-      if (!username) {
-        await ctx.followup({
-          content:
-            "Could not parse a GitHub username from your profile URL. Check `/setup-profile`.",
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
+    // Ephemeral defer so PATCH @original can use ephemeral on every reply (Discord requirement).
+    c.flags("EPHEMERAL").resDefer(async (ctx) => {
       try {
+        const prisma = getPrisma(ctx.env.DB);
+        const discordId = getDiscordUserId(ctx.interaction);
+
+        if (!discordId) {
+          await safeFollowup(ctx, {
+            content: "Could not detect your Discord ID.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
+        const currentMonth = monthKey();
+
+        const user = await prisma.user.findUnique({
+          where: { discordId },
+          select: { id: true, github: true, lastPulseMonth: true },
+        });
+
+        if (!user?.github) {
+          await safeFollowup(ctx, {
+            content: "You haven't set a GitHub URL yet. Run `/setup-profile` first.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
+        if (user.lastPulseMonth === currentMonth) {
+          await safeFollowup(ctx, {
+            content: `You've already run \`/pulse\` for **${currentMonth}**. Come back next month!`,
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
+        const username = extractGithubUsername(user.github);
+        if (!username) {
+          await safeFollowup(ctx, {
+            content:
+              "Could not parse a GitHub username from your profile URL. Check `/setup-profile`.",
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
         const pulse = await fetchMonthlyPulse(username, currentMonth, ctx.env.GITHUB_TOKEN);
 
-        // Update user: award XP, mark pulse as run this month
         await prisma.user.update({
           where: { id: user.id },
           data: { lastPulseMonth: currentMonth },
@@ -70,7 +81,8 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
         const noActivity =
           pulse.commits === 0 && pulse.prsOpened === 0 && pulse.prsMerged === 0;
 
-        await ctx.followup({
+        await safeFollowup(ctx, {
+          flags: MessageFlags.Ephemeral,
           embeds: [
             {
               title: `⚡ GitHub Pulse — ${currentMonth}`,
@@ -87,9 +99,7 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
                     { name: "PRs Merged", value: `${pulse.prsMerged}`, inline: true },
                     { name: "XP Earned", value: `**+${pulse.xpEarned}**`, inline: true },
                     ...(pulse.repoCount > 0
-                      ? [
-                          { name: "Repos Active", value: `${pulse.repoCount}`, inline: true },
-                        ]
+                      ? [{ name: "Repos Active", value: `${pulse.repoCount}`, inline: true }]
                       : []),
                   ],
               footer: { text: "Pulse can only be run once per month. Max 100 XP." },
@@ -98,9 +108,9 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
         });
       } catch (err) {
         console.error("pulse error:", err);
-        await ctx.followup({
+        await safeFollowup(ctx, {
           content:
-            "Could not fetch GitHub activity. Make sure your profile URL is correct.",
+            "Could not fetch GitHub activity. Make sure your profile URL is correct and try again.",
           flags: MessageFlags.Ephemeral,
         });
       }

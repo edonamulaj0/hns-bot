@@ -7,14 +7,21 @@ import { getPrisma } from "../db";
 import { awardPoints, XP } from "../points";
 import { extractModalFields, getDiscordUserId } from "./helpers";
 
+async function blogFollowup(
+  ctx: { followup: (data: object | string) => Promise<unknown> },
+  data: object | string,
+) {
+  try {
+    await ctx.followup(data);
+  } catch (e) {
+    console.error("share-blog followup failed:", e);
+  }
+}
+
 export function registerShareBlog(app: DiscordHono<HonoWorkerEnv>) {
   return app
-    .command("share-blog", async (c) => {
-      // Runtime guard: BLOG_CHANNEL_ID must be set
-      if (!c.env.BLOG_CHANNEL_ID || c.env.BLOG_CHANNEL_ID === "") {
-        return c.res("Blog sharing is not configured. Please contact the bot administrator.");
-      }
-      return c.resModal(
+    .command("share-blog", async (c) =>
+      c.resModal(
         new Modal("share-blog-modal", "Share a Blog Post or Article")
           .row(new TextInput("title", "Article Title").required().max_length(200))
           .row(
@@ -27,26 +34,18 @@ export function registerShareBlog(app: DiscordHono<HonoWorkerEnv>) {
               .max_length(300)
               .placeholder("What's this article about?"),
           ),
-      );
-    })
+      )
+    )
 
     .modal("share-blog-modal", async (c) =>
-      c.resDefer(async (ctx) => {
+      c.flags("EPHEMERAL").resDefer(async (ctx) => {
         const prisma = getPrisma(ctx.env.DB);
-        const blogChannelId = ctx.env.BLOG_CHANNEL_ID;
+        const blogChannelId = ctx.env.BLOG_CHANNEL_ID?.trim();
+        const channelConfigured = Boolean(blogChannelId);
         const discordId = getDiscordUserId(ctx.interaction);
 
-        // Runtime guard: BLOG_CHANNEL_ID must be set (defense in depth)
-        if (!blogChannelId || blogChannelId === "") {
-          await ctx.followup({
-            content: "Blog sharing is not configured. Please contact the bot administrator.",
-            flags: MessageFlags.Ephemeral,
-          });
-          return;
-        }
-
         if (!discordId) {
-          await ctx.followup({
+          await blogFollowup(ctx, {
             content: "Could not detect your Discord ID.",
             flags: MessageFlags.Ephemeral,
           });
@@ -59,18 +58,17 @@ export function registerShareBlog(app: DiscordHono<HonoWorkerEnv>) {
         const summary = fields.summary?.trim() || null;
 
         if (!title || !url) {
-          await ctx.followup({
+          await blogFollowup(ctx, {
             content: "Title and URL are required.",
             flags: MessageFlags.Ephemeral,
           });
           return;
         }
 
-        // Basic URL validation
         try {
           new URL(url);
         } catch {
-          await ctx.followup({
+          await blogFollowup(ctx, {
             content: "Please enter a valid URL.",
             flags: MessageFlags.Ephemeral,
           });
@@ -88,32 +86,39 @@ export function registerShareBlog(app: DiscordHono<HonoWorkerEnv>) {
             data: { userId: user.id, title, url },
           });
 
-          // Award XP for sharing
           await awardPoints(prisma, user.id, XP.BLOG_POSTED);
 
-          // Post to blog channel
-          await ctx.rest("POST", $channels$_$messages, [blogChannelId], {
-            embeds: [
-              {
-                title: `📝 ${title}`,
-                description: summary ?? undefined,
-                url,
-                color: 0x57f287,
-                fields: [
-                  { name: "Shared by", value: `<@${discordId}>`, inline: true },
-                  { name: "XP Earned", value: `+${XP.BLOG_POSTED}`, inline: true },
-                ],
-                footer: { text: `ID: ${blog.id} • This article is archived in the portfolio database` },
-              },
-            ],
-          });
+          if (channelConfigured) {
+            await ctx.rest("POST", $channels$_$messages, [blogChannelId!], {
+              embeds: [
+                {
+                  title: `📝 ${title}`,
+                  description: summary ?? undefined,
+                  url,
+                  color: 0x57f287,
+                  fields: [
+                    { name: "Shared by", value: `<@${discordId}>`, inline: true },
+                    { name: "XP Earned", value: `+${XP.BLOG_POSTED}`, inline: true },
+                  ],
+                  footer: {
+                    text: `ID: ${blog.id} • This article is archived in the portfolio database`,
+                  },
+                },
+              ],
+            });
+          }
 
-          await ctx.followup(
-            `✅ Article shared and archived! +${XP.BLOG_POSTED} XP earned.`,
-          );
+          const extra = channelConfigured
+            ? ""
+            : "\n\n_Set `BLOG_CHANNEL_ID` on the worker to also announce posts in a channel._";
+
+          await blogFollowup(ctx, {
+            content: `✅ Article archived! +${XP.BLOG_POSTED} XP earned.${extra}`,
+            flags: MessageFlags.Ephemeral,
+          });
         } catch (err) {
           console.error(err);
-          await ctx.followup({
+          await blogFollowup(ctx, {
             content: "Could not save your blog post. Please try again.",
             flags: MessageFlags.Ephemeral,
           });
