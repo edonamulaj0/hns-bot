@@ -1,5 +1,61 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "https://hns-bot.YOUR_SUBDOMAIN.workers.dev";
+/**
+ * Browser: always same-origin `/hns-api/*` so Next rewrites proxy to the Worker (avoids CORS + bad placeholders).
+ * Server: direct Worker URL from env, or localhost:8787 in development.
+ */
+function getServerWorkerBase(): string {
+  const raw =
+    process.env.HNS_WORKER_URL?.trim() ||
+    process.env.NEXT_PUBLIC_API_URL?.trim() ||
+    "";
+  const base = raw.replace(/\/$/, "");
+  if (base && !base.includes("YOUR_SUBDOMAIN")) return base;
+  if (process.env.NODE_ENV === "development") return "http://127.0.0.1:8787";
+  return "";
+}
+
+function portfolioUrl(): string {
+  if (typeof window !== "undefined") return "/hns-api/portfolio";
+  const base = getServerWorkerBase();
+  if (!base) {
+    throw new Error(
+      "Set HNS_WORKER_URL or NEXT_PUBLIC_API_URL to your Worker origin (e.g. https://hns-bot.xxx.workers.dev).",
+    );
+  }
+  return `${base}/api/portfolio`;
+}
+
+function membersUrl(): string {
+  if (typeof window !== "undefined") return "/hns-api/members";
+  const base = getServerWorkerBase();
+  if (!base) {
+    throw new Error(
+      "Set HNS_WORKER_URL or NEXT_PUBLIC_API_URL to your Worker origin.",
+    );
+  }
+  return `${base}/api/members`;
+}
+
+function leaderboardUrl(): string {
+  if (typeof window !== "undefined") return "/hns-api/leaderboard";
+  const base = getServerWorkerBase();
+  if (!base) {
+    throw new Error(
+      "Set HNS_WORKER_URL or NEXT_PUBLIC_API_URL to your Worker origin.",
+    );
+  }
+  return `${base}/api/leaderboard`;
+}
+
+function blogsUrl(): string {
+  if (typeof window !== "undefined") return "/hns-api/blogs";
+  const base = getServerWorkerBase();
+  if (!base) {
+    throw new Error(
+      "Set HNS_WORKER_URL or NEXT_PUBLIC_API_URL to your Worker origin.",
+    );
+  }
+  return `${base}/api/blogs`;
+}
 
 export type Phase = "BUILD" | "VOTE" | "PUBLISH" | "POST_PUBLISH";
 
@@ -66,34 +122,33 @@ export interface BlogsResponse {
 
 const REVALIDATE = 60; // seconds
 
+function fetchInit(): RequestInit & { next?: { revalidate: number } } {
+  if (typeof window !== "undefined") {
+    return { cache: "no-store" as RequestCache };
+  }
+  return { next: { revalidate: REVALIDATE } };
+}
+
 export async function getPortfolio(): Promise<PortfolioResponse> {
-  const res = await fetch(`${API_BASE}/api/portfolio`, {
-    next: { revalidate: REVALIDATE },
-  });
+  const res = await fetch(portfolioUrl(), fetchInit());
   if (!res.ok) throw new Error("Failed to fetch portfolio");
   return res.json();
 }
 
 export async function getMembers(): Promise<MembersResponse> {
-  const res = await fetch(`${API_BASE}/api/members`, {
-    next: { revalidate: REVALIDATE },
-  });
+  const res = await fetch(membersUrl(), fetchInit());
   if (!res.ok) throw new Error("Failed to fetch members");
   return res.json();
 }
 
 export async function getLeaderboard(): Promise<LeaderboardResponse> {
-  const res = await fetch(`${API_BASE}/api/leaderboard`, {
-    next: { revalidate: REVALIDATE },
-  });
+  const res = await fetch(leaderboardUrl(), fetchInit());
   if (!res.ok) throw new Error("Failed to fetch leaderboard");
   return res.json();
 }
 
 export async function getBlogs(): Promise<BlogsResponse> {
-  const res = await fetch(`${API_BASE}/api/blogs`, {
-    next: { revalidate: REVALIDATE },
-  });
+  const res = await fetch(blogsUrl(), fetchInit());
   if (!res.ok) throw new Error("Failed to fetch blogs");
   return res.json();
 }

@@ -1,11 +1,7 @@
 import { PrismaClient } from "@prisma/client/edge";
-import { PrismaD1 } from "@prisma/adapter-d1";
 import type { WorkerBindings } from "./worker-env";
 import { getMonthlyPhase, monthKey } from "./time";
-
-function getPrisma(db: WorkerBindings["DB"]) {
-  return new PrismaClient({ adapter: new PrismaD1(db) });
-}
+import { getPrisma } from "./db";
 
 export async function handleApiRequest(
   request: Request,

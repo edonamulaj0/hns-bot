@@ -136,7 +136,25 @@ export async function handleVote(
   }
 
   try {
-    // Create vote (unique constraint will throw on duplicate)
+    // Pre-flight check: have they already voted?
+    const existingVote = await prisma.vote.findUnique({
+      where: {
+        submissionId_voterDiscordId: {
+          submissionId,
+          voterDiscordId,
+        },
+      },
+    });
+
+    if (existingVote) {
+      await c.followup({
+        content: "You've already voted for this submission.",
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    // Create vote
     await prisma.vote.create({
       data: { submissionId, voterDiscordId },
     });
@@ -156,14 +174,6 @@ export async function handleVote(
       flags: MessageFlags.Ephemeral,
     });
   } catch (err: any) {
-    // Unique constraint violation = already voted
-    if (err?.message?.includes("UNIQUE") || err?.code === "P2002") {
-      await c.followup({
-        content: "You've already voted for this submission.",
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
     console.error("handleVote error:", err);
     await c.followup({
       content: "Could not record your vote. Please try again.",

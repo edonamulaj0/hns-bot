@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -16,8 +15,10 @@ model User {
   techStack    Json?
   points       Int          @default(0)
   rank         Int          @default(0)
+  lastPulseMonth String?    // Tracks if user has run /pulse this month (dedup)
   submissions  Submission[]
   blogs        Blog[]
+  votes        Vote[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 }
@@ -33,10 +34,15 @@ model Submission {
   demoUrl     String?
   isApproved  Boolean  @default(false)
   votes       Int      @default(0)
+  // Hacker track fields
+  track          String  @default("DEVELOPER") // "DEVELOPER" | "HACKER"
+  challengeType  String? // For hacker submissions: "CTF_WRITEUP" | "TOOL_BUILD" | "VULN_RESEARCH" | "REDTEAM"
+  qualityWeight Float   @default(1.0) // Admin-settable quality modifier (0.5=superficial, 1.0=default, 1.5=exceptional)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes      Vote[]  // Inverse relation for Vote model
 
   @@unique([userId, month, title])
   @@index([month, isApproved])
@@ -52,4 +58,26 @@ model Blog {
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Vote model for submission voting (prevents duplicate votes)
+model Vote {
+  id             String   @id @default(cuid())
+  submissionId   String
+  voterDiscordId String
+  createdAt     DateTime @default(now())
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, voterDiscordId])
+  @@index([submissionId])
+}
+
+// Config table for cron idempotency tracking
+model Config {
+  id                 String   @id @default(cuid())
+  lastVoteFeedMonth   String?  // Tracks last month vote feed was posted (cron dedup)
+  lastPublishMonth   String?  // Tracks last month publish was announced (cron dedup)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }

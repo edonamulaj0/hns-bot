@@ -57,8 +57,8 @@ export default async function ChallengeMonthPage({
             <Link href="/challenges" className="btn text-xs sm:text-sm">
               ← All challenges
             </Link>
-            <Link href="/projects" className="btn text-xs sm:text-sm">
-              Full portfolio →
+            <Link href="/challenges" className="btn text-xs sm:text-sm">
+              All months →
             </Link>
             {phaseMeta && data && (
               <span

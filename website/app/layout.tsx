@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
+import { SplashScreen } from "@/components/SplashScreen";
+import { AmbientBackground } from "@/components/AmbientBackground";
 
 export const metadata: Metadata = {
   title: "H4cknStack — Global Hacker & Developer Community",
@@ -38,6 +40,8 @@ export default function RootLayout({
         />
       </head>
       <body style={{ fontFamily: "'Inter', sans-serif" }}>
+        <SplashScreen />
+        <AmbientBackground />
         <Navbar />
         <main>{children}</main>
         <footer className="footer">
