@@ -3,30 +3,93 @@ import type { WorkerBindings } from "./worker-env";
 import { getMonthlyPhase, monthKey } from "./time";
 import { getPrisma } from "./db";
 
+/** Stable pathname for routing (collapse slashes, trim trailing slash, keep leading slash). */
+export function getNormalizedPathname(request: Request): string {
+  try {
+    let p = new URL(request.url).pathname.replace(/\/+/g, "/");
+    if (p.length > 1 && p.endsWith("/")) {
+      p = p.slice(0, -1);
+    }
+    return p || "/";
+  } catch {
+    return "/";
+  }
+}
+
+export function unknownApiRouteResponse(
+  pathname: string,
+  requestUrl: string,
+): Response {
+  return corsJson(
+    {
+      error: "unknown_api_route",
+      pathname,
+      requestUrl,
+      hint: "If pathname is not /api/..., a zone route or proxy may be stripping or prefixing paths. In Cloudflare, attach this Worker to * / * for the hostname you use.",
+    },
+    404,
+  );
+}
+
 export async function handleApiRequest(
   request: Request,
   env: WorkerBindings,
 ): Promise<Response | null> {
-  const url = new URL(request.url);
-  if (request.method !== "GET") return null;
+  const pathname = getNormalizedPathname(request);
+  if (!pathname.startsWith("/api/")) return null;
+
+  const method = request.method;
+  if (method !== "GET" && method !== "HEAD") return null;
 
   const prisma = getPrisma(env.DB);
   const now = new Date();
   const phase = getMonthlyPhase(now);
   const currentMonth = monthKey(now);
 
-  switch (url.pathname) {
-    case "/api/portfolio":
-      return portfolioResponse(prisma, phase, currentMonth);
-    case "/api/members":
-      return membersResponse(prisma);
-    case "/api/leaderboard":
-      return leaderboardResponse(prisma);
-    case "/api/blogs":
-      return blogsResponse(prisma);
-    default:
-      return null;
+  let body: Response;
+  try {
+    switch (pathname) {
+      case "/api/portfolio":
+        body = await portfolioResponse(prisma, phase, currentMonth);
+        break;
+      case "/api/members":
+        body = await membersResponse(prisma);
+        break;
+      case "/api/leaderboard":
+        body = await leaderboardResponse(prisma);
+        break;
+      case "/api/blogs":
+        body = await blogsResponse(prisma);
+        break;
+      default:
+        return null;
+    }
+  } catch (err) {
+    console.error("handleApiRequest:", err);
+    return corsJson(
+      {
+        error: "api_error",
+        message: err instanceof Error ? err.message : String(err),
+      },
+      500,
+    );
   }
+
+  const headers = new Headers(body.headers);
+  headers.set("X-HNS-Route", "api");
+  const withTag = new Response(body.body, {
+    status: body.status,
+    headers,
+  });
+
+  if (method === "HEAD") {
+    return new Response(null, {
+      status: withTag.status,
+      headers: withTag.headers,
+    });
+  }
+
+  return withTag;
 }
 
 async function portfolioResponse(
@@ -152,8 +215,9 @@ async function blogsResponse(prisma: PrismaClient): Promise<Response> {
   return corsJson({ blogs });
 }
 
-function corsJson(data: unknown): Response {
+function corsJson(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
+    status,
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",

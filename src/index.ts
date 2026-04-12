@@ -2,7 +2,11 @@ import { DiscordHono } from "discord-hono";
 import type { ExecutionContext } from "@cloudflare/workers-types";
 import { handleAdminReview, handleVote } from "./review-handler";
 import type { HonoWorkerEnv, WorkerBindings } from "./worker-env";
-import { handleApiRequest } from "./api";
+import {
+  getNormalizedPathname,
+  handleApiRequest,
+  unknownApiRouteResponse,
+} from "./api";
 import { getPrisma } from "./db";
 import {
   registerSetupProfile,
@@ -48,10 +52,51 @@ app = app.component("", async (c) => {
   return c.res("Unknown component.");
 });
 
+function rootApiDiscoveryResponse(): Response {
+  const body = {
+    service: "hns-bot",
+    note:
+      "GET / is not the JSON API. discord-hono answers other GETs with Operational — use the paths below.",
+    endpoints: [
+      "/api/blogs",
+      "/api/members",
+      "/api/portfolio",
+      "/api/leaderboard",
+    ],
+  };
+  return new Response(JSON.stringify(body), {
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
+}
+
 export default {
   fetch: async (request: Request, env: WorkerBindings, executionCtx?: ExecutionContext) => {
+    const pathname = getNormalizedPathname(request);
+
     const apiResponse = await handleApiRequest(request, env);
     if (apiResponse) return apiResponse;
+
+    // Never send /api/* to discord-hono (it always responds GET with Operational🔥).
+    if (
+      pathname.startsWith("/api/") &&
+      (request.method === "GET" || request.method === "HEAD")
+    ) {
+      return unknownApiRouteResponse(pathname, request.url);
+    }
+
+    if (request.method === "GET" || request.method === "HEAD") {
+      if (pathname === "/") {
+        return request.method === "HEAD"
+          ? new Response(null, {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            })
+          : rootApiDiscoveryResponse();
+      }
+    }
 
     return app.fetch(request, env, executionCtx);
   },
