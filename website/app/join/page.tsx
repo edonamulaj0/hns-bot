@@ -15,7 +15,6 @@ const DISCORD_INVITE = "https://discord.gg/xrxTUsgdv9";
 const ROLES = [
   { name: "Builder", desc: "Submitted at least one project" },
   { name: "Hacker", desc: "Submitted a hacker track entry" },
-  { name: "Contributor", desc: "Shared a blog article" },
   { name: "Veteran", desc: "3+ months active" },
   { name: "Admin", desc: "Community team" },
 ];
@@ -127,8 +126,9 @@ export default async function JoinPage({
                       <p className="text-xl mb-2">🔐</p>
                       <h3 className="font-bold text-[var(--accent)] mb-2">Hacker Track</h3>
                       <p className="text-sm text-white/60 leading-relaxed">
-                        2-week cycles. CTF writeups, security tool builds, vulnerability research. Submit with{" "}
-                        <code className="mono text-[var(--accent)]">/submit —track hacker</code>.
+                        Same monthly calendar as developers — days 1–21 to build, days 22–25 to vote. Submit CTF
+                        writeups, security tools, vulnerability research, or red team reports. Enroll via{" "}
+                        <code className="mono text-[var(--accent)]">/enroll</code> in Discord and submit on the site.
                       </p>
                     </div>
                   </div>
@@ -138,9 +138,9 @@ export default async function JoinPage({
                 title: "Submit your work",
                 body: (
                   <p className="text-white/65 text-sm sm:text-base leading-relaxed">
-                    Use <strong className="text-white/85">My Submission</strong> on the site (signed in) or{" "}
-                    <code className="mono text-[var(--accent)]">/submit</code> in Discord for a link to the form. Include a
-                    repo link, optional demo URL, and optional writeup. Submissions are reviewed for the challenge rules.
+                    Sign in on the site and go to <strong className="text-white/85">Submit</strong> via your avatar menu.
+                    Fill in your repo link, optional demo URL, and optional writeup or attachment. You can edit your
+                    submission any time before day 21.
                   </p>
                 ),
               },

@@ -215,6 +215,20 @@ export default function HomePage() {
               </div>
               <span className="label">Challenge phase</span>
             </div>
+            {totalMembers === 0 && totalSubmissions === 0 && (
+              <p
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-xs)",
+                  color: "var(--text-dimmer)",
+                  textAlign: "center",
+                  marginTop: "0.75rem",
+                  gridColumn: "1 / -1",
+                }}
+              >
+                First challenges drop May 1 · Stats update in real time
+              </p>
+            )}
           </div>
         </div>
       </motion.section>

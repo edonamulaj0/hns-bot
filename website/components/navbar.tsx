@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthNav } from "@/components/AuthNav";
-import { utcMonthKey } from "@/lib/month";
 import { BRAND_LOGO_PNG, BRAND_LOGO_SVG, BRAND_NAME } from "@/lib/branding";
 
 const NAV_LINKS = [
@@ -46,11 +45,24 @@ function NavBrand() {
 export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const voteMonth = useMemo(() => utcMonthKey(), []);
 
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    };
+  }, [open]);
 
   return (
     <nav className="sticky top-0 z-[100] border-b border-[var(--border)] bg-[rgba(5,5,5,0.92)] backdrop-blur-md supports-[backdrop-filter]:bg-[rgba(5,5,5,0.85)]">
@@ -90,38 +102,45 @@ export function Navbar() {
 
         <div
           id="nav-panel"
-          className={`fixed inset-x-0 top-[3.5rem] bottom-0 z-[99] flex flex-col gap-1 overflow-y-auto border-t border-[var(--border)] bg-[var(--bg)] p-4 md:static md:inset-auto md:top-auto md:z-auto md:max-h-none md:flex-row md:items-center md:gap-1 md:overflow-visible md:border-t-0 md:bg-transparent md:p-0 ${
+          className={`fixed left-0 right-0 top-[3.5rem] bottom-0 z-[99] h-[calc(100dvh-3.5rem)] border-t border-[var(--border)] bg-[var(--bg)] md:static md:inset-auto md:top-auto md:z-auto md:h-auto md:max-h-none md:flex md:flex-row md:items-center md:gap-1 md:overflow-visible md:border-t-0 md:bg-transparent md:p-0 ${
             open ? "flex" : "hidden md:flex"
           }`}
         >
-          {NAV_LINKS.map((link) => {
-            const active = linkActive(pathname, link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`rounded px-3 py-2.5 font-display text-sm no-underline transition-colors md:py-1.5 ${
-                  active
-                    ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
-                    : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
-                }`}
-              >
-                {link.label}
+          <div className="flex h-[calc(100dvh-3.5rem)] w-full flex-col justify-between overflow-y-auto px-[clamp(1rem,4vw,2rem)] py-[clamp(1.5rem,5vh,2.5rem)] md:h-auto md:w-auto md:flex-row md:items-center md:gap-1 md:overflow-visible md:p-0">
+            <div className="flex flex-col gap-1 md:flex-row md:items-center">
+              {NAV_LINKS.map((link) => {
+                const active = linkActive(pathname, link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`flex w-full items-center justify-between rounded px-4 py-3.5 text-left text-[clamp(1rem,4vw,1.2rem)] no-underline transition-colors md:w-auto md:px-3 md:py-1.5 md:text-sm ${
+                      active
+                        ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
+                        : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
+                    }`}
+                  >
+                    <span>{link.label}</span>
+                    <span
+                      aria-hidden
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: "var(--accent)",
+                        opacity: active ? 1 : 0,
+                      }}
+                    />
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-6 md:ml-2 md:flex-row md:items-center md:gap-2 md:border-t-0 md:pt-0">
+              <Link href="/join" className="btn btn-primary flex w-full justify-center md:w-auto">
+                Join Us
               </Link>
-            );
-          })}
-          <Link
-            href={`/vote/${voteMonth}`}
-            className={`rounded px-3 py-2.5 font-display text-sm no-underline transition-colors md:py-1.5 ${
-              pathname.startsWith("/vote/")
-                ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
-                : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
-            }`}
-          >
-            Vote
-          </Link>
-          <div className="mt-2 flex flex-col gap-2 md:mt-0 md:ml-2 md:flex-row md:items-center">
-            <AuthNav />
+              <AuthNav />
+            </div>
           </div>
         </div>
       </div>

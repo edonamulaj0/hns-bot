@@ -15,14 +15,30 @@ function MembersFallback() {
         <div className="container w-full">
           <p className="label">Community</p>
           <h1 className="mb-3 text-3xl font-bold sm:text-4xl md:text-5xl">Members</h1>
-          <p className="text-white/60 max-w-2xl text-sm sm:text-base">Loading hub…</p>
+          <div className="max-w-2xl space-y-2">
+            <div className="skeleton h-3 w-64" />
+            <div className="skeleton h-3 w-52" />
+          </div>
         </div>
       </section>
       <section className="section pt-4">
         <div className="container w-full">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-pulse">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-44 rounded bg-white/5" />
+              <div key={i} className="card p-4 sm:p-5">
+                <div className="mb-3 flex items-start gap-3">
+                  <div className="skeleton h-10 w-10 rounded-full shrink-0" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="skeleton h-3 w-2/3" />
+                    <div className="skeleton h-3 w-1/2" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="skeleton h-2.5 w-full" />
+                  <div className="skeleton h-2.5 w-5/6" />
+                  <div className="skeleton h-2.5 w-2/3" />
+                </div>
+              </div>
             ))}
           </div>
         </div>

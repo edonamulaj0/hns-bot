@@ -73,23 +73,33 @@ export default function MembersHub() {
   const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab] = useState<"leaderboard" | "xp">("leaderboard");
   const [showAllStacks, setShowAllStacks] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    Promise.allSettled([
-      getMembers(),
-      getLeaderboard(),
-      getPortfolio(),
-      getBlogs(),
-    ]).then(([m, lb, p, b]) => {
-      if (m.status === "fulfilled") setMembers(m.value.members);
-      if (lb.status === "fulfilled") setLeaderboard(lb.value.leaderboard);
-      if (p.status === "fulfilled") setPortfolio(p.value);
-      if (b.status === "fulfilled") setBlogs(b.value.blogs);
-      setLoading(false);
-    });
+    async function loadMembersHub() {
+      setLoading(true);
+      setError(null);
+      try {
+        const [m, lb, p, b] = await Promise.all([
+          getMembers(),
+          getLeaderboard(),
+          getPortfolio(),
+          getBlogs(),
+        ]);
+        setMembers(m.members);
+        setLeaderboard(lb.leaderboard);
+        setPortfolio(p);
+        setBlogs(b.blogs);
+      } catch {
+        setError("Could not load member data.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadMembersHub();
   }, []);
 
   const patchQuery = useCallback(
@@ -390,10 +400,36 @@ export default function MembersHub() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-pulse">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-40 rounded bg-white/5" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="card p-4 sm:p-5">
+                  <div className="mb-3 flex items-start gap-3">
+                    <div className="skeleton h-10 w-10 rounded-full shrink-0" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="skeleton h-3 w-2/3" />
+                      <div className="skeleton h-3 w-1/2" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="skeleton h-2.5 w-full" />
+                    <div className="skeleton h-2.5 w-5/6" />
+                    <div className="skeleton h-2.5 w-2/3" />
+                  </div>
+                </div>
               ))}
+            </div>
+          ) : error ? (
+            <div className="empty-state">
+              <p>Could not load member data.</p>
+              <p
+                style={{
+                  fontSize: "var(--text-xs)",
+                  color: "var(--text-dim)",
+                  marginTop: "0.5rem",
+                }}
+              >
+                API unavailable — check NEXT_PUBLIC_API_URL in Cloudflare Pages settings.
+              </p>
             </div>
           ) : (
             <div

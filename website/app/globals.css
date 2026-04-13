@@ -283,6 +283,17 @@ footer.footer {
   animation: pulse-dot 2s ease infinite;
 }
 
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.skeleton {
+  background: var(--border);
+  border-radius: 2px;
+  animation: skeleton-pulse 1.5s ease infinite;
+}
+
 @keyframes phase-countdown-border {
   0%, 100% { border-color: var(--border); }
   50% { border-color: var(--accent); }

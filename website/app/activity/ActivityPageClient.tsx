@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getPortfolio, getBlogs, type Blog, type PortfolioResponse } from "@/lib/api";
 import { mergeActivityFeedItems } from "@/lib/activity-feed";
@@ -70,8 +71,30 @@ export default function ActivityPageClient() {
               <p>{err}</p>
             </div>
           ) : slice.length === 0 ? (
-            <div className="empty-state">
-              <p>No events yet.</p>
+            <div
+              style={{
+                padding: "3rem 1rem",
+                textAlign: "center",
+                border: "1px dashed var(--border-bright)",
+                borderRadius: "2px",
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-sm)",
+                  color: "var(--text-dim)",
+                }}
+              >
+                No activity yet — the feed populates when members submit projects and share articles.
+              </p>
+              <Link
+                href="/join"
+                className="btn btn-primary"
+                style={{ marginTop: "1rem", display: "inline-flex" }}
+              >
+                Join and be the first →
+              </Link>
             </div>
           ) : (
             <>
@@ -121,8 +144,23 @@ export default function ActivityPageClient() {
               ))}
             </div>
           ) : sortedArticles.length === 0 ? (
-            <div className="empty-state">
-              <p>No articles yet.</p>
+            <div
+              style={{
+                padding: "3rem 1rem",
+                textAlign: "center",
+                border: "1px dashed var(--border-bright)",
+                borderRadius: "2px",
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-sm)",
+                  color: "var(--text-dim)",
+                }}
+              >
+                No articles shared yet. Members can share articles from the activity feed once they&apos;re signed in.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

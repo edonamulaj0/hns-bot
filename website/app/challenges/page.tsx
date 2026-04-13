@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getPortfolio, PHASE_META, type PortfolioResponse } from "@/lib/api";
 import { memberDisplayName } from "@/lib/member-label";
 import { PhaseCountdown } from "@/components/PhaseCountdown";
+import { VoteBanner } from "@/components/VoteBanner";
 import type { Phase } from "@/lib/phase";
 import { utcMonthKey } from "@/lib/month";
 
@@ -56,6 +57,9 @@ export default function ChallengesPage() {
             )}
           </div>
           <PhaseCountdown phase={(portfolio?.phase as Phase) ?? undefined} />
+          <div className="mt-6">
+            <VoteBanner />
+          </div>
           <div className="label mt-6 sm:mt-8">Build & Compete</div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 lg:mb-6">
             Monthly Challenges

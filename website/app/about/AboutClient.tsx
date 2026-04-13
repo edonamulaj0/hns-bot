@@ -101,17 +101,18 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
           <div className="max-w-[800px] mx-auto">
             <div className="leading-relaxed text-white/60 space-y-3 sm:space-y-4 text-xs sm:text-sm">
               <p>
-                H4ck&Stack began as a passion project from developers who believed that the global tech scene had immense
-                potential. We saw talented developers scattered across the world with limited opportunities to connect
-                and collaborate.
+                H4ck&Stack started as a small Discord server for developers who wanted accountability and a place to show
+                their work. The idea was simple: pick something to build each month, ship it, and let the community
+                weigh in.
               </p>
               <p>
-                In 2024, we launched our first monthly challenge. What started as a small group of enthusiasts quickly
-                grew into a thriving community of builders, thinkers, and innovators.
+                The hacker track came later, when enough security-focused members joined and wanted challenge formats
+                suited to writeups and tooling rather than shipped apps. Both tracks now run on the same calendar with
+                the same XP system.
               </p>
               <p>
-                Today, H4ck&Stack connects hundreds of developers, hosts monthly challenges, and provides a platform for
-                ideas to become reality. We&apos;re just getting started, and the best is yet to come.
+                The platform — bot, website, and database — is built and maintained by Cyphera, a boutique web studio
+                based in Prishtina, Kosovo.
               </p>
             </div>
           </div>
