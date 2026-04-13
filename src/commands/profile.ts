@@ -4,10 +4,13 @@ import { getPrisma } from "../db";
 import { formatTechStackList } from "./helpers";
 import { syncDiscordIdentity } from "../discord-identity";
 
-function githubUsernameFromUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  const m = url.match(/github\.com\/([^/?#\s]+)/i);
-  return m?.[1] ?? null;
+function discordAvatarUrl(discordId: string, avatarHash: string | null | undefined): string {
+  const hash = avatarHash?.trim();
+  if (hash) {
+    return `https://cdn.discordapp.com/avatars/${discordId}/${hash}.png?size=128`;
+  }
+  const fallback = Number.parseInt(discordId.slice(-4), 10) % 6;
+  return `https://cdn.discordapp.com/embed/avatars/${Number.isNaN(fallback) ? 0 : fallback}.png`;
 }
 
 function profileUrl(url: string | null | undefined, kind: "github" | "linkedin"): string | null {
@@ -38,6 +41,7 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
         id: true,
         discordUsername: true,
         displayName: true,
+        avatarHash: true,
         bio: true,
         github: true,
         linkedin: true,
@@ -59,10 +63,7 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
 
     const stack = formatTechStackList(row.techStack);
     const stackShow = stack.slice(0, 8).join(", ") || "—";
-    const ghUser = githubUsernameFromUrl(row.github);
-    const iconUrl = ghUser
-      ? `https://avatars.githubusercontent.com/${ghUser}?size=64`
-      : undefined;
+    const iconUrl = discordAvatarUrl(discordId, row.avatarHash);
 
     const ghLine = row.github ? `GitHub: ${row.github}` : "";
     const liLine = row.linkedin ? `LinkedIn: ${row.linkedin}` : "";
@@ -97,7 +98,7 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
 
     embed.author = {
       name: handle,
-      ...(iconUrl ? { icon_url: iconUrl } : {}),
+      icon_url: iconUrl,
     };
 
     if (row.bio?.trim()) {
@@ -108,9 +109,7 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
       });
     }
 
-    if (iconUrl && ghUser) {
-      embed.thumbnail = { url: iconUrl };
-    }
+    embed.thumbnail = { url: iconUrl };
 
     const ghUrl = profileUrl(row.github, "github");
     const liUrl = profileUrl(row.linkedin, "linkedin");
