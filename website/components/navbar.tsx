@@ -233,12 +233,12 @@ export function Navbar() {
 
                     <div style={{ display: "flex", gap: "0.5rem" }}>
                       <Link
-                        href="/submit"
+                        href="/settings/submissions"
                         onClick={() => setOpen(false)}
                         className="btn"
                         style={{ flex: 1, justifyContent: "center", fontSize: "0.8rem" }}
                       >
-                        My Submission
+                        My Submissions
                       </Link>
                       <Link
                         href={`/vote/${voteMonth}`}

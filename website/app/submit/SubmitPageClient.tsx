@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { loginUrl } from "@/lib/auth-client";
+import { getSessionClient, loginUrl } from "@/lib/auth-client";
 import { fetchMe, postSubmit, patchSubmit, postEnroll } from "@/lib/api-browser";
 import { getChallenges, type ChallengeDto } from "@/lib/api";
 import { codenameFromSubmissionId } from "@/lib/codename";
@@ -24,6 +24,7 @@ type MePayload = {
 
 export function SubmitPageClient() {
   const [me, setMe] = useState<MePayload | null | undefined>(undefined);
+  const [authIssue, setAuthIssue] = useState<string | null>(null);
   const [challenges, setChallenges] = useState<ChallengeDto[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -35,15 +36,21 @@ export function SubmitPageClient() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
+    const session = await getSessionClient();
+    if (!session) {
+      setAuthIssue(null);
+      setMe(null);
+      return;
+    }
     const res = await fetchMe();
-    if (res.status === 401) {
-      setMe(null);
-      return;
-    }
     if (!res.ok) {
+      setAuthIssue(
+        "You're signed in, but your app session could not be verified. Try signing out and signing in again.",
+      );
       setMe(null);
       return;
     }
+    setAuthIssue(null);
     const data = (await res.json()) as MePayload;
     setMe(data);
     if (data.submission) {
@@ -139,6 +146,7 @@ export function SubmitPageClient() {
     return (
       <section className="section flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4">
         <h1 className="text-2xl font-bold">Submit</h1>
+        {authIssue && <p className="text-sm text-[var(--danger)] max-w-md text-center">{authIssue}</p>}
         <a href={loginUrl()} className="btn btn-primary">
           Sign in to submit
         </a>

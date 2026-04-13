@@ -86,7 +86,7 @@ export function ProfilePageClient() {
       }
       const data = (await res.json()) as { user: MeUser };
       setUser(data.user);
-      setBio(data.user.bio ?? "");
+      setBio((data.user.bio ?? "").slice(0, 500));
       setGithub(data.user.github ?? "");
       setLinkedin(data.user.linkedin ?? "");
       const ts = data.user.techStack;
@@ -133,7 +133,7 @@ export function ProfilePageClient() {
     setErr(null);
     setMsg(null);
     const res = await patchProfile({
-      bio: bio || null,
+      bio: (bio || "").slice(0, 500) || null,
       github: github || null,
       linkedin: linkedin || null,
       techStack: tags,
@@ -240,8 +240,8 @@ export function ProfilePageClient() {
               Member since {new Date(user.profileCompletedAt).toLocaleDateString()}
             </p>
           )}
-          <Link href="/submit" className="btn text-sm">
-            My submission →
+          <Link href="/settings/submissions" className="btn text-sm">
+            My submissions →
           </Link>
         </aside>
 
@@ -299,7 +299,7 @@ export function ProfilePageClient() {
               className="w-full min-h-[120px] rounded border border-[var(--border)] bg-[var(--bg-card)] p-3 text-sm"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              maxLength={2000}
+              maxLength={500}
             />
             <label className="block text-sm text-white/60 mt-4 mb-1">GitHub URL or username</label>
             <input

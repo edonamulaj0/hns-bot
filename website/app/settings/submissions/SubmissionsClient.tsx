@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { deleteSubmit, fetchMe, patchSubmit } from "@/lib/api-browser";
+import { getSessionClient } from "@/lib/auth-client";
 import type { PortfolioResponse } from "@/lib/api";
 
 type MePayload = {
@@ -53,16 +54,27 @@ export function SubmissionsClient() {
   const [deleteSecondStep, setDeleteSecondStep] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [authIssue, setAuthIssue] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
     async function load() {
       try {
-        const meRes = await fetchMe();
-        if (!meRes.ok) {
-          window.location.href = "/auth/login";
+        const session = await getSessionClient();
+        if (!session) {
+          if (alive) window.location.href = "/auth/login";
           return;
         }
+        const meRes = await fetchMe();
+        if (!meRes.ok) {
+          if (alive) {
+            setAuthIssue(
+              "You're signed in, but your app session could not be verified. Try signing out and signing in again.",
+            );
+          }
+          return;
+        }
+        if (alive) setAuthIssue(null);
         const me = (await meRes.json()) as MePayload;
         const portfolioRes = await fetch("/hns-api/portfolio", { cache: "no-store" });
         const portfolio = portfolioRes.ok ? ((await portfolioRes.json()) as PortfolioResponse) : null;
@@ -185,6 +197,7 @@ export function SubmissionsClient() {
         )}
 
         {error && <p className="text-sm text-[var(--danger)] mb-3">{error}</p>}
+        {authIssue && <p className="text-sm text-[var(--danger)] mb-3">{authIssue}</p>}
 
         <AnimatePresence>
           {items.map((s) => {

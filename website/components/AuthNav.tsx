@@ -84,11 +84,11 @@ export function AuthNav() {
             My Profile
           </Link>
           <Link
-            href="/submit"
+            href="/settings/submissions"
             className="block px-3 py-2 text-sm no-underline hover:bg-[var(--bg-raised)]"
             onClick={() => setOpen(false)}
           >
-            My Submission
+            My Submissions
           </Link>
           <Link
             href={`/vote/${voteMonth}`}
