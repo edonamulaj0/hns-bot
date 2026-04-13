@@ -7,6 +7,20 @@ type NotifyOpts = {
   channelsOverride?: string[];
 };
 
+/** Single-channel override that is not the dedicated dev/hacker announce channels — e.g. admin testing. */
+function singleGenericPreviewChannel(
+  env: WorkerBindings,
+  opts?: NotifyOpts,
+): string | null {
+  const o = opts?.channelsOverride;
+  if (!o || o.length !== 1) return null;
+  const id = o[0].trim();
+  if (!id) return null;
+  if (id === env.DEVELOPER_CHALLENGES_CHANNEL_ID?.trim()) return null;
+  if (id === env.HACKER_CHALLENGES_CHANNEL_ID?.trim()) return null;
+  return id;
+}
+
 function monthParts(month: string): { year: number; monthIdx: number } {
   const [y, m] = month.split("-").map(Number);
   return { year: y || new Date().getUTCFullYear(), monthIdx: (m || 1) - 1 };
@@ -51,6 +65,31 @@ export async function notifyChallengesLive(
     select: { track: true, tier: true, title: true, description: true },
     orderBy: [{ track: "asc" }, { tier: "asc" }],
   });
+
+  const genericCh = singleGenericPreviewChannel(env, opts);
+  if (genericCh) {
+    const embed = {
+      title: `📅 ${month} challenges are live! (preview)`,
+      color: 0xccff00,
+      description:
+        "This month's challenges are out. Enroll to claim your spot and get the full brief sent to your DMs.\n\nAll submissions go through the website — head to **h4cknstack.com/challenges** to read the briefs and enroll.",
+      fields: byTrack.map((r) => {
+        const tr = r.track === "HACKER" ? "Hacker" : "Developer";
+        return {
+          name: `${tr} · ${r.tier}`,
+          value: `**${r.title}**\n${firstN(r.description, 100)}`,
+          inline: true,
+        };
+      }),
+      footer: { text: "Use /enroll to sign up · Submissions open until day 21" },
+    };
+    await sendChannelMessage(env.DISCORD_TOKEN, genericCh, { embeds: [embed] });
+    await sendChannelMessage(env.DISCORD_TOKEN, genericCh, {
+      content:
+        "h4cknstack.com/challenges/developers\nh4cknstack.com/challenges/hackers",
+    });
+    return;
+  }
 
   const rowsFor = (track: "DEVELOPER" | "HACKER") =>
     byTrack.filter((r) => (r.track === "HACKER" ? "HACKER" : "DEVELOPER") === track);
@@ -145,6 +184,40 @@ export async function notifyResultsPublished(
   const prisma = getPrisma(env.DB);
   const month = monthKey();
   const channels = targetChannels(env, opts);
+
+  const genericCh = singleGenericPreviewChannel(env, opts);
+  if (genericCh) {
+    const tiers = ["Beginner", "Intermediate", "Advanced"];
+    const tracks: ("DEVELOPER" | "HACKER")[] = ["DEVELOPER", "HACKER"];
+    const fields: Array<{ name: string; value: string; inline: boolean }> = [];
+    for (const track of tracks) {
+      const label = track === "HACKER" ? "Hacker" : "Developer";
+      for (const tier of tiers) {
+        const top = await prisma.submission.findFirst({
+          where: { month, track, tier, isApproved: true },
+          include: { user: { select: { displayName: true, discordUsername: true } } },
+          orderBy: [{ votes: "desc" }, { createdAt: "asc" }],
+        });
+        if (!top) continue;
+        const who = top.user.displayName || top.user.discordUsername || "Unknown";
+        fields.push({
+          name: `🥇 ${label} · ${tier}`,
+          value: `${top.title} by ${who} · ${top.votes} votes`,
+          inline: false,
+        });
+      }
+    }
+    const embed = {
+      title: `🏆 ${month} results are live! (preview)`,
+      color: 0x57f287,
+      description:
+        "Voting is closed and results have been published to the portfolio. Congratulations to everyone who shipped something this month — XP has been assigned to all participants.",
+      fields,
+      footer: { text: "View full results at h4cknstack.com/challenges" },
+    };
+    await sendChannelMessage(env.DISCORD_TOKEN, genericCh, { embeds: [embed] });
+    return;
+  }
 
   for (const chId of channels) {
     const track: "DEVELOPER" | "HACKER" =

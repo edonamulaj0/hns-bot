@@ -29,16 +29,18 @@ export function registerAdminTestNotify(app: DiscordHono<HonoWorkerEnv>) {
         return;
       }
 
-      const adminChannel = ctx.env.ADMIN_CHANNEL_ID?.trim();
-      if (!adminChannel) {
+      const channelId = (ctx.interaction as { channel_id?: string })?.channel_id?.trim();
+      const fallbackAdmin = ctx.env.ADMIN_CHANNEL_ID?.trim();
+      const target = channelId || fallbackAdmin;
+      if (!target) {
         await ctx.followup({
-          content: "ADMIN_CHANNEL_ID is not configured.",
+          content: "Could not resolve a channel (missing interaction channel and ADMIN_CHANNEL_ID).",
           flags: MessageFlags.Ephemeral,
         });
         return;
       }
 
-      const opts = { channelsOverride: [adminChannel] };
+      const opts = { channelsOverride: [target] };
       if (type === "challenges-live") await notifyChallengesLive(ctx, ctx.env, opts);
       else if (type === "deadline-warning") await notifyDeadlineWarning(ctx, ctx.env, opts);
       else if (type === "submissions-closed") await notifySubmissionsClosed(ctx, ctx.env, opts);
@@ -52,7 +54,9 @@ export function registerAdminTestNotify(app: DiscordHono<HonoWorkerEnv>) {
         return;
       }
       await ctx.followup({
-        content: "✅ Preview sent to admin channel.",
+        content: channelId
+          ? "✅ Preview posted in this channel."
+          : "✅ Preview posted (used ADMIN_CHANNEL_ID — run this command in a server channel to post where you are).",
         flags: MessageFlags.Ephemeral,
       });
     }),
