@@ -63,6 +63,17 @@ function blogsUrl(): string | null {
   return `${base}/api/blogs`;
 }
 
+const PUBLIC_USER_ID_RE = /^\d{17,20}$/;
+
+function userPublicProfileUrl(discordId: string): string | null {
+  if (!PUBLIC_USER_ID_RE.test(discordId)) return null;
+  const path = `/users/${discordId}`;
+  if (typeof window !== "undefined") return browserApiPath(path);
+  const base = getServerWorkerBase();
+  if (!base) return null;
+  return `${base}/api${path}`;
+}
+
 function discordWidgetUrl(): string | null {
   if (typeof window !== "undefined") return "/api/discord-widget";
   return null;
@@ -103,7 +114,6 @@ export interface Submission {
 
 export interface MemberSummary {
   discordId: string;
-  discordUsername?: string | null;
   displayName?: string | null;
   avatarHash?: string | null;
   bio: string | null;
@@ -138,7 +148,6 @@ export interface Blog {
   createdAt: string;
   user: {
     discordId: string;
-    discordUsername?: string | null;
     displayName?: string | null;
     github: string | null;
   };
@@ -177,6 +186,44 @@ export interface LeaderboardResponse {
 }
 
 export interface BlogsResponse {
+  blogs: Blog[];
+}
+
+/** `GET /api/users/:discordId` — public profile, submissions (portfolio rules), blogs */
+export interface PublicProfileUser {
+  discordId: string;
+  displayName: string | null;
+  avatarHash: string | null;
+  bio: string | null;
+  github: string | null;
+  linkedin: string | null;
+  techStack: unknown;
+  points: number;
+  rank: number;
+  profileCompletedAt: string | null;
+  stats: { submissions: number; blogs: number; votesCast: number };
+}
+
+export interface PublicProfileSubmission {
+  id: string;
+  tier: string;
+  track: string;
+  title: string;
+  description: string;
+  repoUrl: string;
+  demoUrl: string | null;
+  attachmentUrl: string | null;
+  votes: number;
+  month: string;
+  redirectSlug: string | null;
+  createdAt: string;
+}
+
+export interface PublicMemberProfile {
+  phase: Phase;
+  month: string;
+  user: PublicProfileUser;
+  submissions: PublicProfileSubmission[];
   blogs: Blog[];
 }
 
@@ -277,6 +324,20 @@ export async function getBlogs(): Promise<BlogsResponse> {
   }
 }
 
+export async function getUserPublicProfile(
+  discordId: string,
+): Promise<PublicMemberProfile | null> {
+  const url = userPublicProfileUrl(discordId);
+  if (!url) return null;
+  try {
+    const res = await fetch(url, fetchInit());
+    if (!res.ok) return null;
+    return res.json() as Promise<PublicMemberProfile>;
+  } catch {
+    return null;
+  }
+}
+
 export async function getDiscordWidget(): Promise<DiscordWidgetResponse | null> {
   const url = discordWidgetUrl();
   if (!url) return null;
@@ -318,12 +379,41 @@ export function discordAvatarUrl(discordId: string): string {
   return `https://cdn.discordapp.com/embed/avatars/${hash}.png`;
 }
 
-export function githubAvatarUrl(githubUrl: string | null): string | null {
+export function githubAvatarUrl(
+  githubUrl: string | null,
+  size: 64 | 128 | 256 = 128,
+): string | null {
   if (!githubUrl) return null;
-  const match = githubUrl.match(/github\.com\/([^/?#\s]+)/);
+  const match = githubUrl.match(/github\.com\/([^/?#\s]+)/i);
   return match
-    ? `https://avatars.githubusercontent.com/${match[1]}?size=128`
+    ? `https://avatars.githubusercontent.com/${match[1]}?size=${size}`
     : null;
+}
+
+export function discordUserAvatarUrl(
+  discordId: string,
+  avatarHash: string | null | undefined,
+  size: 64 | 128 | 256 = 128,
+): string | null {
+  const h = avatarHash?.trim();
+  if (!h) return null;
+  return `https://cdn.discordapp.com/avatars/${discordId}/${h}.png?size=${size}`;
+}
+
+/** Prefer GitHub, then Discord user avatar, then generic embed silhouette. */
+export function userProfileAvatarUrl(
+  opts: {
+    discordId: string;
+    github?: string | null;
+    avatarHash?: string | null;
+  },
+  size: 64 | 128 | 256 = 128,
+): string {
+  return (
+    githubAvatarUrl(opts.github ?? null, size) ??
+    discordUserAvatarUrl(opts.discordId, opts.avatarHash, size) ??
+    discordAvatarUrl(opts.discordId)
+  );
 }
 
 export const PHASE_META: Record<

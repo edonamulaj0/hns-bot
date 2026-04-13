@@ -360,7 +360,7 @@ export default function ChallengesPage() {
               },
               {
                 cmd: "/pulse",
-                desc: "Once per month, pulls public GitHub activity for your profile month and awards XP.",
+                desc: "Shows your GitHub activity for the current UTC month and estimated month-end pulse XP (preview only; does not award points).",
               },
               {
                 cmd: "/leaderboard",

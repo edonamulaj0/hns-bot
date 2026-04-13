@@ -11,6 +11,15 @@ export function monthKey(date = new Date()): string {
   return `${year}-${month}`;
 }
 
+/** Linear scale from “so far this UTC month” to full month length (for pulse projections). */
+export function monthEndLinearScale(date = new Date()): number {
+  const y = date.getUTCFullYear();
+  const m = date.getUTCMonth();
+  const dayOfMonth = date.getUTCDate();
+  const daysInMonth = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  return daysInMonth / Math.max(dayOfMonth, 1);
+}
+
 /** Unified monthly calendar for Developer and Hacker tracks (UTC calendar days). */
 export function getMonthlyPhase(date = new Date()): Phase {
   const day = date.getUTCDate();

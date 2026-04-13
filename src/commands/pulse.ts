@@ -3,14 +3,16 @@ import type { DiscordHono } from "discord-hono";
 import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
 import {
+  computePulseRawXp,
   extractGithubUsername,
   fetchMonthlyPulse,
   fetchMonthlyPulseViaViewerGraphql,
   GitHubApiError,
+  PULSE_XP_CAP,
+  type PulseResult,
 } from "../github";
 import { getValidGithubAccessTokenForUser } from "../github-oauth";
-import { monthKey } from "../time";
-import { awardPoints } from "../points";
+import { monthEndLinearScale, monthKey } from "../time";
 import { getDiscordUserId } from "./helpers";
 
 async function safeFollowup(
@@ -22,6 +24,18 @@ async function safeFollowup(
   } catch (e) {
     console.error("pulse followup failed:", e);
   }
+}
+
+function scaledPulsePreview(pulse: PulseResult, scale: number): PulseResult {
+  return {
+    ...pulse,
+    commits: Math.round(pulse.commits * scale),
+    prsOpened: Math.round(pulse.prsOpened * scale),
+    prsMerged: Math.round(pulse.prsMerged * scale),
+    prReviews:
+      pulse.prReviews != null ? Math.round(pulse.prReviews * scale) : undefined,
+    xpEarned: pulse.xpEarned,
+  };
 }
 
 export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
@@ -39,7 +53,7 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
           return;
         }
 
-          const currentMonth = monthKey();
+        const currentMonth = monthKey();
 
         const user = await prisma.user.findUnique({
           where: { discordId },
@@ -49,7 +63,6 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
             githubAccessTokenEnc: true,
             githubRefreshTokenEnc: true,
             githubTokenExpiresAt: true,
-            githubLinkedLogin: true,
           },
         });
 
@@ -76,9 +89,9 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
           ? await fetchMonthlyPulseViaViewerGraphql(userOAuth, currentMonth)
           : await fetchMonthlyPulse(username, currentMonth, ctx.env.GITHUB_TOKEN);
 
-        if (pulse.xpEarned > 0) {
-          await awardPoints(prisma, user.id, pulse.xpEarned, ctx.env);
-        }
+        const scale = monthEndLinearScale();
+        const projectedRaw = computePulseRawXp(scaledPulsePreview(pulse, scale));
+        const xpProjectedMonthEnd = Math.min(projectedRaw, PULSE_XP_CAP);
 
         const noActivity =
           pulse.commits === 0 &&
@@ -102,29 +115,37 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
                 { name: "PRs Merged", value: `${pulse.prsMerged}`, inline: true },
               ];
 
+        const description = noActivity
+          ? noActivityText
+          : `Counts are **${currentMonth}** (UTC), from GitHub. **Projected XP** applies the pulse formula to counts scaled by **${scale.toFixed(2)}×** (your pace so far vs full month) and caps at **${PULSE_XP_CAP}**. This command **does not change your XP**.`;
+
+        const footerBase =
+          pulse.source === "viewer"
+            ? "Preview only · OAuth viewer (private repos you allowed)"
+            : `Preview only · ${pulse.source} (public) · /link-github for private`;
+
         await safeFollowup(ctx, {
           embeds: [
             {
-              title: `⚡ GitHub Pulse — ${currentMonth}`,
-              description: noActivity ? noActivityText : undefined,
-              color: pulse.xpEarned > 0 ? 0x57f287 : 0x99aab5,
+              title: `📊 GitHub activity — ${currentMonth}`,
+              description,
+              color: xpProjectedMonthEnd > 0 ? 0x5865f2 : 0x99aab5,
               fields: noActivity
-                ? []
+                ? [{ name: "GitHub", value: `[@${username}](${user.github})`, inline: true }]
                 : [
                     { name: "GitHub", value: `[@${username}](${user.github})`, inline: true },
                     { name: "Commits", value: `${pulse.commits}`, inline: true },
                     ...prFields,
-                    { name: "XP Earned", value: `**+${pulse.xpEarned}**`, inline: true },
+                    {
+                      name: "Projected pulse XP (month-end est.)",
+                      value: `**+${xpProjectedMonthEnd}** / ${PULSE_XP_CAP} max`,
+                      inline: true,
+                    },
                     ...(pulse.repoCount > 0
                       ? [{ name: "Repos Active", value: `${pulse.repoCount}`, inline: true }]
                       : []),
                   ],
-              footer: {
-                text:
-                  pulse.source === "viewer"
-                    ? "Max 100 XP/run · OAuth viewer (private repos you allowed)"
-                    : `Max 100 XP/run · ${pulse.source} (public) · /link-github for private`,
-              },
+              footer: { text: footerBase },
             },
           ],
         });

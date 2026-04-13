@@ -3,17 +3,24 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { getSessionClient, loginUrl } from "@/lib/auth-client";
+import { userProfileAvatarUrl } from "@/lib/api";
 import {
   deleteProfile,
   fetchMe,
   patchProfile,
 } from "@/lib/api-browser";
+import {
+  joinPublicDisplayName,
+  mergedPublicDisplayName,
+  splitPublicDisplayName,
+  validatePublicDisplayName,
+} from "@/lib/display-name";
 
 type MeUser = {
   id: string;
   discordId: string;
-  discordUsername: string | null;
   displayName: string | null;
+  discordUsername: string | null;
   avatarHash: string | null;
   bio: string | null;
   github: string | null;
@@ -33,6 +40,8 @@ export function ProfilePageClient() {
   const [linkedin, setLinkedin] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [delConfirm, setDelConfirm] = useState("");
@@ -49,11 +58,14 @@ export function ProfilePageClient() {
 
       const res = await fetchMe();
       if (res.status === 401) {
+        const { first, last } = splitPublicDisplayName(session.displayName);
+        setFirstName(first || "");
+        setLastName(last);
         setUser({
           id: "",
           discordId: session.discordId,
-          discordUsername: session.discordUsername,
           displayName: session.displayName,
+          discordUsername: null,
           avatarHash: session.avatarHash,
           bio: null,
           github: null,
@@ -67,11 +79,14 @@ export function ProfilePageClient() {
         return;
       }
       if (!res.ok) {
+        const { first, last } = splitPublicDisplayName(session.displayName);
+        setFirstName(first || "");
+        setLastName(last);
         setUser({
           id: "",
           discordId: session.discordId,
-          discordUsername: session.discordUsername,
           displayName: session.displayName,
+          discordUsername: null,
           avatarHash: session.avatarHash,
           bio: null,
           github: null,
@@ -86,6 +101,9 @@ export function ProfilePageClient() {
       }
       const data = (await res.json()) as { user: MeUser };
       setUser(data.user);
+      const { first, last } = splitPublicDisplayName(data.user.displayName);
+      setFirstName(first || data.user.discordUsername || "");
+      setLastName(last);
       setBio((data.user.bio ?? "").slice(0, 500));
       setGithub(data.user.github ?? "");
       setLinkedin(data.user.linkedin ?? "");
@@ -96,11 +114,14 @@ export function ProfilePageClient() {
       if (!session) {
         setUser(null);
       } else {
+        const { first, last } = splitPublicDisplayName(session.displayName);
+        setFirstName(first || "");
+        setLastName(last);
         setUser({
           id: "",
           discordId: session.discordId,
-          discordUsername: session.discordUsername,
           displayName: session.displayName,
+          discordUsername: null,
           avatarHash: session.avatarHash,
           bio: null,
           github: null,
@@ -132,7 +153,18 @@ export function ProfilePageClient() {
     setSaving(true);
     setErr(null);
     setMsg(null);
+    const fullName = joinPublicDisplayName(firstName, lastName);
+    const nameToSend = fullName || null;
+    if (nameToSend) {
+      const nameErr = validatePublicDisplayName(nameToSend);
+      if (nameErr) {
+        setSaving(false);
+        setErr(nameErr);
+        return;
+      }
+    }
     const res = await patchProfile({
+      displayName: nameToSend,
       bio: (bio || "").slice(0, 500) || null,
       github: github || null,
       linkedin: linkedin || null,
@@ -149,7 +181,13 @@ export function ProfilePageClient() {
       return;
     }
     if (!res.ok) {
-      setErr("Save failed.");
+      const j = await res.json().catch(() => ({}));
+      const msg =
+        (j as { message?: string; field?: string }).field === "displayName" &&
+        (j as { message?: string }).message
+          ? (j as { message: string }).message
+          : "Save failed.";
+      setErr(msg);
       return;
     }
     setMsg("Profile saved.");
@@ -203,10 +241,18 @@ export function ProfilePageClient() {
     );
   }
 
-  const avatar =
-    user.avatarHash && user.discordId
-      ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatarHash}.png?size=128`
-      : `https://cdn.discordapp.com/embed/avatars/${Number((BigInt(user.discordId) >> BigInt(22)) % BigInt(6))}.png`;
+  const avatar = userProfileAvatarUrl(
+    {
+      discordId: user.discordId,
+      github: user.github,
+      avatarHash: user.avatarHash,
+    },
+    128,
+  );
+
+  const shownName =
+    mergedPublicDisplayName(user.displayName, user.discordUsername) ||
+    "Add your name";
 
   return (
     <section className="section px-[clamp(1rem,4vw,2rem)]">
@@ -221,12 +267,7 @@ export function ProfilePageClient() {
             className="rounded-lg border border-[var(--border)]"
           />
           <div>
-            <p className="font-bold text-lg">
-              {user.displayName?.trim() || user.discordUsername || user.discordId}
-            </p>
-            {user.discordUsername && (
-              <p className="mono text-sm text-white/50">@{user.discordUsername}</p>
-            )}
+            <p className="font-bold text-lg">{shownName}</p>
           </div>
           <p className="text-sm text-[var(--accent)]">
             Rank #{user.rank} · {user.points} XP
@@ -256,12 +297,7 @@ export function ProfilePageClient() {
                 height={72}
                 className="rounded-full border border-[var(--border)]"
               />
-              <p className="mt-3 text-xl font-bold">
-                {user.displayName?.trim() || user.discordUsername || user.discordId}
-              </p>
-              {user.discordUsername && (
-                <p className="mono text-sm text-white/50">@{user.discordUsername}</p>
-              )}
+              <p className="mt-3 text-xl font-bold">{shownName}</p>
               <p className="mt-1 text-sm text-[var(--accent)]">
                 Rank #{user.rank} · {user.points} XP
               </p>
@@ -294,6 +330,34 @@ export function ProfilePageClient() {
             <h1 className="text-2xl font-bold mb-2">Edit profile</h1>
             {msg && <p className="text-sm text-[var(--success)] mb-2">{msg}</p>}
             {err && <p className="text-sm text-[var(--danger)] mb-2">{err}</p>}
+            <p className="text-xs text-white/45 mb-3">
+              Shown on the site. First name defaults to your Discord login name; last name is
+              optional.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div>
+                <label className="block text-sm text-white/60 mb-1">First name</label>
+                <input
+                  className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2 text-sm"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  maxLength={40}
+                  autoComplete="given-name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-white/60 mb-1">
+                  Last name <span className="text-white/40">(optional)</span>
+                </label>
+                <input
+                  className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2 text-sm"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  maxLength={40}
+                  autoComplete="family-name"
+                />
+              </div>
+            </div>
             <label className="block text-sm text-white/60 mb-1">Bio</label>
             <textarea
               className="w-full min-h-[120px] rounded border border-[var(--border)] bg-[var(--bg-card)] p-3 text-sm"

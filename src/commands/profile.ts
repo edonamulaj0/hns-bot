@@ -1,13 +1,25 @@
 import type { DiscordHono } from "discord-hono";
 import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
+import { mergedPublicDisplayName } from "../display-name";
 import { formatTechStackList } from "./helpers";
 
-function discordAvatarUrl(discordId: string, avatarHash: string | null | undefined): string {
+function githubAvatarUrl(githubUrl: string | null | undefined): string | null {
+  if (!githubUrl?.trim()) return null;
+  const match = githubUrl.trim().match(/github\.com\/([^/?#\s]+)/i);
+  return match ? `https://avatars.githubusercontent.com/${match[1]}?size=128` : null;
+}
+
+function discordUserAvatarUrl(
+  discordId: string,
+  avatarHash: string | null | undefined,
+): string | null {
   const hash = avatarHash?.trim();
-  if (hash) {
-    return `https://cdn.discordapp.com/avatars/${discordId}/${hash}.png?size=128`;
-  }
+  if (!hash) return null;
+  return `https://cdn.discordapp.com/avatars/${discordId}/${hash}.png?size=128`;
+}
+
+function genericAvatarFallback(discordId: string): string {
   const fallback = Number.parseInt(discordId.slice(-4), 10) % 6;
   return `https://cdn.discordapp.com/embed/avatars/${Number.isNaN(fallback) ? 0 : fallback}.png`;
 }
@@ -36,8 +48,8 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
       where: { discordId },
       select: {
         id: true,
-        discordUsername: true,
         displayName: true,
+        discordUsername: true,
         avatarHash: true,
         bio: true,
         github: true,
@@ -62,7 +74,10 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
 
     const stack = formatTechStackList(row.techStack);
     const stackShow = stack.slice(0, 8).join(", ") || "—";
-    const iconUrl = discordAvatarUrl(discordId, row.avatarHash);
+    const iconUrl =
+      githubAvatarUrl(row.github) ??
+      discordUserAvatarUrl(discordId, row.avatarHash) ??
+      genericAvatarFallback(discordId);
 
     const ghLine = row.github ? `GitHub: ${row.github}` : "";
     const liLine = row.linkedin ? `LinkedIn: ${row.linkedin}` : "";
@@ -72,10 +87,8 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
       year: "numeric",
     });
 
-    const handle = row.discordUsername ? `@${row.discordUsername}` : `@${discordId.slice(-8)}`;
     const titleName =
-      row.displayName?.trim() ||
-      (row.discordUsername ? `@${row.discordUsername}` : discordId);
+      mergedPublicDisplayName(row.displayName, row.discordUsername) || "Member";
 
     const embed: Record<string, unknown> = {
       title: titleName,
@@ -96,7 +109,7 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
     };
 
     embed.author = {
-      name: handle,
+      name: titleName,
       icon_url: iconUrl,
     };
 

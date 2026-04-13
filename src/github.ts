@@ -33,6 +33,14 @@ export interface PulseResult {
   source: "search" | "events" | "viewer";
 }
 
+/** Raw XP from pulse formula (before cap). Matches viewer vs public weighting. */
+export function computePulseRawXp(p: PulseResult): number {
+  if (p.source === "viewer") {
+    return p.commits + p.prsOpened * 3 + (p.prReviews ?? 0) * 2;
+  }
+  return p.commits + p.prsOpened * 3 + p.prsMerged * 5;
+}
+
 /** Thrown when GitHub REST returns an error (rate limit, auth, etc.). */
 export class GitHubApiError extends Error {
   constructor(
@@ -45,8 +53,8 @@ export class GitHubApiError extends Error {
   }
 }
 
-/** Caps XP per month to prevent farming */
-const MAX_PULSE_XP = 100;
+/** Caps hypothetical pulse XP (preview formula; /pulse does not award points). */
+export const PULSE_XP_CAP = 100;
 
 const MAX_EVENT_PAGES = 10;
 
@@ -144,7 +152,7 @@ async function fetchMonthlyPulseViaSearch(
   );
 
   const rawXp = commits * 1 + prsOpened * 3 + prsMerged * 5;
-  const xpEarned = Math.min(rawXp, MAX_PULSE_XP);
+  const xpEarned = Math.min(rawXp, PULSE_XP_CAP);
 
   return {
     commits,
@@ -225,7 +233,7 @@ async function fetchMonthlyPulseViaEvents(
   }
 
   const rawXp = commits * 1 + prsOpened * 3 + prsMerged * 5;
-  const xpEarned = Math.min(rawXp, MAX_PULSE_XP);
+  const xpEarned = Math.min(rawXp, PULSE_XP_CAP);
 
   return {
     commits,
@@ -321,7 +329,7 @@ export async function fetchMonthlyPulseViaViewerGraphql(
   const prsOpened = c.totalPullRequestContributions ?? 0;
   const prReviews = c.totalPullRequestReviewContributions ?? 0;
   const rawXp = commits * 1 + prsOpened * 3 + prReviews * 2;
-  const xpEarned = Math.min(rawXp, MAX_PULSE_XP);
+  const xpEarned = Math.min(rawXp, PULSE_XP_CAP);
 
   return {
     commits,

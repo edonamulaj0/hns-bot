@@ -22,6 +22,16 @@ export async function fetchMe(): Promise<Response> {
   return fetch(browserApiUrl("/me"), { credentials: "include", cache: "no-store" });
 }
 
+export async function fetchUserPublicProfile(discordId: string): Promise<Response> {
+  if (!/^\d{17,20}$/.test(discordId)) {
+    return new Response(JSON.stringify({ error: "invalid_discord_id" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  return fetch(browserApiUrl(`/users/${discordId}`), { cache: "no-store" });
+}
+
 export async function patchProfile(body: {
   displayName?: string | null;
   bio?: string | null;

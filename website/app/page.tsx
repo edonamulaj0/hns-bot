@@ -344,7 +344,17 @@ export default function HomePage() {
               viewport={{ once: true, amount: 0.15 }}
             >
               {top3.map((member: any, i: number) => {
-                const medals = ["🥇", "🥈", "🥉"];
+                const r = member.rank ?? 0;
+                const rankMedal =
+                  r <= 0
+                    ? "—"
+                    : r === 1
+                      ? "🥇"
+                      : r === 2
+                        ? "🥈"
+                        : r === 3
+                          ? "🥉"
+                          : `#${r}`;
                 const barWidth = maxXp > 0 ? Math.round((member.points / maxXp) * 100) : 0;
                 return (
                   <motion.div
@@ -353,7 +363,7 @@ export default function HomePage() {
                     variants={itemVariants}
                   >
                     <div className="flex gap-4 items-center mb-3">
-                      <span className="text-2xl sm:text-3xl flex-shrink-0">{medals[i]}</span>
+                      <span className="text-2xl sm:text-3xl flex-shrink-0">{rankMedal}</span>
                       <div className="min-w-0">
                         <p className="mono text-xs sm:text-sm truncate">
                           {memberDisplayName(member)}

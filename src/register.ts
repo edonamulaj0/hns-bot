@@ -22,10 +22,10 @@ async function main() {
       new Option("user", "Member to view (optional — defaults to you)", "User"),
     ),
     new Command("submit", "Open the website to submit your monthly project"),
-    new Command("pulse", "Sync your GitHub activity and earn XP"),
+    new Command("pulse", "Preview GitHub activity and estimated month-end pulse XP"),
     new Command(
       "link-github",
-      "Connect GitHub (OAuth) so /pulse can count private repo contributions",
+      "Connect GitHub (OAuth) so /pulse can include private repo contributions",
     ),
     new Command("unlink-github", "Remove stored GitHub OAuth from this bot"),
     new Command("leaderboard", "See the top contributors this month"),

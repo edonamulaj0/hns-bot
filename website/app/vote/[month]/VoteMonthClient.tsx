@@ -22,7 +22,6 @@ type QSub = {
   revealed: boolean;
   author: {
     discordId: string;
-    discordUsername: string | null;
     displayName: string | null;
   } | null;
 };
@@ -170,10 +169,7 @@ export function VoteMonthClient({ month }: { month: string }) {
                 <div className="grid gap-4 sm:grid-cols-2">
                   {list.map((s) => {
                     const name = s.revealed
-                      ? s.author?.displayName?.trim() ||
-                        (s.author?.discordUsername
-                          ? `@${s.author.discordUsername}`
-                          : s.author?.discordId?.slice(-6))
+                      ? s.author?.displayName?.trim() || "—"
                       : codenameFromSubmissionId(s.id);
                     const votedThis = voted.has(s.id);
                     const trackRem = track === "DEVELOPER" ? devRem : hackRem;

@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client/edge";
 import type { WorkerBindings } from "./worker-env";
+import { mergedPublicDisplayName } from "./display-name";
 import { getMonthlyPhase, monthKey } from "./time";
 import { getPrisma } from "./db";
 import {
@@ -18,6 +19,7 @@ import {
   handleSubmitPatch,
   handleSubmitDelete,
   handleBlogView,
+  handleUserPublicProfile,
 } from "./rest-handlers";
 
 /** Stable pathname for routing (collapse slashes, trim trailing slash, keep leading slash). */
@@ -99,6 +101,17 @@ export async function handleApiRequest(
     const blogViewMatch = pathname.match(/^\/api\/blogs\/([^/]+)\/view$/);
     if (blogViewMatch && method === "GET") {
       const body = await handleBlogView(prisma, blogViewMatch[1]!, request);
+      return tagApi(body, method);
+    }
+
+    const userPublicMatch = pathname.match(/^\/api\/users\/(\d{17,20})$/);
+    if (userPublicMatch && method === "GET") {
+      const body = await handleUserPublicProfile(
+        prisma,
+        userPublicMatch[1]!,
+        env,
+        request,
+      );
       return tagApi(body, method);
     }
 
@@ -237,8 +250,8 @@ async function portfolioResponse(
       user: {
         select: {
           discordId: true,
-          discordUsername: true,
           displayName: true,
+          discordUsername: true,
           avatarHash: true,
           bio: true,
           github: true,
@@ -254,6 +267,7 @@ async function portfolioResponse(
 
   const grouped = rows.reduce<Record<string, unknown[]>>((acc, item) => {
     const bucket = acc[item.month] ?? [];
+    const u = item.user;
     bucket.push({
       id: item.id,
       tier: item.tier,
@@ -267,7 +281,17 @@ async function portfolioResponse(
       month: item.month,
       redirectSlug: item.redirectSlug,
       createdAt: item.createdAt.toISOString(),
-      user: item.user,
+      user: {
+        discordId: u.discordId,
+        displayName: mergedPublicDisplayName(u.displayName, u.discordUsername),
+        avatarHash: u.avatarHash,
+        bio: u.bio,
+        github: u.github,
+        linkedin: u.linkedin,
+        techStack: u.techStack,
+        points: u.points,
+        rank: u.rank,
+      },
     });
     acc[item.month] = bucket;
     return acc;
@@ -277,11 +301,11 @@ async function portfolioResponse(
 }
 
 async function membersResponse(prisma: PrismaClient): Promise<Response> {
-  const members = await prisma.user.findMany({
+  const rawMembers = await prisma.user.findMany({
     select: {
       discordId: true,
-      discordUsername: true,
       displayName: true,
+      discordUsername: true,
       avatarHash: true,
       bio: true,
       github: true,
@@ -298,7 +322,15 @@ async function membersResponse(prisma: PrismaClient): Promise<Response> {
         take: 5,
       },
     },
-    orderBy: { rank: "asc" },
+    orderBy: [{ points: "desc" }, { createdAt: "asc" }],
+  });
+
+  const members = rawMembers.map((m) => {
+    const { discordUsername, ...rest } = m;
+    return {
+      ...rest,
+      displayName: mergedPublicDisplayName(rest.displayName, discordUsername),
+    };
   });
 
   return corsJson(
@@ -309,21 +341,29 @@ async function membersResponse(prisma: PrismaClient): Promise<Response> {
 }
 
 async function leaderboardResponse(prisma: PrismaClient): Promise<Response> {
-  const top = await prisma.user.findMany({
-    where: { points: { gt: 0 } },
+  const rawTop = await prisma.user.findMany({
     select: {
       discordId: true,
-      discordUsername: true,
       displayName: true,
+      discordUsername: true,
       avatarHash: true,
       bio: true,
       github: true,
       techStack: true,
       points: true,
       rank: true,
+      createdAt: true,
     },
-    orderBy: [{ points: "desc" }, { rank: "asc" }],
-    take: 50,
+    orderBy: [{ points: "desc" }, { createdAt: "asc" }],
+    take: 100,
+  });
+
+  const top = rawTop.map((m) => {
+    const { discordUsername, ...rest } = m;
+    return {
+      ...rest,
+      displayName: mergedPublicDisplayName(rest.displayName, discordUsername),
+    };
   });
 
   return corsJson(
@@ -391,8 +431,8 @@ async function blogsResponse(prisma: PrismaClient): Promise<Response> {
       user: {
         select: {
           discordId: true,
-          discordUsername: true,
           displayName: true,
+          discordUsername: true,
           github: true,
         },
       },
@@ -401,17 +441,24 @@ async function blogsResponse(prisma: PrismaClient): Promise<Response> {
     take: 100,
   });
 
-  const blogs = rows.map((b) => ({
-    id: b.id,
-    title: b.title,
-    url: b.url,
-    viewUrl: `/hns-api/blogs/${b.id}/view`,
-    upvotes: b.upvotes,
-    views: b.views,
-    createdAt: b.createdAt,
-    user: b.user,
-    content: b.content ? b.content.slice(0, 500) : null,
-  }));
+  const blogs = rows.map((b) => {
+    const u = b.user;
+    return {
+      id: b.id,
+      title: b.title,
+      url: b.url,
+      viewUrl: `/hns-api/blogs/${b.id}/view`,
+      upvotes: b.upvotes,
+      views: b.views,
+      createdAt: b.createdAt,
+      user: {
+        discordId: u.discordId,
+        displayName: mergedPublicDisplayName(u.displayName, u.discordUsername),
+        github: u.github,
+      },
+      content: b.content ? b.content.slice(0, 500) : null,
+    };
+  });
 
   return corsJson({ blogs });
 }

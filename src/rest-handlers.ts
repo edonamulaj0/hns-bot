@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client/edge";
 import type { WorkerBindings } from "./worker-env";
+import { mergedPublicDisplayName, validatePublicDisplayName } from "./display-name";
 import { getMonthlyPhase, monthKey } from "./time";
 import { getSessionFromRequest } from "./session-verify";
 import { requireGuildMembership } from "./membership";
@@ -189,8 +190,8 @@ export async function handleMe(
     user: {
       id: user.id,
       discordId: user.discordId,
-      discordUsername: user.discordUsername,
       displayName: user.displayName,
+      discordUsername: user.discordUsername,
       avatarHash: user.avatarHash,
       bio: user.bio,
       github: user.github,
@@ -209,6 +210,110 @@ export async function handleMe(
       : null,
     submission,
   });
+}
+
+const DISCORD_SNOWFLAKE_RE = /^\d{17,20}$/;
+
+/** Public member profile by Discord ID: portfolio-style submissions + blogs. No auth. */
+export async function handleUserPublicProfile(
+  prisma: PrismaClient,
+  discordIdParam: string,
+  env: WorkerBindings,
+  request: Request,
+): Promise<Response> {
+  if (!DISCORD_SNOWFLAKE_RE.test(discordIdParam)) {
+    return jsonResponse(env, request, { error: "invalid_discord_id" }, 400);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { discordId: discordIdParam },
+    include: {
+      _count: { select: { submissions: true, blogs: true, votesCast: true } },
+    },
+  });
+
+  if (!user) {
+    return jsonResponse(env, request, { error: "not_found" }, 404);
+  }
+
+  const now = new Date();
+  const phase = getMonthlyPhase(now);
+  const currentMonth = monthKey(now);
+  const monthFilter =
+    phase === "PUBLISH" || phase === "POST_PUBLISH"
+      ? { lte: currentMonth }
+      : { lt: currentMonth };
+
+  const submissionRows = await prisma.submission.findMany({
+    where: {
+      userId: user.id,
+      revealed: true,
+      month: monthFilter,
+    },
+    orderBy: [{ month: "desc" }, { votes: "desc" }, { createdAt: "desc" }],
+  });
+
+  const submissions = submissionRows.map((item) => ({
+    id: item.id,
+    tier: item.tier,
+    track: item.track,
+    title: item.title,
+    description: item.description,
+    repoUrl: item.repoUrl,
+    demoUrl: item.demoUrl,
+    attachmentUrl: item.attachmentUrl,
+    votes: item.votes,
+    month: item.month,
+    redirectSlug: item.redirectSlug,
+    createdAt: item.createdAt.toISOString(),
+  }));
+
+  const blogRows = await prisma.blog.findMany({
+    where: { userId: user.id },
+    orderBy: [{ createdAt: "desc" }],
+  });
+
+  const blogs = blogRows.map((b) => ({
+    id: b.id,
+    title: b.title,
+    url: b.url,
+    viewUrl: `/hns-api/blogs/${b.id}/view`,
+    upvotes: b.upvotes,
+    views: b.views,
+    createdAt: b.createdAt.toISOString(),
+    content: b.content ? b.content.slice(0, 500) : null,
+    user: {
+      discordId: user.discordId,
+      displayName: mergedPublicDisplayName(user.displayName, user.discordUsername),
+      github: user.github,
+    },
+  }));
+
+  return jsonResponse(
+    env,
+    request,
+    {
+      phase,
+      month: currentMonth,
+      user: {
+        discordId: user.discordId,
+        displayName: mergedPublicDisplayName(user.displayName, user.discordUsername),
+        avatarHash: user.avatarHash,
+        bio: user.bio,
+        github: user.github,
+        linkedin: user.linkedin,
+        techStack: user.techStack,
+        points: user.points,
+        rank: user.rank,
+        profileCompletedAt: user.profileCompletedAt?.toISOString() ?? null,
+        stats: user._count,
+      },
+      submissions,
+      blogs,
+    },
+    200,
+    { "Cache-Control": "public, max-age=60" },
+  );
 }
 
 export async function handleVotePost(
@@ -339,8 +444,8 @@ export async function handleVoteQueue(
       user: {
         select: {
           discordId: true,
-          discordUsername: true,
           displayName: true,
+          discordUsername: true,
         },
       },
     },
@@ -361,8 +466,10 @@ export async function handleVoteQueue(
     author: s.revealed
       ? {
           discordId: s.user.discordId,
-          discordUsername: s.user.discordUsername,
-          displayName: s.user.displayName,
+          displayName: mergedPublicDisplayName(
+            s.user.displayName,
+            s.user.discordUsername,
+          ),
         }
       : null,
   }));
@@ -382,8 +489,8 @@ export async function handleSubmissionGet(
       user: {
         select: {
           discordId: true,
-          discordUsername: true,
           displayName: true,
+          discordUsername: true,
         },
       },
     },
@@ -417,7 +524,10 @@ export async function handleSubmissionGet(
     repoUrl: s.repoUrl,
     demoUrl: s.demoUrl,
     userId: s.userId,
-    user: s.user,
+    user: {
+      discordId: s.user.discordId,
+      displayName: mergedPublicDisplayName(s.user.displayName, s.user.discordUsername),
+    },
   });
 }
 
@@ -517,11 +627,14 @@ export async function handleProfilePatch(
     if (body.displayName !== null && typeof body.displayName !== "string") {
       return validation("displayName", "displayName must be a string.");
     }
-    const displayName = body.displayName?.trim() ?? null;
-    if (displayName && displayName.length > 32) {
-      return validation("displayName", "displayName max length is 32.");
+    const raw = body.displayName?.trim() ?? null;
+    if (raw === null || raw === "") {
+      data.displayName = null;
+    } else {
+      const vErr = validatePublicDisplayName(raw);
+      if (vErr) return validation("displayName", vErr);
+      data.displayName = raw.replace(/\s+/g, " ");
     }
-    data.displayName = displayName;
   }
 
   if (body.bio !== undefined) {

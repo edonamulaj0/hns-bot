@@ -289,6 +289,6 @@ export async function handleGithubOAuthCallback(
 
   return htmlPage(
     "GitHub linked",
-    `<p>Linked GitHub <strong>@${login}</strong> to your Discord account. You can close this tab and use <code>/pulse</code> (includes private repos you authorized).</p>`,
+    `<p>Linked GitHub <strong>@${login}</strong> to your Discord account. You can close this tab and use <code>/pulse</code> for a contribution preview (includes private repos you authorized).</p>`,
   );
 }

@@ -14,7 +14,6 @@ export type AboutStatsPayload = {
   monthly: { month: string; count: number }[];
   topUser: {
     discordId: string;
-    discordUsername?: string | null;
     displayName?: string | null;
     points: number;
     github: string | null;
@@ -63,7 +62,6 @@ export async function getAboutStats(): Promise<AboutStatsPayload> {
     const topUser = top
       ? {
           discordId: top.discordId,
-          discordUsername: top.discordUsername,
           displayName: top.displayName,
           points: top.points,
           github: top.github,

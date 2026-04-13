@@ -7,14 +7,18 @@ import {
   loginUrl,
   type SessionUser,
 } from "@/lib/auth-client";
+import { userProfileAvatarUrl } from "@/lib/api";
 import { utcMonthKey } from "@/lib/month";
 
 function avatarUrl(u: SessionUser): string {
-  if (u.avatarHash) {
-    return `https://cdn.discordapp.com/avatars/${u.discordId}/${u.avatarHash}.png?size=64`;
-  }
-  const idx = Number((BigInt(u.discordId) >> BigInt(22)) % BigInt(6));
-  return `https://cdn.discordapp.com/embed/avatars/${idx}.png`;
+  return userProfileAvatarUrl(
+    {
+      discordId: u.discordId,
+      github: u.github ?? null,
+      avatarHash: u.avatarHash,
+    },
+    64,
+  );
 }
 
 export function AuthNav() {
@@ -54,7 +58,7 @@ export function AuthNav() {
     );
   }
 
-  const label = user.displayName || user.discordUsername;
+  const label = user.displayName?.trim() || "Account";
 
   return (
     <div className="relative mt-2 md:mt-0 md:ml-2" ref={wrapRef}>

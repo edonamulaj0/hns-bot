@@ -18,10 +18,13 @@ export default function PrivacyPage() {
       <section className="space-y-4 mb-10">
         <h2 className="text-xl font-bold">Data we collect</h2>
         <p className="text-white/75 leading-[1.7]">
-          When you sign in with Discord we store your Discord user id, username, display name, and
-          avatar hash. If you complete a profile, we store bio, GitHub and LinkedIn URLs, tech
-          stack, and related metadata. Challenge submissions may include titles, descriptions,
-          repository and demo URLs, attachments, and voting records linked to your Discord id.
+          When you sign in with Discord we store your Discord user id, username (for account
+          linking only), avatar hash, and the display name from Discord for your first visit. Your
+          public name on the website is what you set in Settings or Profile (first name and optional
+          last name), or your Discord login name by default; we do not show @handles on the site. If you complete a profile, we also store
+          bio, GitHub and LinkedIn URLs, tech stack, and related metadata. Submissions may include
+          titles, descriptions, repository and demo URLs, attachments, and voting records linked
+          to your Discord id.
         </p>
       </section>
 

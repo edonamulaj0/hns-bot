@@ -1,3 +1,4 @@
+import { mergedPublicDisplayName } from "./display-name";
 import { getPrisma } from "./db";
 import { sendChannelMessage } from "./discord-api";
 import { monthKey } from "./time";
@@ -195,11 +196,17 @@ export async function notifyResultsPublished(
       for (const tier of tiers) {
         const top = await prisma.submission.findFirst({
           where: { month, track, tier, isApproved: true },
-          include: { user: { select: { displayName: true, discordUsername: true } } },
+          include: {
+            user: { select: { displayName: true, discordUsername: true } },
+          },
           orderBy: [{ votes: "desc" }, { createdAt: "asc" }],
         });
         if (!top) continue;
-        const who = top.user.displayName || top.user.discordUsername || "Unknown";
+        const who =
+          mergedPublicDisplayName(
+            top.user.displayName,
+            top.user.discordUsername,
+          ) || "Member";
         fields.push({
           name: `🥇 ${label} · ${tier}`,
           value: `${top.title} by ${who} · ${top.votes} votes`,
@@ -227,11 +234,17 @@ export async function notifyResultsPublished(
     for (const tier of tiers) {
       const top = await prisma.submission.findFirst({
         where: { month, track, tier, isApproved: true },
-        include: { user: { select: { displayName: true, discordUsername: true } } },
+        include: {
+          user: { select: { displayName: true, discordUsername: true } },
+        },
         orderBy: [{ votes: "desc" }, { createdAt: "asc" }],
       });
       if (!top) continue;
-      const who = top.user.displayName || top.user.discordUsername || "Unknown";
+      const who =
+        mergedPublicDisplayName(
+          top.user.displayName,
+          top.user.discordUsername,
+        ) || "Member";
       fields.push({
         name: `🥇 ${tier} winner`,
         value: `${top.title} by ${who} · ${top.votes} votes`,
@@ -351,11 +364,17 @@ export async function buildAdminTestNotifyPayload(
       for (const tier of tiers) {
         const top = await prisma.submission.findFirst({
           where: { month, track, tier, isApproved: true },
-          include: { user: { select: { displayName: true, discordUsername: true } } },
+          include: {
+            user: { select: { displayName: true, discordUsername: true } },
+          },
           orderBy: [{ votes: "desc" }, { createdAt: "asc" }],
         });
         if (!top) continue;
-        const who = top.user.displayName || top.user.discordUsername || "Unknown";
+        const who =
+          mergedPublicDisplayName(
+            top.user.displayName,
+            top.user.discordUsername,
+          ) || "Member";
         fields.push({
           name: `🥇 ${label} · ${tier}`,
           value: `${top.title} by ${who} · ${top.votes} votes`,

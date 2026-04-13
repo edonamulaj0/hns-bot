@@ -63,7 +63,7 @@ export function registerLinkGithub(app: DiscordHono<HonoWorkerEnv>) {
 
       const url = await createGithubAuthorizeUrl(prisma, discordId, ctx.env);
       await safeFollowup(ctx, {
-        content: `Open this link once to connect GitHub (enables **private** repo contributions on \`/pulse\`):\n${url}\n\nLink expires in ~15 minutes. Scopes: \`read:user\` + \`repo\`.`,
+        content: `Open this link once to connect GitHub (so \`/pulse\` can count **private** repo activity in your preview):\n${url}\n\nLink expires in ~15 minutes. Scopes: \`read:user\` + \`repo\`.`,
         flags: MessageFlags.Ephemeral,
       });
     }),
@@ -96,7 +96,7 @@ export function registerUnlinkGithub(app: DiscordHono<HonoWorkerEnv>) {
 
       await safeFollowup(ctx, {
         content:
-          "Removed stored GitHub OAuth tokens. `/pulse` will use public Search/events only (until you `/link-github` again).",
+          "Removed stored GitHub OAuth tokens. `/pulse` will use public Search/events only for previews (until you `/link-github` again).",
         flags: MessageFlags.Ephemeral,
       });
     }),

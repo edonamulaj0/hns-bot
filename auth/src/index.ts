@@ -195,7 +195,6 @@ async function upsertUser(
      VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, datetime('now'), datetime('now'))
      ON CONFLICT(discordId) DO UPDATE SET
        discordUsername = excluded.discordUsername,
-       displayName = excluded.displayName,
        avatarHash = excluded.avatarHash,
        accessToken = excluded.accessToken,
        tokenExpiresAt = excluded.tokenExpiresAt,
@@ -211,6 +210,14 @@ async function upsertUser(
       row.tokenExpiresAt,
     )
     .run();
+}
+
+async function recomputeRanks(env: Env): Promise<void> {
+  await env.DB.prepare(
+    `UPDATE "User" SET rank = (
+      SELECT COUNT(*) + 1 FROM "User" AS u2 WHERE u2.points > "User".points
+    )`,
+  ).run();
 }
 
 export default {
@@ -307,6 +314,7 @@ export default {
           accessEnc,
           tokenExpiresAt: expAt,
         });
+        await recomputeRanks(env);
 
         const expSec = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE;
         const sessionTok = await signSession(
@@ -351,11 +359,17 @@ export default {
         const p = await verifySession(decodeURIComponent(raw), env.SESSION_SECRET);
         if (!p)
           return corsJson({ error: "unauthorized" }, 401);
+        const row = await env.DB.prepare(
+          "SELECT displayName, github FROM User WHERE discordId = ? LIMIT 1",
+        )
+          .bind(p.discordId)
+          .first<{ displayName: string | null; github: string | null }>();
+        const fromDb = row?.displayName?.trim();
         return corsJson({
           discordId: p.discordId,
-          discordUsername: p.discordUsername,
-          displayName: p.displayName,
+          displayName: fromDb || p.displayName,
           avatarHash: p.avatarHash,
+          github: row?.github ?? null,
         });
       }
 

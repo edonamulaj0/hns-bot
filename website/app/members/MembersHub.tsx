@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   getMembers,
@@ -9,8 +10,7 @@ import {
   getPortfolio,
   getBlogs,
   formatTechStack,
-  githubAvatarUrl,
-  discordAvatarUrl,
+  userProfileAvatarUrl,
   type Member,
   type MemberSummary,
   type PortfolioResponse,
@@ -31,7 +31,7 @@ const XP_TABLE = [
   { action: "Submission approved", xp: 50, note: "Per submission" },
   { action: "Vote received", xp: 2, note: "Per vote on your work" },
   { action: "Article shared", xp: 10, note: "Per article" },
-  { action: "GitHub pulse", xp: "5–100", note: "Once per month" },
+  { action: "/pulse (Discord)", xp: "—", note: "GitHub stats + estimated month-end pulse XP (preview only)" },
   { action: "Challenge enrollment bonus", xp: 25, note: "On first approval" },
   { action: "First submission ever", xp: 10, note: "One-time bonus" },
 ];
@@ -192,14 +192,17 @@ export default function MembersHub() {
         const stack = formatTechStack(m.techStack);
         return (
           m.discordId.toLowerCase().includes(qLower) ||
-          (m.discordUsername ?? "").toLowerCase().includes(qLower) ||
           (m.displayName ?? "").toLowerCase().includes(qLower) ||
           (m.bio ?? "").toLowerCase().includes(qLower) ||
           stack.some((t) => t.toLowerCase().includes(qLower))
         );
       });
     }
-    if (effectiveSort === "xp") list.sort((a, b) => b.points - a.points);
+    if (effectiveSort === "xp")
+      list.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      });
     else if (effectiveSort === "projects")
       list.sort((a, b) => b._count.submissions - a._count.submissions);
     else list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -477,8 +480,14 @@ export default function MembersHub() {
                           >
                             {filteredProfiles.map((m) => {
                               const stack = formatTechStack(m.techStack);
-                              const avatar =
-                                githubAvatarUrl(m.github) ?? discordAvatarUrl(m.discordId);
+                              const avatar = userProfileAvatarUrl(
+                                {
+                                  discordId: m.discordId,
+                                  github: m.github,
+                                  avatarHash: m.avatarHash,
+                                },
+                                128,
+                              );
                               const gh = githubProfileHref(m.github);
                               const li = ensureAbsoluteUrl(m.linkedin);
                               return (
@@ -499,9 +508,6 @@ export default function MembersHub() {
                                     <div className="min-w-0">
                                       <p className="mono text-xs truncate">
                                         {memberDisplayName(m)}
-                                        {m.discordUsername ? (
-                                          <span className="ml-1 text-white/45">@{m.discordUsername}</span>
-                                        ) : null}
                                       </p>
                                       <p className="text-[var(--accent)] font-bold text-sm">
                                         {m.points} XP · #{m.rank || "—"}
@@ -522,7 +528,13 @@ export default function MembersHub() {
                                       ))}
                                     </div>
                                   )}
-                                  <div className="flex gap-2">
+                                  <div className="flex flex-wrap gap-2">
+                                    <Link
+                                      href={`/u/${m.discordId}`}
+                                      className="btn px-2 py-1 text-[0.65rem]"
+                                    >
+                                      Profile
+                                    </Link>
                                     {gh && (
                                       <a
                                         href={gh}
@@ -597,7 +609,12 @@ export default function MembersHub() {
                                   </div>
                                 )}
                                 <p className="mono text-[0.65rem] text-white/45 mb-3">
-                                  {memberDisplayName(s.user)}
+                                  <Link
+                                    href={`/u/${s.user.discordId}`}
+                                    className="hover:text-[var(--accent)] underline-offset-2 hover:underline"
+                                  >
+                                    {memberDisplayName(s.user)}
+                                  </Link>
                                 </p>
                                 <div className="flex flex-wrap gap-2">
                                   <a
@@ -685,15 +702,27 @@ export default function MembersHub() {
                             <p className="mono dim text-xs text-center py-4">No data yet.</p>
                           ) : (
                             <div className="space-y-2.5">
-                              {top15.map((m, i) => {
+                              {top15.map((m) => {
                                 const barW =
                                   maxXp > 0 ? Math.round((m.points / maxXp) * 100) : 0;
-                                const medals = ["🥇", "🥈", "🥉"];
+                                const r = m.rank ?? 0;
+                                const rankMedal =
+                                  r === 1
+                                    ? "🥇"
+                                    : r === 2
+                                      ? "🥈"
+                                      : r === 3
+                                        ? "🥉"
+                                        : null;
                                 return (
                                   <div key={m.discordId} className="flex items-center gap-2.5">
                                     <span className="w-5 text-center text-xs shrink-0">
-                                      {medals[i] ?? (
-                                        <span className="mono dim text-[0.65rem]">{i + 1}</span>
+                                      {r <= 0 ? (
+                                        <span className="mono dim text-[0.65rem]">—</span>
+                                      ) : rankMedal ? (
+                                        rankMedal
+                                      ) : (
+                                        <span className="mono dim text-[0.65rem]">#{r}</span>
                                       )}
                                     </span>
                                     <div className="flex-1 min-w-0">

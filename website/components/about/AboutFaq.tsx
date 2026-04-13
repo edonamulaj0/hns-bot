@@ -37,9 +37,12 @@ const FAQ: { q: string; a: ReactNode }[] = [
         <br />- Submission approved: +50 (per submission)
         <br />- Vote received: +2 (per vote on your work)
         <br />- Article shared: +10 (per article)
-        <br />- GitHub pulse: +5 to +100 (once per month, capped)
         <br />- Challenge enrollment bonus: +25 (on first approval)
         <br />- First submission ever: +10 (one-time bonus)
+        <br />
+        <br />
+        On Discord, <code>/pulse</code> is a preview only: it shows GitHub counts for the month and an estimated
+        month-end pulse XP from the community formula (capped); it does not change your XP.
       </>
     ),
   },

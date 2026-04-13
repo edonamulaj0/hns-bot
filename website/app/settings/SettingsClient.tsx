@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { deleteProfile, fetchMe, patchProfile } from "@/lib/api-browser";
 import { getSessionClient, loginUrl } from "@/lib/auth-client";
+import {
+  joinPublicDisplayName,
+  splitPublicDisplayName,
+  validatePublicDisplayName,
+} from "@/lib/display-name";
 
 type MeUser = {
   displayName: string | null;
@@ -20,7 +25,8 @@ function normalizeTag(v: string) {
 
 export function SettingsClient() {
   const [loading, setLoading] = useState(true);
-  const [displayName, setDisplayName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [about, setAbout] = useState("");
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
@@ -65,7 +71,9 @@ export function SettingsClient() {
         }
         const data = (await res.json()) as { user: MeUser };
         if (!alive) return;
-        setDisplayName(data.user.displayName ?? data.user.discordUsername ?? "");
+        const { first, last } = splitPublicDisplayName(data.user.displayName);
+        setFirstName(first || data.user.discordUsername || "");
+        setLastName(last);
         setAbout(data.user.bio ?? "");
         setGithub(data.user.github ?? "");
         setLinkedin(data.user.linkedin ?? "");
@@ -123,17 +131,32 @@ export function SettingsClient() {
     const ghOk = onGithubBlur();
     const liOk = onLinkedinBlur();
     if (!ghOk || !liOk) return;
+    const fullName = joinPublicDisplayName(firstName, lastName);
+    const nameToSend = fullName || null;
+    if (nameToSend) {
+      const nameErr = validatePublicDisplayName(nameToSend);
+      if (nameErr) {
+        setError(nameErr);
+        return;
+      }
+    }
     setSaving(true);
     try {
       const res = await patchProfile({
-        displayName: displayName.trim() ? displayName.trim().slice(0, 32) : null,
+        displayName: nameToSend,
         bio: about || null,
         github: github || null,
         linkedin: linkedin || null,
         techStack: tags,
       });
       if (!res.ok) {
-        setError("Could not save settings.");
+        const j = await res.json().catch(() => ({}));
+        const msg =
+          (j as { field?: string; message?: string }).field === "displayName" &&
+          (j as { message?: string }).message
+            ? (j as { message: string }).message
+            : "Could not save settings.";
+        setError(msg);
         return;
       }
       setSaveOk(true);
@@ -196,17 +219,36 @@ export function SettingsClient() {
             <div className="card p-5 sm:p-6">
               <h2 className="text-xl font-bold mb-5">Profile</h2>
 
-              <label className="block text-sm text-white/70 mb-1">Display name</label>
-              <input
-                type="text"
-                maxLength={32}
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2.5 text-sm mb-1"
-              />
-              <p className="text-xs text-white/45 mb-4">
-                This is how you appear on the site. Max 32 characters.
+              <p className="text-xs text-white/45 mb-3">
+                How you appear on the site. First name defaults to your Discord login name; last
+                name is optional. Discord usernames are not shown as @handles.
               </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">First name</label>
+                  <input
+                    type="text"
+                    maxLength={40}
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2.5 text-sm"
+                    autoComplete="given-name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-1">
+                    Last name <span className="text-white/40">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={40}
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2.5 text-sm"
+                    autoComplete="family-name"
+                  />
+                </div>
+              </div>
 
               <label className="block text-sm text-white/70 mb-1">About me</label>
               <div className="relative mb-4">

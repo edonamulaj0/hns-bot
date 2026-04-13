@@ -11,9 +11,8 @@ export function registerLeaderboard(app: DiscordHono<HonoWorkerEnv>) {
       const currentMonth = monthKey();
 
       const top = await prisma.user.findMany({
-        where: { points: { gt: 0 } },
         select: { discordId: true, points: true, rank: true },
-        orderBy: [{ points: "desc" }, { rank: "asc" }],
+        orderBy: [{ points: "desc" }, { createdAt: "asc" }],
         take: 10,
       });
 

@@ -210,6 +210,14 @@ export function Navbar() {
                       </Link>
                     );
                   })}
+                  <form action="/auth/logout" method="post" className="mt-4 pt-4">
+                    <button
+                      type="submit"
+                      className="btn btn-primary w-full justify-center py-3.5 text-[clamp(1rem,4vw,1.05rem)] font-bold"
+                    >
+                      Sign out
+                    </button>
+                  </form>
                 </div>
               )}
             </div>
