@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getAboutStats } from "@/lib/about-stats";
 import AboutClient from "./AboutClient";
 
+export const runtime = "edge";
+
 export const metadata: Metadata = {
   title: "About | H4ck&Stack",
   description:

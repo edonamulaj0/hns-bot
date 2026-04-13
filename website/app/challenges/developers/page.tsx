@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getChallenges } from "@/lib/api";
 import ChallengesTrackPage from "../ChallengesTrackPage";
 
+export const runtime = "edge";
+
 export const revalidate = 60;
 
 export const metadata: Metadata = {
