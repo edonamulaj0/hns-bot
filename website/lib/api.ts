@@ -21,29 +21,43 @@ function getServerWorkerBase(): string {
   return base;
 }
 
+function getBrowserWorkerBase(): string {
+  const raw = process.env.NEXT_PUBLIC_API_URL?.trim() || "";
+  const base = raw.replace(/\/$/, "");
+  if (!base || base.includes("YOUR_SUBDOMAIN")) return "";
+  return base;
+}
+
+function browserApiPath(path: string): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  const worker = getBrowserWorkerBase();
+  if (worker) return `${worker}/api${normalized}`;
+  return `/hns-api${normalized}`;
+}
+
 function portfolioUrl(): string | null {
-  if (typeof window !== "undefined") return "/hns-api/portfolio";
+  if (typeof window !== "undefined") return browserApiPath("/portfolio");
   const base = getServerWorkerBase();
   if (!base) return null;
   return `${base}/api/portfolio`;
 }
 
 function membersUrl(): string | null {
-  if (typeof window !== "undefined") return "/hns-api/members";
+  if (typeof window !== "undefined") return browserApiPath("/members");
   const base = getServerWorkerBase();
   if (!base) return null;
   return `${base}/api/members`;
 }
 
 function leaderboardUrl(): string | null {
-  if (typeof window !== "undefined") return "/hns-api/leaderboard";
+  if (typeof window !== "undefined") return browserApiPath("/leaderboard");
   const base = getServerWorkerBase();
   if (!base) return null;
   return `${base}/api/leaderboard`;
 }
 
 function blogsUrl(): string | null {
-  if (typeof window !== "undefined") return "/hns-api/blogs";
+  if (typeof window !== "undefined") return browserApiPath("/blogs");
   const base = getServerWorkerBase();
   if (!base) return null;
   return `${base}/api/blogs`;
@@ -58,7 +72,7 @@ function challengesUrl(track: "DEVELOPER" | "HACKER", month?: string): string | 
   const qs = new URLSearchParams({ track });
   if (month) qs.set("month", month);
   const q = `?${qs.toString()}`;
-  if (typeof window !== "undefined") return `/hns-api/challenges${q}`;
+  if (typeof window !== "undefined") return browserApiPath(`/challenges${q}`);
   const base = getServerWorkerBase();
   if (!base) return null;
   return `${base}/api/challenges${q}`;

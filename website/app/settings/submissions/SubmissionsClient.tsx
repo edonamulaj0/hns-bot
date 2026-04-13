@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { deleteSubmit, fetchMe, patchSubmit } from "@/lib/api-browser";
+import { browserApiUrl, deleteSubmit, fetchMe, patchSubmit } from "@/lib/api-browser";
 import { getSessionClient } from "@/lib/auth-client";
 import type { PortfolioResponse } from "@/lib/api";
 
@@ -76,7 +76,7 @@ export function SubmissionsClient() {
         }
         if (alive) setAuthIssue(null);
         const me = (await meRes.json()) as MePayload;
-        const portfolioRes = await fetch("/hns-api/portfolio", { cache: "no-store" });
+        const portfolioRes = await fetch(browserApiUrl("/portfolio"), { cache: "no-store" });
         const portfolio = portfolioRes.ok ? ((await portfolioRes.json()) as PortfolioResponse) : null;
         const fromPortfolio = Object.values(portfolio?.published ?? {})
           .flatMap((arr) => arr as SubmissionItem[])
