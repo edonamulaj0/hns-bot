@@ -22,7 +22,7 @@ export async function generateMetadata({
   params: Promise<{ month: string }>;
 }) {
   const { month } = await params;
-  return { title: `${month} — Challenges — H4ck&Stack` };
+  return { title: `${month} Challenges | H4ck&Stack` };
 }
 
 export default async function ChallengeMonthPage({

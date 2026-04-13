@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { AuthNav } from "@/components/AuthNav";
 import { getSessionClient, loginUrl, type SessionUser } from "@/lib/auth-client";
 import { BRAND_LOGO_PNG, BRAND_LOGO_SVG, BRAND_NAME } from "@/lib/branding";
 import { utcMonthKey } from "@/lib/month";
+
+const VISITED_KEY = "hns_has_visited";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -46,10 +48,18 @@ function NavBrand() {
 
 export function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [session, setSession] = useState<SessionUser | null>(null);
+  /** null = before hydration; false = first visit; true = returning visitor */
+  const [hasVisitedBefore, setHasVisitedBefore] = useState<boolean | null>(null);
   const voteMonth = utcMonthKey();
+  const lockedScrollY = useRef(0);
+
+  useEffect(() => {
+    const prev = localStorage.getItem(VISITED_KEY);
+    setHasVisitedBefore(prev === "1");
+    if (prev !== "1") localStorage.setItem(VISITED_KEY, "1");
+  }, []);
 
   useEffect(() => {
     getSessionClient().then(setSession);
@@ -61,15 +71,35 @@ export function Navbar() {
 
   useEffect(() => {
     if (open) {
+      lockedScrollY.current = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${lockedScrollY.current}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
       document.body.style.overflow = "hidden";
       document.body.style.touchAction = "none";
     } else {
+      const restoreY = lockedScrollY.current;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
       document.body.style.overflow = "";
       document.body.style.touchAction = "";
+      if (restoreY > 0) window.scrollTo(0, restoreY);
     }
     return () => {
+      const restoreY = lockedScrollY.current;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
       document.body.style.overflow = "";
       document.body.style.touchAction = "";
+      if (restoreY > 0) window.scrollTo(0, restoreY);
     };
   }, [open]);
 
@@ -144,113 +174,48 @@ export function Navbar() {
                   </Link>
                 );
               })}
+              {session && (
+                <div className="flex flex-col gap-1 border-t border-[var(--border)] pt-4 md:hidden">
+                  {(
+                    [
+                      { href: "/profile", label: "Profile" },
+                      { href: "/settings", label: "Settings" },
+                      { href: "/settings/submissions", label: "My Submissions" },
+                      { href: `/vote/${voteMonth}`, label: "Vote" },
+                    ] as const
+                  ).map((item) => {
+                    const active = linkActive(pathname, item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setOpen(false)}
+                        className={`flex w-full items-center justify-between rounded px-4 py-3.5 text-left text-[clamp(1rem,4vw,1.2rem)] no-underline transition-colors ${
+                          active
+                            ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
+                            : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        <span
+                          aria-hidden
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: "50%",
+                            background: "var(--accent)",
+                            opacity: active ? 1 : 0,
+                          }}
+                        />
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-6 md:ml-2 md:flex-row md:items-center md:gap-2 md:border-t-0 md:pt-0">
               <div className="md:hidden w-full">
-                {session ? (
-                  <div
-                    style={{
-                      paddingTop: "1.5rem",
-                      borderTop: "1px solid var(--border)",
-                    }}
-                  >
-                    <div
-                      onClick={() => {
-                        router.push("/profile");
-                        setOpen(false);
-                      }}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "0.75rem 1rem",
-                        background: "var(--bg-card)",
-                        border: "1px solid var(--border)",
-                        borderRadius: "2px",
-                        cursor: "pointer",
-                        marginBottom: "0.5rem",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={
-                            session.avatarHash
-                              ? `https://cdn.discordapp.com/avatars/${session.discordId}/${session.avatarHash}.png?size=64`
-                              : `https://cdn.discordapp.com/embed/avatars/${Number(BigInt(session.discordId) % BigInt(6))}.png`
-                          }
-                          alt=""
-                          style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid var(--border)" }}
-                        />
-                        <div>
-                          <p
-                            style={{
-                              fontWeight: 700,
-                              fontSize: "0.875rem",
-                              margin: 0,
-                              color: "var(--text)",
-                            }}
-                          >
-                            {session.displayName ?? session.discordUsername}
-                          </p>
-                          <p
-                            style={{
-                              fontSize: "0.7rem",
-                              color: "var(--text-dim)",
-                              fontFamily: "var(--font-mono)",
-                              margin: 0,
-                            }}
-                          >
-                            @{session.discordUsername}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push("/settings");
-                          setOpen(false);
-                        }}
-                        style={{
-                          background: "transparent",
-                          border: "1px solid var(--border)",
-                          borderRadius: "2px",
-                          padding: "0.375rem",
-                          cursor: "pointer",
-                          color: "var(--text-dim)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                        aria-label="Settings"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="3" />
-                          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
-                        </svg>
-                      </button>
-                    </div>
-
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <Link
-                        href="/settings/submissions"
-                        onClick={() => setOpen(false)}
-                        className="btn"
-                        style={{ flex: 1, justifyContent: "center", fontSize: "0.8rem" }}
-                      >
-                        My Submissions
-                      </Link>
-                      <Link
-                        href={`/vote/${voteMonth}`}
-                        onClick={() => setOpen(false)}
-                        className="btn"
-                        style={{ flex: 1, justifyContent: "center", fontSize: "0.8rem" }}
-                      >
-                        Vote
-                      </Link>
-                    </div>
-                  </div>
-                ) : (
+                {!session && (
                   <div style={{ paddingTop: "1.5rem", borderTop: "1px solid var(--border)" }}>
                     <a
                       href={loginUrl()}
@@ -262,13 +227,17 @@ export function Navbar() {
                   </div>
                 )}
               </div>
-              <Link
-                href="/join"
-                className="btn btn-primary hidden md:flex w-full items-center justify-center text-center md:w-auto"
-              >
-                Join Us
-              </Link>
-              <AuthNav />
+              {!session && hasVisitedBefore === false && (
+                <Link
+                  href="/join"
+                  className="btn btn-primary hidden md:inline-flex w-full items-center justify-center text-center md:w-auto"
+                >
+                  Join Us
+                </Link>
+              )}
+              <div className="hidden md:block">
+                <AuthNav />
+              </div>
             </div>
           </div>
         </div>

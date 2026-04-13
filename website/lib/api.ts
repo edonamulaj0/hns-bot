@@ -50,9 +50,8 @@ function blogsUrl(): string | null {
 }
 
 function discordWidgetUrl(): string | null {
-  const guildId = process.env.NEXT_PUBLIC_DISCORD_GUILD_ID?.trim() ?? "";
-  if (!guildId) return null;
-  return `https://discord.com/api/guilds/${encodeURIComponent(guildId)}/widget.json`;
+  if (typeof window !== "undefined") return "/api/discord-widget";
+  return null;
 }
 
 function challengesUrl(track: "DEVELOPER" | "HACKER", month?: string): string | null {

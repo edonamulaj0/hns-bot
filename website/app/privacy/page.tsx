@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — H4ck&Stack",
+  title: "Privacy Policy | H4ck&Stack",
 };
 
 export default function PrivacyPage() {

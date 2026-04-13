@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — H4ck&Stack",
+  title: "Terms of Service | H4ck&Stack",
 };
 
 export default function TermsPage() {

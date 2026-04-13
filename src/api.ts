@@ -271,7 +271,6 @@ async function portfolioResponse(
 
 async function membersResponse(prisma: PrismaClient): Promise<Response> {
   const members = await prisma.user.findMany({
-    where: { profileCompletedAt: { not: null } },
     select: {
       discordId: true,
       discordUsername: true,

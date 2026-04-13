@@ -5,14 +5,15 @@ import { Navbar } from "@/components/navbar";
 import { ChallengesSubNav } from "@/components/ChallengesSubNav";
 import { SplashScreen } from "@/components/SplashScreen";
 import { AmbientBackground } from "@/components/AmbientBackground";
+import { CookieConsent } from "@/components/CookieConsent";
 
 export const metadata: Metadata = {
   icons: { icon: "/icon.svg" },
-  title: `${BRAND_NAME} — Global Hacker & Developer Community`,
+  title: `Home | ${BRAND_NAME}`,
   description:
     "Monthly build challenges, community projects, and developer profiles for hackers and developers worldwide.",
   openGraph: {
-    title: BRAND_NAME,
+    title: `Home | ${BRAND_NAME}`,
     description:
       "Monthly build challenges for the global hacker and developer community.",
     type: "website",
@@ -48,6 +49,7 @@ export default function RootLayout({
         <Navbar />
         <ChallengesSubNav />
         <main>{children}</main>
+        <CookieConsent />
         <footer className="footer">
           <div className="container flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <span className="mono dim text-sm">
