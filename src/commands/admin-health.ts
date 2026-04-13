@@ -3,10 +3,16 @@ import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
 import { XP_ROLES } from "../roles";
 import { ensureRolesExist } from "../role-manager";
-import { isAdmin } from "./admin";
+import { getInteractionRoleIds, isAdmin } from "./admin";
 
 function getDiscordUserId(interaction: any): string | null {
   return interaction?.member?.user?.id ?? interaction?.user?.id ?? null;
+}
+
+function timeoutSignal(ms: number): AbortSignal {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), ms);
+  return controller.signal;
 }
 
 export function registerAdminHealth(app: DiscordHono<HonoWorkerEnv>) {
@@ -19,8 +25,17 @@ export function registerAdminHealth(app: DiscordHono<HonoWorkerEnv>) {
           return;
         }
 
-        if (!ctx.env.ADMIN_ROLE_ID || !isAdmin(ctx.interaction, ctx.env.ADMIN_ROLE_ID)) {
-          await ctx.followup({ content: "⛔ Unauthorized." });
+        const configuredAdminRoleId = (ctx.env.ADMIN_ROLE_ID ?? "").trim();
+        if (!configuredAdminRoleId || !isAdmin(ctx.interaction, configuredAdminRoleId)) {
+          const roleIds = getInteractionRoleIds(ctx.interaction);
+          await ctx.followup({
+            content: [
+              "⛔ Unauthorized.",
+              `Configured ADMIN_ROLE_ID: ${configuredAdminRoleId || "(missing)"}`,
+              `Your role count in interaction: ${roleIds.length}`,
+              roleIds.length ? `Your roles: ${roleIds.join(", ")}` : "Your roles: (none found)",
+            ].join("\n"),
+          });
           return;
         }
 
@@ -31,7 +46,7 @@ export function registerAdminHealth(app: DiscordHono<HonoWorkerEnv>) {
           `https://discord.com/api/v10/guilds/${ctx.env.DISCORD_GUILD_ID}/roles`,
           {
             headers: { Authorization: `Bot ${ctx.env.DISCORD_TOKEN}` },
-            signal: AbortSignal.timeout(10_000),
+            signal: timeoutSignal(10_000),
           },
         );
         if (!rolesRes.ok) {
@@ -44,7 +59,7 @@ export function registerAdminHealth(app: DiscordHono<HonoWorkerEnv>) {
           `https://discord.com/api/v10/guilds/${ctx.env.DISCORD_GUILD_ID}/members/${ctx.env.DISCORD_APPLICATION_ID}`,
           {
             headers: { Authorization: `Bot ${ctx.env.DISCORD_TOKEN}` },
-            signal: AbortSignal.timeout(10_000),
+            signal: timeoutSignal(10_000),
           },
         );
         const botMember: { roles: string[] } | null = botMemberRes.ok ? await botMemberRes.json() : null;
