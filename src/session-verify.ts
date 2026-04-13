@@ -52,10 +52,11 @@ export async function verifySessionToken(
   const sigB64 = token.slice(dot + 1);
   const key = await importHmacKey(secret);
   const sig = b64UrlToBytes(sigB64);
+  const sigBytes = new Uint8Array(sig);
   const ok = await crypto.subtle.verify(
     "HMAC",
     key,
-    sig,
+    sigBytes,
     new TextEncoder().encode(payloadB64),
   );
   if (!ok) return null;

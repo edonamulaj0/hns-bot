@@ -223,7 +223,8 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
           return;
         }
 
-        const challengeId = ctx.interaction.data?.values?.[0];
+        const selectValues = (ctx.interaction.data as { values?: string[] } | undefined)?.values ?? [];
+        const challengeId = selectValues[0];
         if (!challengeId) {
           await ctx.followup({
             content: "No challenge selected.",
@@ -232,7 +233,15 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
           return;
         }
 
-        await processDiscordEnrollment(ctx, discordId, challengeId);
+        const enrollCtx: EnrollmentDeferCtx = {
+          env: ctx.env,
+          followup: (data, file) =>
+            file !== undefined
+              ? ctx.followup(data as never, file as never)
+              : ctx.followup(data as never),
+        };
+
+        await processDiscordEnrollment(enrollCtx, discordId, challengeId);
       }),
     );
 }

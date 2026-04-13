@@ -112,6 +112,11 @@ export default defineConfig({
       ]
     },
     optimizeDeps: { exclude: ['workbox-window'] },
+    esbuild: {
+      logOverride: {
+        'unsupported-css-property': 'silent'
+      }
+    },
     plugins: [
       OptimizeExclude(),
       Terminal({

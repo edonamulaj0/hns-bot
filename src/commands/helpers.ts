@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client/edge";
+import { Prisma } from "@prisma/client/edge";
 
 /**
  * Shared helper functions for Discord command handling
