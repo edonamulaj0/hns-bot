@@ -36,8 +36,6 @@ in seeing all minor changes you can follow our
 
 - Added Art Education section to [Image Tools](/image-tools/#art-education).
 
-- Added NoFap section to NSFW to save souls.
-
 - Added [New Headers](https://imgur.com/a/YXWUZun) to the subreddit.
 
 ---

@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { AuthNav } from "@/components/AuthNav";
 import { getSessionClient, loginUrl, type SessionUser } from "@/lib/auth-client";
+import { userProfileAvatarUrl } from "@/lib/api";
 import { BRAND_LOGO_PNG, BRAND_LOGO_SVG, BRAND_NAME } from "@/lib/branding";
-import { utcMonthKey } from "@/lib/month";
+import { getMonthKey } from "@/lib/month";
 
 const VISITED_KEY = "hns_has_visited";
 
@@ -24,6 +25,18 @@ function linkActive(pathname: string, href: string) {
 }
 
 /** Account / settings links: avoid `/settings` matching `/settings/submissions`. */
+function sessionAvatarUrl(u: SessionUser): string {
+  return userProfileAvatarUrl(
+    {
+      discordId: u.discordId,
+      github: u.github ?? null,
+      avatarHash: u.avatarHash,
+      profileAvatarSource: u.profileAvatarSource,
+    },
+    64,
+  );
+}
+
 function accountLinkActive(pathname: string, href: string): boolean {
   if (href === "/settings/submissions") {
     return pathname === "/settings/submissions" || pathname.startsWith("/settings/submissions/");
@@ -68,7 +81,7 @@ export function Navbar() {
   const [session, setSession] = useState<SessionUser | null>(null);
   /** null = before hydration; false = first visit; true = returning visitor */
   const [hasVisitedBefore, setHasVisitedBefore] = useState<boolean | null>(null);
-  const voteMonth = utcMonthKey();
+  const voteMonth = getMonthKey();
   const lockedScrollY = useRef(0);
 
   useEffect(() => {
@@ -157,7 +170,7 @@ export function Navbar() {
 
         <div
           id="nav-panel"
-          className={`fixed left-0 right-0 top-[3.5rem] bottom-0 z-[99] h-[calc(100dvh-3.5rem)] border-t border-[var(--border)] bg-[var(--bg)] md:static md:inset-auto md:top-auto md:z-auto md:h-auto md:max-h-none md:flex md:flex-row md:items-center md:gap-1 md:overflow-visible md:border-t-0 md:bg-transparent md:p-0 ${
+          className={`fixed left-0 right-0 top-[3.5rem] z-[99] h-[calc(100dvh-3.5rem)] border-t border-[var(--border)] bg-[var(--bg)] md:static md:inset-auto md:top-auto md:z-auto md:h-auto md:max-h-none md:flex md:flex-row md:items-center md:gap-1 md:overflow-visible md:border-t-0 md:bg-transparent md:p-0 ${
             open ? "flex" : "hidden md:flex"
           }`}
         >
@@ -191,42 +204,84 @@ export function Navbar() {
                 );
               })}
               {session && (
-                <div className="flex flex-col gap-1 border-t border-[var(--border)] pt-4 md:hidden">
-                  {(
-                    [
-                      { href: "/profile", label: "Profile" },
-                      { href: "/settings", label: "Settings" },
-                      { href: "/settings/submissions", label: "My Submissions" },
-                      { href: `/vote/${voteMonth}`, label: "Vote" },
-                    ] as const
-                  ).map((item) => {
-                    const active = accountLinkActive(pathname, item.href);
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setOpen(false)}
-                        className={`flex w-full items-center justify-between rounded px-4 py-3.5 text-left text-[clamp(1rem,4vw,1.2rem)] no-underline transition-colors ${
-                          active
-                            ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
-                            : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
-                        }`}
+                <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-4 md:hidden">
+                  <div className="flex items-center gap-2 rounded border border-[var(--border-bright)] bg-[var(--bg-card)] px-3 py-2.5">
+                    <Link
+                      href="/profile"
+                      onClick={() => setOpen(false)}
+                      className="flex min-w-0 flex-1 items-center gap-3 no-underline text-[var(--text)]"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={sessionAvatarUrl(session)}
+                        alt=""
+                        width={40}
+                        height={40}
+                        className="shrink-0 rounded-full"
+                      />
+                      <span className="truncate text-left text-[clamp(1rem,4vw,1.1rem)] font-medium">
+                        {session.displayName?.trim() || "Account"}
+                      </span>
+                    </Link>
+                    <Link
+                      href="/settings"
+                      onClick={() => setOpen(false)}
+                      aria-label="Settings"
+                      className={`shrink-0 rounded border p-2.5 no-underline transition-colors ${
+                        accountLinkActive(pathname, "/settings")
+                          ? "border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
+                          : "border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
+                      }`}
+                    >
+                      <svg
+                        width={20}
+                        height={20}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden
                       >
-                        <span>{item.label}</span>
-                        <span
-                          aria-hidden
-                          style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: "50%",
-                            background: "var(--accent)",
-                            opacity: active ? 1 : 0,
-                          }}
-                        />
-                      </Link>
-                    );
-                  })}
-                  <form action="/auth/logout" method="post" className="mt-4 pt-4">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                      </svg>
+                    </Link>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {(
+                      [
+                        { href: "/settings/submissions", label: "My Submissions" },
+                        { href: `/vote/${voteMonth}`, label: "Vote" },
+                      ] as const
+                    ).map((item) => {
+                      const active = accountLinkActive(pathname, item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setOpen(false)}
+                          className={`flex w-full items-center justify-between rounded px-4 py-3 text-left text-[clamp(1rem,4vw,1.05rem)] no-underline transition-colors ${
+                            active
+                              ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
+                              : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
+                          }`}
+                        >
+                          <span>{item.label}</span>
+                          <span
+                            aria-hidden
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              background: "var(--accent)",
+                              opacity: active ? 1 : 0,
+                            }}
+                          />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                  <form action="/auth/logout" method="post" className="border-t border-[var(--border)] pt-4">
                     <button
                       type="submit"
                       className="btn btn-primary w-full justify-center py-3.5 text-[clamp(1rem,4vw,1.05rem)] font-bold"

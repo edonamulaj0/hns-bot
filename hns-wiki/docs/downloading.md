@@ -39,14 +39,14 @@
 * [DirtyWarez](https://forum.dirtywarez.com/) - Video / Audio / Books / Comics
 * [WarezForums](https://warezforums.com/) - Video / Audio / ROMs / Books / Comics
 * [AditHD](https://www.adit-hd.com/) - Video / Audio / Books
-* [wJungle](https://wjungle.net/) - Audio / Books / NSFW / Requires Sign-Up
+* [wJungle](https://wjungle.net/) - Audio / Books / Requires Sign-Up
 * [Novanon](https://novanon.net/) - Audio / Magazines / Comics / Books / Courses
 * [ReleaseBB](https://rlsbb.ru/), [2](https://rlsbb.to/), [3](https://rlsbb.cc/), [4](https://rlsbb.in/) - Audio / Books / Magazines / [Track Shows](https://openuserjs.org/scripts/drdre1/ReleaseBB_rlsbb_TV_Show_Tracker) / [PreDB](https://log.rlsbb.ru/)
 * [Psycho downloads](https://psychodownloads.com/) - Audio / Books / Magazines
 * [Merlin Warez](https://merlinwz.com/) - Audio / Books / Audiobooks / Comics / Magazines
 * [1DDL](https://1ddl.org/) - Audio / Books / Comics / Magazines
 * [WarezLoad](https://warezload.net/index.php) - Audio / Books
-* [Katz DDL](https://katzddl.net/) - Audio / Books / NSFW
+* [Katz DDL](https://katzddl.net/) - Audio / Books
 * [TehParadox](https://www.tehparadox.net/) - Audio / Books / Magazines / ROMs
 * [downTURK](https://www.downturk.net/) - Audio / Books
 * [SoftArchive](https://softarchive.download/), [2](https://softarchive.is/), [3](https://sanet.lc/), [4](https://sanet.st/), [5](https://sanet.sb/), [6](https://soft.ac/), [7](https://sanet.ws/) - Audio / Books / Comics / Newspapers / Magazines / [Status](https://sastatus.com/) / [Note](https://github.com/fmhy/edit/blob/main/docs/.vitepress/notes/sanet-warning.md)

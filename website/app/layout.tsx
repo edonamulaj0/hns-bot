@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { BRAND_NAME, BUILDER_SITE_URL, WIKI_URL } from "@/lib/branding";
 import { Navbar } from "@/components/navbar";
@@ -7,7 +8,26 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { CookieConsent } from "@/components/CookieConsent";
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
+const metadataBaseUrl =
+  process.env.NEXT_PUBLIC_BASE_URL?.trim().replace(/\/$/, "") ||
+  "https://h4cknstack.com";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(metadataBaseUrl),
   icons: { icon: "/icon.svg" },
   title: `Home | ${BRAND_NAME}`,
   description:
@@ -17,6 +37,7 @@ export const metadata: Metadata = {
     description:
       "Monthly build challenges for the global hacker and developer community.",
     type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
   },
 };
 
@@ -26,24 +47,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body style={{ fontFamily: "'Inter', sans-serif" }}>
+    <html
+      lang="en"
+      className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+    >
+      <body>
         <SplashScreen />
         <AmbientBackground />
         <Navbar />

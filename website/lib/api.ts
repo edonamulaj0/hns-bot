@@ -268,6 +268,63 @@ export const EMPTY_LEADERBOARD: LeaderboardResponse = { leaderboard: [] };
 export const EMPTY_BLOGS: BlogsResponse = { blogs: [] };
 export const EMPTY_CHALLENGES: ChallengesResponse = { challenges: [] };
 
+/**
+ * Client-only bundle for /members hub: parallel GETs with a 10s deadline.
+ * URLs use `NEXT_PUBLIC_API_URL` when set (see `getBrowserWorkerBase` / `browserApiPath`), else same-origin `/hns-api`.
+ */
+export async function fetchMembersHubBundle(): Promise<{
+  members: MembersResponse;
+  leaderboard: LeaderboardResponse;
+  portfolio: PortfolioResponse;
+  blogs: BlogsResponse;
+}> {
+  const paths = ["/members", "/leaderboard", "/portfolio", "/blogs"] as const;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  const init: RequestInit = {
+    ...fetchInit(),
+    signal: controller.signal,
+  };
+  try {
+    const urls = await Promise.all(paths.map((p) => resolveApiFetchUrl(p)));
+    for (let i = 0; i < urls.length; i++) {
+      if (!urls[i]) {
+        throw new Error(
+          "API base URL is not configured. Set NEXT_PUBLIC_API_URL (or use /hns-api rewrites).",
+        );
+      }
+    }
+    const responses = await Promise.all(
+      urls.map((url) => fetch(url!, init)),
+    );
+    for (let i = 0; i < responses.length; i++) {
+      if (!responses[i].ok) {
+        throw new Error(
+          `API request failed (${paths[i]}): HTTP ${responses[i].status}`,
+        );
+      }
+    }
+    const [members, leaderboard, portfolio, blogs] = await Promise.all(
+      responses.map((r) => r.json()),
+    ) as [
+      MembersResponse,
+      LeaderboardResponse,
+      PortfolioResponse,
+      BlogsResponse,
+    ];
+    return { members, leaderboard, portfolio, blogs };
+  } catch (e) {
+    if (e instanceof Error && e.name === "AbortError") {
+      throw new Error(
+        "Timed out after 10 seconds while loading members data. Check NEXT_PUBLIC_API_URL and that the Worker is reachable.",
+      );
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export async function getPortfolio(): Promise<PortfolioResponse> {
   const url = await resolveApiFetchUrl("/portfolio");
   if (!url) {

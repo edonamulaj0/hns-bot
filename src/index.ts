@@ -169,5 +169,6 @@ export default {
 
     return app.fetch(request, env, executionCtx);
   },
+  /** Cron: `commands/cron.ts` — idempotent via Config `lastChallengeMonth`, `lastVoteFeedMonth`, `lastPublishMonth`. */
   scheduled: app.scheduled,
 };

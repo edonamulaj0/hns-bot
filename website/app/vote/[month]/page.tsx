@@ -12,7 +12,10 @@ export async function generateMetadata({
   params: Promise<{ month: string }>;
 }): Promise<Metadata> {
   const { month } = await params;
-  return { title: `Vote ${month} | H4ck&Stack` };
+  return {
+    title: `Vote ${month} | H4ck&Stack`,
+    description: `Cast your votes for ${month} challenge submissions on H4ck&Stack (signed-in members).`,
+  };
 }
 
 export default async function VoteMonthPage({

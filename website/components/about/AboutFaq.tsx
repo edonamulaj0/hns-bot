@@ -1,21 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import type { ReactNode } from "react";
-
 const FAQ: { q: string; a: ReactNode }[] = [
   {
     q: "What is H4ck&Stack?",
-    a: "H4ck&Stack is a global community for developers and security researchers. Each month we run structured challenge cycles: a developer track for shipping software projects and a hacker track for security work like CTF writeups, tools, and research. You join on Discord, submit through the bot, vote during the vote window, and see approved work published on this site with XP and rankings.",
+    a: (
+      <>
+        H4ck&Stack is a global community for developers and security researchers. Each month we run a{" "}
+        <strong className="text-white/85">shared UTC calendar</strong> for two tracks: a developer track for shipping
+        software projects and a hacker track for security work like CTF writeups, tools, and research. Join on Discord,
+        sign in on this site, then <strong className="text-white/85">submit</strong> and <strong className="text-white/85">vote</strong> from the website (including the vote banner on the{" "}
+        <Link href="/challenges" className="text-[var(--accent)] hover:underline">
+          Challenges
+        </Link>{" "}
+        page when voting is open). Approved work appears here with XP and rankings.
+      </>
+    ),
   },
   {
     q: "Who can join?",
-    a: "Anyone who wants to build or break things responsibly. We welcome students, hobbyists, and professionals. You need a Discord account to participate in submissions and voting; there is no gatekeeping beyond following server rules and treating others with respect.",
+    a: "Anyone who wants to build or break things responsibly. We welcome students, hobbyists, and professionals. You need a Discord account to sign in and participate; there is no gatekeeping beyond following server rules and treating others with respect.",
   },
   {
     q: "What's the difference between the Developer and Hacker tracks?",
-    a: "The Developer track is a ~21-day build window for a software project of any stack or idea, submitted with /submit before the deadline. The Hacker track runs in shorter cycles focused on security outcomes: writeups, tools, vuln research, and similar work, submitted with /submit and the hacker track option. Both earn XP and appear in the portfolio when approved.",
+    a: (
+      <>
+        Both tracks use the <strong className="text-white/85">same monthly calendar</strong>: roughly days 1–21 to build
+        and submit, days 22–25 to vote (UTC). The developer track is for shipping a software project in any stack. The
+        hacker track is for security outcomes—writeups, tooling, research, and similar work. Enroll for the hacker track
+        with <code className="mono text-[var(--accent)]">/enroll</code> in Discord, then complete your submission on the
+        site. Both earn XP and can appear in the portfolio when approved.
+      </>
+    ),
   },
   {
     q: "Can I use any tech stack or programming language?",
@@ -48,19 +66,19 @@ const FAQ: { q: string; a: ReactNode }[] = [
   },
   {
     q: "Can I submit more than one project per month?",
-    a: "The monthly challenge is designed around one strong submission per member per cycle so everyone gets a fair shot at attention and votes. If you are unsure, ask in Discord before the submission window closes.",
+    a: "The monthly challenge is designed around one strong submission per member per month so everyone gets a fair shot at attention and votes. If you are unsure, ask in Discord before the submission window closes.",
   },
   {
     q: "What happens if I miss the submission deadline?",
-    a: "Late submissions are not accepted for that cycle — the bot enforces the calendar. You can still participate in voting, community channels, and the next month’s build phase. Mark your calendar for day 22 when submissions close.",
+    a: "Late submissions are not accepted for that month — the calendar closes submissions after the build window. You can still participate in voting, community channels, and the next month’s build phase. Watch for day 21 (UTC) when submissions close.",
   },
   {
     q: "How does the Hacker track work — what are the challenge types?",
-    a: "Hacker track entries include CTF writeups, security tooling, vulnerability research, red-team style documentation, and related work. You submit evidence and links through /submit with the hacker track. Cycles are shorter than the full developer window; check the current month’s announcements in Discord for exact dates.",
+    a: "Hacker track entries include CTF writeups, security tooling, vulnerability research, red-team style documentation, and related work. You use the same monthly build and vote windows as developers. Enroll with /enroll in Discord, then submit on the site. Check Discord announcements for anything special in a given month.",
   },
   {
     q: "Is this free?",
-    a: "Yes. Joining the Discord, using the bot, and appearing on the site are free. We may partner with sponsors in the future, but the core community loop stays accessible.",
+    a: "Yes. Joining the Discord, using the site, and appearing in the community are free. We may partner with sponsors in the future, but the core community loop stays accessible.",
   },
 ];
 
@@ -87,21 +105,17 @@ export function AboutFaq() {
                     {isOpen ? "−" : "+"}
                   </span>
                 </button>
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-4 sm:px-5 pb-5 text-sm text-white/65 leading-relaxed border-t border-[var(--border)] pt-4">
-                        {item.a}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <div
+                  className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
+                    isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                  }`}
+                >
+                  <div className="min-h-0 overflow-hidden">
+                    <div className="px-4 sm:px-5 pb-5 text-sm text-white/65 leading-relaxed border-t border-[var(--border)] pt-4">
+                      {item.a}
+                    </div>
+                  </div>
+                </div>
               </li>
             );
           })}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getMonthKey } from "@/lib/month";
 
 function getPhase() {
   const day = new Date().getUTCDate();
@@ -9,17 +10,15 @@ function getPhase() {
   return "OTHER";
 }
 
-function getMonthKey() {
-  const d = new Date();
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-export function VoteBanner() {
+/** Shown only during days 22–25 UTC. `monthKey` should match the active challenge month (e.g. portfolio.month). */
+export function VoteBanner({ monthKey }: { monthKey?: string }) {
   const [phase, setPhase] = useState("");
   useEffect(() => {
     setPhase(getPhase());
   }, []);
   if (phase !== "VOTE") return null;
+
+  const votePathMonth = monthKey?.trim() || getMonthKey();
 
   return (
     <div
@@ -68,7 +67,7 @@ export function VoteBanner() {
         </span>
       </div>
       <Link
-        href={`/vote/${getMonthKey()}`}
+        href={`/vote/${votePathMonth}`}
         className="btn btn-primary"
         style={{ fontSize: "var(--text-xs)", padding: "0.4rem 1rem" }}
       >

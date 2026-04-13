@@ -3,6 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Terms of Service | H4ck&Stack",
+  description: "Terms of service for using the H4ck&Stack website and community features.",
 };
 
 export default function TermsPage() {

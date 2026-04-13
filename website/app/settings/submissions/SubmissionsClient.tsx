@@ -4,12 +4,13 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { browserApiUrl, deleteSubmit, fetchMe, patchSubmit } from "@/lib/api-browser";
-import { getSessionClient, loginUrl } from "@/lib/auth-client";
+import { getSessionClientWithRetry, loginUrl } from "@/lib/auth-client";
 import type { PortfolioResponse } from "@/lib/api";
 
 type MePayload = {
   user: { discordId: string };
   submission: SubmissionItem | null;
+  submissions?: SubmissionItem[];
 };
 
 type SubmissionItem = {
@@ -37,13 +38,6 @@ type EditDraft = {
   attachmentUrl: string;
 };
 
-function isLockedByMonth(month: string): boolean {
-  const [y, m] = month.split("-").map(Number);
-  if (!y || !m) return false;
-  const lockAt = Date.UTC(y, m - 1, 22, 0, 0, 0, 0);
-  return Date.now() >= lockAt;
-}
-
 export function SubmissionsClient() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<SubmissionItem[]>([]);
@@ -61,7 +55,7 @@ export function SubmissionsClient() {
     let alive = true;
     async function load() {
       try {
-        const session = await getSessionClient();
+        const session = await getSessionClientWithRetry();
         if (!session) {
           if (alive) {
             setAuthIssue(null);
@@ -81,20 +75,33 @@ export function SubmissionsClient() {
         }
         if (alive) setAuthIssue(null);
         const me = (await meRes.json()) as MePayload;
-        const portfolioRes = await fetch(browserApiUrl("/portfolio"), { cache: "no-store" });
-        const portfolio = portfolioRes.ok ? ((await portfolioRes.json()) as PortfolioResponse) : null;
-        const fromPortfolio = Object.values(portfolio?.published ?? {})
-          .flatMap((arr) => arr as SubmissionItem[])
-          .filter((s) => s.user?.discordId === me.user.discordId)
-          .map((s) => ({ ...s, isApproved: true }));
-        const combined: SubmissionItem[] = [...fromPortfolio];
-        if (me.submission) combined.push(me.submission);
-        const deduped = new Map<string, SubmissionItem>();
-        for (const s of combined) deduped.set(s.id, s);
-        const sorted = [...deduped.values()].sort((a, b) => {
-          if (a.month !== b.month) return b.month.localeCompare(a.month);
-          return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
-        });
+        let sorted: SubmissionItem[];
+
+        if (Array.isArray(me.submissions) && me.submissions.length > 0) {
+          sorted = [...me.submissions].map((s) => ({
+            ...s,
+            user: { discordId: me.user.discordId },
+          }));
+          sorted.sort((a, b) => {
+            if (a.month !== b.month) return b.month.localeCompare(a.month);
+            return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
+          });
+        } else {
+          const portfolioRes = await fetch(browserApiUrl("/portfolio"), { cache: "no-store" });
+          const portfolio = portfolioRes.ok ? ((await portfolioRes.json()) as PortfolioResponse) : null;
+          const fromPortfolio = Object.values(portfolio?.published ?? {})
+            .flatMap((arr) => arr as SubmissionItem[])
+            .filter((s) => s.user?.discordId === me.user.discordId)
+            .map((s) => ({ ...s, isApproved: true }));
+          const combined: SubmissionItem[] = [...fromPortfolio];
+          if (me.submission) combined.push(me.submission);
+          const deduped = new Map<string, SubmissionItem>();
+          for (const s of combined) deduped.set(s.id, s);
+          sorted = [...deduped.values()].sort((a, b) => {
+            if (a.month !== b.month) return b.month.localeCompare(a.month);
+            return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
+          });
+        }
         if (alive) setItems(sorted);
       } finally {
         if (alive) setLoading(false);
@@ -218,7 +225,7 @@ export function SubmissionsClient() {
 
         <AnimatePresence>
           {items.map((s) => {
-            const locked = Boolean(s.isLocked) || isLockedByMonth(s.month);
+            const editable = !s.isLocked;
             const approved = Boolean(s.isApproved);
             const isEditing = editId === s.id;
             const isExpanded = expanded[s.id] ?? false;
@@ -255,7 +262,7 @@ export function SubmissionsClient() {
                 <div className="mt-3 text-sm">
                   {approved ? (
                     <span className="text-green-400">Approved ✓</span>
-                  ) : locked ? (
+                  ) : s.isLocked ? (
                     <span className="text-white/45">Locked 🔒</span>
                   ) : (
                     <span className="text-white/45">Pending</span>
@@ -274,7 +281,7 @@ export function SubmissionsClient() {
                 </div>
 
                 <div className="mt-4 border-t border-[var(--border)] pt-3 flex gap-2">
-                  {!locked ? (
+                  {editable ? (
                     <button
                       type="button"
                       className="btn p-2"
@@ -291,7 +298,7 @@ export function SubmissionsClient() {
                       type="button"
                       className="btn p-2 opacity-40 cursor-not-allowed"
                       disabled
-                      title="Submissions lock after day 21"
+                      title={s.isLocked ? "This submission is locked" : "Editing unavailable"}
                       aria-label="Edit disabled"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -443,7 +443,7 @@
 * [MangaBerri](https://mangaberri.com/) - Use [Adblock](https://www.reddit.com/r/FREEMEDIAHECKYEAH/wiki/adblock-vpn-privacy/#wiki_.25BA_adblocking)
 * [⁠Mgeko](https://www.mgeko.cc/) - Manhwa / Manhua
 * [Webtoon](https://www.webtoons.com/) - Manhwa / [Discord](https://discord.com/invite/webtoonofficial)
-* [Toonily](https://toonily.com/) - Manhwa / Some NSFW
+* [Toonily](https://toonily.com/) - Manhwa
 * [ManhwaClan](https://manhwaclan.com/) - Manhwa
 * [⁠AquaReader](https://aquareader.net/) - Manhua
 * [⁠SysManhua](https://sysmanhua.com/) - Manhua
@@ -464,7 +464,7 @@
 ## ▷ Magazines
 
 * ⭐ **[Mobilism Magazines](https://forum.mobilism.org/viewforum.php?f=123)** - Multi-Host / [User Ranks](https://github.com/fmhy/edit/blob/main/docs/.vitepress/notes/mobilism-ranks.md)
-* ⭐ **[PDFMagazines](https://pdfmagazines.club/news/)** - Novafile / Some NSFW
+* ⭐ **[PDFMagazines](https://pdfmagazines.club/news/)** - Novafile
 * ⭐ **[DownMagaz](https://downmagaz.net/)** - Novafile / Turbobit
 * ⭐ **[MagazineLib](https://magazinelib.com/)** - VK
 * [Calameo](https://calameo.com/) - Online Reading
@@ -812,8 +812,8 @@
 
 ## ▷ Declassified / Leaked Documents
 
-* 🌐 **[Epstein Research Resources](https://redd.it/1rc3gaz)** - Epstein Research Sites / Tools / Viewer Discretion Advised / Contains Censored NSFW Images
-* ⭐ **[Epstein Exposed](https://www.epsteinexposed.com/)** / [GitHub](https://github.com/stonesalltheway1/Epstein-Pipeline), **[JMail](https://jmail.world/)** / [2](https://jmailarchive.org/) / [Wiki](https://jmail.world/wiki), [Epstein Secrets](https://epsteinsecrets.com/), [Epstein Library](https://www.justice.gov/epstein), [Epstein Visualizer](https://epsteinvisualizer.com/) or [⁠Epstein Index](https://officialepsteinfiles.org/) - Declassified Epstein Files / Viewer Discretion Advised / Contains Censored NSFW Images
+* 🌐 **[Epstein Research Resources](https://redd.it/1rc3gaz)** - Epstein Research Sites / Tools
+* ⭐ **[Epstein Exposed](https://www.epsteinexposed.com/)** / [GitHub](https://github.com/stonesalltheway1/Epstein-Pipeline), **[JMail](https://jmail.world/)** / [2](https://jmailarchive.org/) / [Wiki](https://jmail.world/wiki), [Epstein Secrets](https://epsteinsecrets.com/), [Epstein Library](https://www.justice.gov/epstein), [Epstein Visualizer](https://epsteinvisualizer.com/) or [⁠Epstein Index](https://officialepsteinfiles.org/) - Declassified Epstein Files
 * [WikiLeaks](https://wikileaks.org/) - Leaked Documents / [Index](https://file.wikileaks.org/)
 * [The Uncensored Library](https://www.uncensoredlibrary.com/en) - Uncensored / Declassified Documents
 * [FBI Vault](https://vault.fbi.gov/) - Declassified Documents

@@ -251,21 +251,12 @@ export default function HomePage() {
                 <PhaseCountdownLine phase={(portfolioData?.phase as Phase) ?? undefined} />
               </div>
             </div>
-            {totalMembers === 0 && totalSubmissions === 0 && (
-              <p
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-xs)",
-                  color: "var(--text-dimmer)",
-                  textAlign: "center",
-                  marginTop: "0.75rem",
-                  gridColumn: "1 / -1",
-                }}
-              >
-                First challenges drop May 1 · Stats update in real time
-              </p>
-            )}
           </div>
+          {totalMembers === 0 && totalSubmissions === 0 && (
+            <p className="mono mt-3 text-center text-[var(--text-xs)] text-[var(--text-dimmer)]">
+              First challenges drop May 1 · Stats update live
+            </p>
+          )}
         </div>
       </motion.section>
 

@@ -5,10 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  getMembers,
-  getLeaderboard,
-  getPortfolio,
-  getBlogs,
+  fetchMembersHubBundle,
   formatTechStack,
   userProfileAvatarUrl,
   type Member,
@@ -122,28 +119,35 @@ export default function MembersHub() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadMembersHub() {
       setLoading(true);
       setError(null);
       try {
-        const [m, lb, p, b] = await Promise.all([
-          getMembers(),
-          getLeaderboard(),
-          getPortfolio(),
-          getBlogs(),
-        ]);
-        setMembers(m.members);
-        setLeaderboard(lb.leaderboard);
-        setPortfolio(p);
-        setBlogs(b.blogs);
-      } catch {
-        setError("Could not load member data.");
+        const bundle = await fetchMembersHubBundle();
+        if (cancelled) return;
+        setMembers(bundle.members.members);
+        setLeaderboard(bundle.leaderboard.leaderboard);
+        setPortfolio(bundle.portfolio);
+        setBlogs(bundle.blogs.blogs);
+      } catch (e) {
+        if (!cancelled) {
+          const msg =
+            e instanceof Error
+              ? e.message
+              : "Could not load member data. Check NEXT_PUBLIC_API_URL in Cloudflare Pages settings.";
+          setError(msg);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     loadMembersHub();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const patchQuery = useCallback(
@@ -521,7 +525,7 @@ export default function MembersHub() {
                   marginTop: "0.5rem",
                 }}
               >
-                API unavailable — check NEXT_PUBLIC_API_URL in Cloudflare Pages settings.
+                {error}
               </p>
             </div>
           ) : (

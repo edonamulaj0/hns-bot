@@ -129,7 +129,7 @@
 * [Base64 Repair](https://base64.guru/tools/repair) - Fix Broken Base64
 * Base64 Extensions - [Chrome](https://chromewebstore.google.com/detail/base64-decode-copy/llcfmnginbnmkeddkjjellcimmffjdcf)
     
-   / [Firefox](https://addons.mozilla.org/en-US/firefox/addon/base64-decoder/)
+ / [Firefox](https://addons.mozilla.org/en-US/firefox/addon/base64-decoder/)
 
 ***
 

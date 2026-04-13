@@ -168,7 +168,7 @@ The rate limiter binding requires setup through the Cloudflare dashboard. You ca
 
 These variables control what gets included when building the documentation site:
 
-- `FMHY_BUILD_NSFW` - Enable NSFW sidebar entry (experimental)
+- `FMHY_BUILD_NSFW` - **Unused in this fork.** Leave unset or empty; do not enable.
 - `FMHY_BUILD_API` - Enable API component for feedback system
 
 ##### Runtime Variables (for API Worker)

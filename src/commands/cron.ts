@@ -1,3 +1,4 @@
+import { getConfig, setConfig } from "../config";
 import { getPrisma } from "../db";
 import { getMonthlyPhase, monthKey } from "../time";
 import { generateAndPostChallenges } from "../challenge-generator";
@@ -17,10 +18,7 @@ export function registerCron(app: any) {
     const currentMonth = monthKey(now);
     const phase = getMonthlyPhase(now);
 
-    let config = await prisma.config.findFirst();
-    if (!config) {
-      config = await prisma.config.create({ data: {} });
-    }
+    const config = await getConfig(prisma);
 
     try {
       await syncAllRoles(c, prisma);
@@ -29,10 +27,7 @@ export function registerCron(app: any) {
         if (config.lastChallengeMonth !== currentMonth) {
           await generateAndPostChallenges(c, prisma, now);
           await notifyChallengesLive(c, c.env);
-          await prisma.config.update({
-            where: { id: config.id },
-            data: { lastChallengeMonth: currentMonth },
-          });
+          await setConfig(prisma, config.id, { lastChallengeMonth: currentMonth });
         }
       }
 
@@ -47,10 +42,7 @@ export function registerCron(app: any) {
             where: { month: currentMonth },
             data: { isLocked: true },
           });
-          await prisma.config.update({
-            where: { id: config.id },
-            data: { lastVoteFeedMonth: currentMonth },
-          });
+          await setConfig(prisma, config.id, { lastVoteFeedMonth: currentMonth });
         }
       }
 
@@ -61,10 +53,7 @@ export function registerCron(app: any) {
             data: { revealed: true, isLocked: true },
           });
           await notifyResultsPublished(c, c.env);
-          await prisma.config.update({
-            where: { id: config.id },
-            data: { lastPublishMonth: currentMonth },
-          });
+          await setConfig(prisma, config.id, { lastPublishMonth: currentMonth });
         }
       }
     } catch (e) {

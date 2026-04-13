@@ -1,5 +1,5 @@
 /** UTC calendar month key, aligned with the bot Worker (`monthKey`). */
-export function utcMonthKey(date = new Date()): string {
+export function getMonthKey(date = new Date()): string {
   const y = date.getUTCFullYear();
   const m = String(date.getUTCMonth() + 1).padStart(2, "0");
   return `${y}-${m}`;

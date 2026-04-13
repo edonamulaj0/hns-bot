@@ -767,7 +767,7 @@
 
 ## ▷ 4chan Archives
 
-* **Note** - Keep in mind that some of these contain both SFW and NSFW content.
+* **Note** - Some entries host mixed content; use discretion and platform safety settings where available.
 
 ***
 

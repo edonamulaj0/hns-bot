@@ -34,4 +34,3 @@ into the site.
 - Automatic Updates
 - Table of Content Sidebars
 - Storage URLs Direct to Site Rather than Reddit
-- NSFW Section

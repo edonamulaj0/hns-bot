@@ -18,8 +18,7 @@
   --accent-3: #ccff00;
   /** Rare tiny highlights only (e.g. one background orb, vote-phase token) — not main UI chrome */
   --accent-subtle: #7c2feb;
-  --font-display: 'Space Grotesk', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* --font-display / --font-mono: set on <html> via next/font/google (layout.tsx) */
 
   /* ── Spacing scale (vh/vw based) ────────────────────────────────────────────── */
   --space-xs: clamp(0.5rem, 1vh, 0.75rem);
@@ -53,7 +52,7 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-display);
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.7;
   min-height: 100vh;
@@ -73,14 +72,14 @@ body::before {
 /* ── Typography ─────────────────────────────────────────────────────────────── */
 
 h1, h2, h3, h4 {
-  font-family: var(--font-display);
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.03em;
 }
 
 .mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.85em;
   line-height: 1.5;
   letter-spacing: 0;
@@ -130,7 +129,7 @@ h1, h2, h3, h4 {
   background: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: 4px;
-  font-family: var(--font-mono);
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.72rem;
   color: var(--text-dim);
   white-space: nowrap;
@@ -151,7 +150,7 @@ h1, h2, h3, h4 {
   border: 1px solid var(--border-bright);
   background: transparent;
   color: var(--text);
-  font-family: var(--font-mono);
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.8rem;
   cursor: pointer;
   text-decoration: none;
@@ -197,7 +196,7 @@ h1, h2, h3, h4 {
   gap: 0.5rem;
   padding: 4px 12px;
   border-radius: 4px;
-  font-family: var(--font-mono);
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -335,7 +334,7 @@ footer.footer {
 }
 
 .page-header .label {
-  font-family: var(--font-mono);
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.72rem;
   color: var(--accent);
   letter-spacing: 0.15em;
@@ -359,7 +358,7 @@ footer.footer {
 }
 
 .stat-block .label {
-  font-family: var(--font-mono);
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.75rem;
   color: var(--text-dim);
   text-transform: uppercase;
@@ -377,7 +376,7 @@ footer.footer {
 
 .empty-state p {
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.85rem;
 }
 

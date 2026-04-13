@@ -55,8 +55,9 @@ export default async function JoinPage({
           )}
           <p className="text-base sm:text-lg text-white/65 leading-relaxed mb-8 max-w-2xl">
             H4ck&Stack is a global community where developers and security researchers ship real work every month — projects,
-            writeups, and tools — and earn XP with a public portfolio on the site. Everything runs through Discord: submissions,
-            voting, and feedback, with dedicated spaces for builders and for security-focused work.
+            writeups, and tools — and earn XP with a public portfolio on the site. You submit and vote on this site; Discord is
+            where the community hangs out — including <code className="mono text-[var(--accent)]">/enroll</code> for the hacker
+            track — with dedicated spaces for builders and security-focused work.
           </p>
           <div className="flex flex-wrap gap-3 sm:gap-4">
             <a
@@ -128,17 +129,26 @@ export default async function JoinPage({
                       <p className="text-xl mb-2">🛠</p>
                       <h3 className="font-bold text-[var(--accent)] mb-2">Developer Track</h3>
                       <p className="text-sm text-white/60 leading-relaxed">
-                        Build a project over 21 days. Any stack, any idea. Submit with{" "}
-                        <code className="mono text-[var(--accent)]">/submit</code> before day 22.
+                        Build a project over 21 days. Any stack, any idea. Submit on the site from{" "}
+                        <strong className="text-white/80">Submit</strong> in your avatar menu or from the{" "}
+                        <Link href="/challenges" className="text-[var(--accent)] hover:underline font-medium">
+                          Challenges
+                        </Link>{" "}
+                        page before day 22 (UTC).
                       </p>
                     </div>
                     <div className="card p-4 sm:p-5">
                       <p className="text-xl mb-2">🔐</p>
                       <h3 className="font-bold text-[var(--accent)] mb-2">Hacker Track</h3>
                       <p className="text-sm text-white/60 leading-relaxed">
-                        Same monthly calendar as developers — days 1–21 to build, days 22–25 to vote. Submit CTF
-                        writeups, security tools, vulnerability research, or red team reports. Enroll via{" "}
-                        <code className="mono text-[var(--accent)]">/enroll</code> in Discord and submit on the site.
+                        Same unified monthly calendar as developers — days 1–21 to build, days 22–25 to vote. Submit CTF
+                        writeups, security tools, vulnerability research, or red team reports. Run{" "}
+                        <code className="mono text-[var(--accent)]">/enroll</code> in Discord for the track, then complete
+                        your submission on the site from <strong className="text-white/80">Submit</strong> or the{" "}
+                        <Link href="/challenges" className="text-[var(--accent)] hover:underline font-medium">
+                          Challenges
+                        </Link>{" "}
+                        page.
                       </p>
                     </div>
                   </div>
@@ -158,9 +168,12 @@ export default async function JoinPage({
                 title: "Vote and earn XP",
                 body: (
                   <p className="text-white/65 text-sm sm:text-base leading-relaxed">
-                    During the vote window (days 22–25 UTC), open <strong className="text-white/85">Vote</strong> in the
-                    nav (or your avatar menu). You have 4 votes per month (2 per track). Votes on your project earn you
-                    XP.
+                    During the vote window (days 22–25 UTC), use the vote banner on the{" "}
+                    <Link href="/challenges" className="text-[var(--accent)] hover:underline font-medium">
+                      Challenges
+                    </Link>{" "}
+                    page, or open <strong className="text-white/85">Vote</strong> from your avatar menu. You have 4 votes per
+                    month (2 per track). Votes on your project earn you XP.
                   </p>
                 ),
               },

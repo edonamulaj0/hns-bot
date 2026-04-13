@@ -1,5 +1,22 @@
 /** Minimal Discord REST helpers (Workers). */
 
+import type { WorkerBindings } from "./worker-env";
+
+/**
+ * Post to the blog-sharing Discord channel. Use this instead of raw `sendChannelMessage`
+ * when the target is `BLOG_CHANNEL_ID` (e.g. article announcements).
+ */
+export async function sendBlogChannelMessage(
+  env: WorkerBindings,
+  payload: Record<string, unknown>,
+): Promise<{ id: string } | null> {
+  if (!env.BLOG_CHANNEL_ID) {
+    console.error("BLOG_CHANNEL_ID is not set — skipping blog channel post");
+    return null;
+  }
+  return sendChannelMessage(env.DISCORD_TOKEN, env.BLOG_CHANNEL_ID, payload);
+}
+
 export async function discordApi(
   botToken: string,
   method: string,

@@ -8,13 +8,13 @@ import { memberDisplayName } from "@/lib/member-label";
 import { PhaseCountdown } from "@/components/PhaseCountdown";
 import { VoteBanner } from "@/components/VoteBanner";
 import type { Phase } from "@/lib/phase";
-import { utcMonthKey } from "@/lib/month";
+import { getMonthKey } from "@/lib/month";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 export default function ChallengesPage() {
   const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null);
-  const voteMonth = useMemo(() => utcMonthKey(), []);
+  const voteMonth = useMemo(() => getMonthKey(), []);
 
   useEffect(() => {
     getPortfolio().then(setPortfolio).catch(console.error);
@@ -56,8 +56,8 @@ export default function ChallengesPage() {
               <span className="mono dim text-xs sm:text-sm">{currentMonth}</span>
             )}
           </div>
-          <VoteBanner />
           <PhaseCountdown phase={(portfolio?.phase as Phase) ?? undefined} />
+          <VoteBanner monthKey={currentMonth || voteMonth} />
           <div className="label mt-6 sm:mt-8">Build & Compete</div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 lg:mb-6">
             Monthly Challenges
@@ -356,7 +356,7 @@ export default function ChallengesPage() {
               },
               {
                 cmd: "Vote (site)",
-                desc: `During the vote window (days 22–25 UTC), cast up to 4 votes (2 per track) at /vote/${voteMonth}.`,
+                desc: `During the vote window (days 22–25 UTC), cast up to 4 votes (2 per track) at /vote/${currentMonth || voteMonth}.`,
               },
               {
                 cmd: "/pulse",

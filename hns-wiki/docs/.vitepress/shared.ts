@@ -40,9 +40,7 @@ export const meta = {
     },
     build: {
         /** Opt in with `FMHY_BUILD_API=true` (e.g. local FMHY parity). */
-        api: false,
-        /** Opt in with `FMHY_BUILD_NSFW=true`. */
-        nsfw: false
+        api: false
     }
 }
 
@@ -57,9 +55,6 @@ export const excluded = [
 
 const safeEnv = (key: string) => typeof process !== 'undefined' ? process.env?.[key] : undefined
 
-if (safeEnv('FMHY_BUILD_NSFW') === 'true') {
-    meta.build.nsfw = true
-}
 if (safeEnv('FMHY_BUILD_API') === 'true') {
     meta.build.api = true
 }
@@ -197,10 +192,6 @@ export const sidebar: DefaultTheme.Sidebar | DefaultTheme.NavItemWithLink[] = [
             {
                 text: '<span class="i-twemoji:cyclone"></span> Torrenting',
                 link: '/torrenting'
-            },
-            {
-                text: '<span class="i-twemoji:globe-showing-asia-australia"></span> Non-English',
-                link: '/non-english'
             },
             {
                 text: '<span class="i-twemoji:file-folder"></span> Miscellaneous',

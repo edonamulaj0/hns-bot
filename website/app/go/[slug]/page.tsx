@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 export const runtime = "edge";
+
+export const metadata: Metadata = {
+  title: "Link | H4ck&Stack",
+  description: "Short link to a H4ck&Stack submission or external URL.",
+};
 
 function serverWorkerBase(): string {
   const raw =

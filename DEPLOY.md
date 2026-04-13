@@ -46,7 +46,7 @@ The curated resource wiki lives in **`hns-wiki/`** (fork of [fmhy/edit](https://
 3. **Build output directory:** `docs/.vitepress/dist` (relative to `hns-wiki/`).
 4. **Environment variables → Production (and Preview if needed):**
    - **`NODE_VERSION`** = `21`
-   - **`FMHY_BUILD_NSFW`** — omit or leave empty (**default** for this wiki). Set to **`true`** only if you need FMHY NSFW build paths.
+   - **`FMHY_BUILD_NSFW`** — omit or set empty (**required** for this wiki). Do **not** set to `true`; NSFW build paths are disabled in this fork.
    - **`FMHY_BUILD_API`** — omit or leave empty (**default**). Set to **`true`** only if you need FMHY feedback API hooks.
 5. **Custom domain:** Pages → **Custom domains** → add **`wiki.h4cknstack.com`**. In **Cloudflare DNS** for the zone, add:
    - **Type:** CNAME  

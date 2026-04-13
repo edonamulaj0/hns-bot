@@ -60,10 +60,6 @@ export const headers: Header = {
     title: 'Miscellaneous',
     description: 'Extensions, Indexes, News, Health, Food, Fun'
   },
-  'nsfwpiracy.md': {
-    title: 'NSFW',
-    description: 'NSFW Indexes, Streaming, Downloading'
-  },
   'non-english.md': {
     title: 'Non-English',
     description: 'International Free Sites'

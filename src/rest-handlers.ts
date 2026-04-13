@@ -176,15 +176,36 @@ export async function handleMe(
     include: { challenge: true },
   });
 
-  const submission = enrollment
-    ? await prisma.submission.findFirst({
-        where: {
-          userId: user.id,
-          month: m,
-          challengeId: enrollment.challengeId,
-        },
-      })
-    : null;
+  const [submission, submissions] = await Promise.all([
+    enrollment
+      ? prisma.submission.findFirst({
+          where: {
+            userId: user.id,
+            month: m,
+            challengeId: enrollment.challengeId,
+          },
+        })
+      : Promise.resolve(null),
+    prisma.submission.findMany({
+      where: { userId: user.id },
+      orderBy: [{ month: "desc" }, { createdAt: "desc" }],
+      select: {
+        id: true,
+        month: true,
+        tier: true,
+        title: true,
+        description: true,
+        track: true,
+        repoUrl: true,
+        demoUrl: true,
+        attachmentUrl: true,
+        votes: true,
+        isApproved: true,
+        isLocked: true,
+        createdAt: true,
+      },
+    }),
+  ]);
 
   return jsonResponse(env, request, {
     user: {
@@ -210,6 +231,7 @@ export async function handleMe(
         }
       : null,
     submission,
+    submissions,
   });
 }
 

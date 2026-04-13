@@ -3,6 +3,8 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | H4ck&Stack",
+  description:
+    "How H4ck&Stack collects, uses, and protects your data when you use the site and Discord-linked features.",
 };
 
 export default function PrivacyPage() {

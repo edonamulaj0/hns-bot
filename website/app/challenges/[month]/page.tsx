@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -20,9 +21,12 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ month: string }>;
-}) {
+}): Promise<Metadata> {
   const { month } = await params;
-  return { title: `${month} Challenges | H4ck&Stack` };
+  return {
+    title: `${month} Challenges | H4ck&Stack`,
+    description: `Published submissions and hall-of-fame projects for ${month} on H4ck&Stack.`,
+  };
 }
 
 export default async function ChallengeMonthPage({

@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Page not found | H4ck&Stack",
+  description: "The page you requested does not exist on H4ck&Stack.",
+};
 
 export default function NotFound() {
   return (

@@ -8,7 +8,7 @@ import {
   type SessionUser,
 } from "@/lib/auth-client";
 import { userProfileAvatarUrl } from "@/lib/api";
-import { utcMonthKey } from "@/lib/month";
+import { getMonthKey } from "@/lib/month";
 
 function avatarUrl(u: SessionUser): string {
   return userProfileAvatarUrl(
@@ -26,7 +26,7 @@ export function AuthNav() {
   const [user, setUser] = useState<SessionUser | null | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const voteMonth = useMemo(() => utcMonthKey(), []);
+  const voteMonth = useMemo(() => getMonthKey(), []);
 
   useEffect(() => {
     getSessionClient().then(setUser);

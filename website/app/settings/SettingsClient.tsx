@@ -3,12 +3,46 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { deleteProfile, fetchMe, patchProfile } from "@/lib/api-browser";
-import { getSessionClient, loginUrl } from "@/lib/auth-client";
-import {
-  joinPublicDisplayName,
-  splitPublicDisplayName,
-  validatePublicDisplayName,
-} from "@/lib/display-name";
+import { getSessionClientWithRetry, loginUrl } from "@/lib/auth-client";
+import { mergedPublicDisplayName } from "@/lib/display-name";
+
+const SETTINGS_DISPLAY_NAME_MAX = 32;
+
+function isValidGithubOrGitlabUrl(raw: string): boolean {
+  const s = raw.trim();
+  if (!s) return true;
+  try {
+    const u = new URL(s);
+    if (u.protocol !== "https:") return false;
+    const h = u.hostname.toLowerCase().replace(/^www\./, "");
+    return h === "github.com" || h === "gitlab.com";
+  } catch {
+    return false;
+  }
+}
+
+function isValidLinkedinUrl(raw: string): boolean {
+  const s = raw.trim();
+  if (!s) return true;
+  try {
+    const u = new URL(s);
+    if (u.protocol !== "https:") return false;
+    const h = u.hostname.toLowerCase().replace(/^www\./, "");
+    return h === "linkedin.com";
+  } catch {
+    return false;
+  }
+}
+
+function validateSettingsDisplayName(value: string): string | null {
+  const v = value.trim().replace(/\s+/g, " ");
+  if (!v) return null;
+  if (v.length > SETTINGS_DISPLAY_NAME_MAX) {
+    return `Display name must be at most ${SETTINGS_DISPLAY_NAME_MAX} characters.`;
+  }
+  if (/[@#]/.test(v)) return "Don’t use @ or # in your name.";
+  return null;
+}
 
 type MeUser = {
   displayName: string | null;
@@ -25,8 +59,7 @@ function normalizeTag(v: string) {
 
 export function SettingsClient() {
   const [loading, setLoading] = useState(true);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [about, setAbout] = useState("");
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
@@ -47,7 +80,7 @@ export function SettingsClient() {
     let alive = true;
     async function load() {
       try {
-        const session = await getSessionClient();
+        const session = await getSessionClientWithRetry();
         if (!session) {
           if (alive) {
             setAuthIssue(null);
@@ -71,9 +104,9 @@ export function SettingsClient() {
         }
         const data = (await res.json()) as { user: MeUser };
         if (!alive) return;
-        const { first, last } = splitPublicDisplayName(data.user.displayName);
-        setFirstName(first || data.user.discordUsername || "");
-        setLastName(last);
+        const merged =
+          mergedPublicDisplayName(data.user.displayName, data.user.discordUsername) ?? "";
+        setDisplayName(merged.trim().replace(/\s+/g, " ").slice(0, SETTINGS_DISPLAY_NAME_MAX));
         setAbout(data.user.bio ?? "");
         setGithub(data.user.github ?? "");
         setLinkedin(data.user.linkedin ?? "");
@@ -109,10 +142,10 @@ export function SettingsClient() {
       setGithubErr(null);
       return true;
     }
-    const ok =
-      github.startsWith("https://github.com/") ||
-      github.startsWith("https://gitlab.com/");
-    setGithubErr(ok ? null : "Must start with https://github.com/ or https://gitlab.com/");
+    const ok = isValidGithubOrGitlabUrl(github);
+    setGithubErr(
+      ok ? null : "Use https:// and a hostname of github.com or gitlab.com (www is OK).",
+    );
     return ok;
   };
 
@@ -121,8 +154,8 @@ export function SettingsClient() {
       setLinkedinErr(null);
       return true;
     }
-    const ok = linkedin.startsWith("https://linkedin.com/");
-    setLinkedinErr(ok ? null : "Must start with https://linkedin.com/");
+    const ok = isValidLinkedinUrl(linkedin);
+    setLinkedinErr(ok ? null : "Use https:// and a hostname of linkedin.com (www is OK).");
     return ok;
   };
 
@@ -131,10 +164,9 @@ export function SettingsClient() {
     const ghOk = onGithubBlur();
     const liOk = onLinkedinBlur();
     if (!ghOk || !liOk) return;
-    const fullName = joinPublicDisplayName(firstName, lastName);
-    const nameToSend = fullName || null;
+    const nameToSend = displayName.trim().replace(/\s+/g, " ") || null;
     if (nameToSend) {
-      const nameErr = validatePublicDisplayName(nameToSend);
+      const nameErr = validateSettingsDisplayName(nameToSend);
       if (nameErr) {
         setError(nameErr);
         return;
@@ -220,34 +252,22 @@ export function SettingsClient() {
               <h2 className="text-xl font-bold mb-5">Profile</h2>
 
               <p className="text-xs text-white/45 mb-3">
-                How you appear on the site. First name defaults to your Discord login name; last
-                name is optional. Discord usernames are not shown as @handles.
+                How you appear on the site. If empty, your Discord login name is used. Discord
+                usernames are not shown as @handles.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                <div>
-                  <label className="block text-sm text-white/70 mb-1">First name</label>
-                  <input
-                    type="text"
-                    maxLength={40}
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2.5 text-sm"
-                    autoComplete="given-name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-white/70 mb-1">
-                    Last name <span className="text-white/40">(optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={40}
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2.5 text-sm"
-                    autoComplete="family-name"
-                  />
-                </div>
+              <label className="block text-sm text-white/70 mb-1">Display name</label>
+              <div className="relative mb-4">
+                <input
+                  type="text"
+                  maxLength={SETTINGS_DISPLAY_NAME_MAX}
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value.slice(0, SETTINGS_DISPLAY_NAME_MAX))}
+                  className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2.5 text-sm pr-14"
+                  autoComplete="name"
+                />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 mono text-[0.65rem] text-white/45">
+                  {displayName.length}/{SETTINGS_DISPLAY_NAME_MAX}
+                </span>
               </div>
 
               <label className="block text-sm text-white/70 mb-1">About me</label>
@@ -337,9 +357,12 @@ export function SettingsClient() {
 
             <div className="card p-5 sm:p-6 mt-6">
               <h2 className="text-xl font-bold mb-4">My Submissions</h2>
-              <Link href="/settings/submissions" className="btn w-full justify-between">
-                <span>Manage my submissions</span>
-                <span aria-hidden>→</span>
+              <Link
+                href="/settings/submissions"
+                className="btn w-full justify-between"
+                aria-label="Manage my submissions"
+              >
+                <span>Manage my submissions →</span>
               </Link>
             </div>
 
@@ -377,8 +400,9 @@ export function SettingsClient() {
                   <p className="text-sm leading-relaxed text-white/80 whitespace-pre-line">
                     This will permanently delete your account, all your submissions,
                     all your XP, and all your personal data from H4ck&Stack.
-                    {"\n\n"}⚠ You will not be removed from the Discord server. Your Discord
-                    account is unaffected - only your H4ck&Stack data will be deleted.
+                    {"\n\n"}⚠ Discord server membership is unaffected: you will not be removed
+                    from the server, and your Discord account is unchanged — only your
+                    H4ck&Stack data will be deleted.
                     {"\n\n"}This action cannot be undone.
                   </p>
 

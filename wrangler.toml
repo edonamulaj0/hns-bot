@@ -3,6 +3,14 @@ main = "src/index.ts"
 compatibility_date = "2026-04-11"
 compatibility_flags = ["nodejs_compat"]
 
+# Bindings vs `src/worker-env.ts` (WorkerBindings):
+#   DB              → [[d1_databases]] below
+#   *_CHANNEL_ID, ADMIN_ROLE_ID, DISCORD_GUILD_ID, BASE_URL,
+#   DISCORD_PUBLIC_KEY, DISCORD_APPLICATION_ID, WORKER_PUBLIC_URL,
+#   GITHUB_OAUTH_CLIENT_ID → [vars]
+#   DISCORD_TOKEN, SESSION_SECRET, GITHUB_TOKEN, CLAUDE_API_KEY,
+#   GITHUB_OAUTH_CLIENT_SECRET, GITHUB_LINK_SECRET → secrets (see bottom)
+
 [[d1_databases]]
 binding = "DB"
 database_name = "hns-bot-db"
@@ -18,7 +26,7 @@ ADMIN_CHANNEL_ID = "1493219913618296842"
 VOTING_CHANNEL_ID = "1475220426077507676"
 # Set BLOG_CHANNEL_ID to your blog-sharing channel ID
 BLOG_CHANNEL_ID = "1492973065653452860"
-# Admin role (snowflake) for /post-challenge; challenge announcement channels
+# Admin role snowflake (slash-command gating: /admin-*, etc.)
 ADMIN_ROLE_ID = "1387701276204208228"
 DEVELOPER_CHALLENGES_CHANNEL_ID = "1492903109691707453"
 HACKER_CHALLENGES_CHANNEL_ID = "1492903075269312593"
@@ -39,10 +47,15 @@ GITHUB_OAUTH_CLIENT_ID = "Ov23liqmPme3wOzqWJGE"
 DISCORD_PUBLIC_KEY = "cae56c5d6b3f9d47fe891660a9111d8844edf025dcb053f6121687c7c775a4e4"
 DISCORD_APPLICATION_ID = "1475217166558298303"
 
-# GITHUB_TOKEN  (recommended: /pulse uses Search API for commit/PR counts; without it, public events only + stricter rate limits)
-#
-# wrangler secret put SESSION_SECRET   # match auth Worker (session cookie + token encryption)
-# wrangler secret put CLAUDE_API_KEY   # optional: AI challenge generation on day 1
+# --- Secrets (`wrangler secret put <NAME>`) ---
+# Required:
+#   DISCORD_TOKEN
+#   SESSION_SECRET          # match auth Worker (session cookie + token encryption)
+# Optional:
+#   GITHUB_TOKEN            # /pulse: Search API + better rate limits
+#   CLAUDE_API_KEY          # AI challenge generation (day 1 cron)
+#   GITHUB_OAUTH_CLIENT_SECRET
+#   GITHUB_LINK_SECRET      # encrypts user GitHub tokens at rest in D1
 
 [triggers]
 crons = ["5 0 * * *"]

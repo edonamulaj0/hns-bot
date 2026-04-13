@@ -1,8 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { getSessionClientWithRetry, loginUrl } from "@/lib/auth-client";
+import {
+  getSessionClientWithRetry,
+  loginUrl,
+  type SessionUser,
+} from "@/lib/auth-client";
 import {
   normalizeProfileAvatarSource,
   userProfileAvatarUrl,
@@ -19,6 +23,29 @@ import {
   splitPublicDisplayName,
   validatePublicDisplayName,
 } from "@/lib/display-name";
+
+function ProfileFormSkeleton() {
+  return (
+    <section className="section px-[clamp(1rem,4vw,2rem)]">
+      <div className="container max-w-5xl grid gap-10 lg:grid-cols-[280px_1fr]">
+        <aside className="h-fit space-y-4">
+          <div className="skeleton h-12 w-12 rounded-full" />
+          <div className="space-y-2">
+            <div className="skeleton h-3 w-40" />
+            <div className="skeleton h-3 w-28" />
+          </div>
+        </aside>
+        <div className="space-y-4">
+          <div className="skeleton h-[120px] w-full rounded border border-[var(--border)]" />
+          <div className="skeleton h-10 w-full rounded border border-[var(--border)]" />
+          <div className="skeleton h-10 w-full rounded border border-[var(--border)]" />
+          <div className="skeleton h-10 w-full rounded border border-[var(--border)]" />
+          <div className="skeleton h-11 w-40 rounded border border-[var(--border)]" />
+        </div>
+      </div>
+    </section>
+  );
+}
 
 type MeUser = {
   id: string;
@@ -39,7 +66,10 @@ type MeUser = {
 
 export function ProfilePageClient() {
   const [user, setUser] = useState<MeUser | null>(null);
+  /** From `GET /auth/me` (same-origin); drives sign-in CTA vs profile form. */
+  const [session, setSession] = useState<SessionUser | null>(null);
   const [sessionLoading, setSessionLoading] = useState(true);
+  const hasResolvedSessionOnce = useRef(false);
   const [bio, setBio] = useState("");
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
@@ -54,26 +84,29 @@ export function ProfilePageClient() {
   const [avatarSource, setAvatarSource] = useState<ProfileAvatarPreference>("auto");
 
   const load = useCallback(async () => {
-    setSessionLoading(true);
+    if (!hasResolvedSessionOnce.current) {
+      setSessionLoading(true);
+    }
     try {
-      const session = await getSessionClientWithRetry();
-      if (!session) {
+      const s = await getSessionClientWithRetry();
+      setSession(s);
+      if (!s) {
         setUser(null);
         return;
       }
 
       const res = await fetchMe();
       if (res.status === 401) {
-        const { first, last } = splitPublicDisplayName(session.displayName);
+        const { first, last } = splitPublicDisplayName(s.displayName);
         setFirstName(first || "");
         setLastName(last);
         setUser({
           id: "",
-          discordId: session.discordId,
-          displayName: session.displayName,
+          discordId: s.discordId,
+          displayName: s.displayName,
           discordUsername: null,
-          avatarHash: session.avatarHash,
-          profileAvatarSource: session.profileAvatarSource ?? null,
+          avatarHash: s.avatarHash,
+          profileAvatarSource: s.profileAvatarSource ?? null,
           bio: null,
           github: null,
           linkedin: null,
@@ -83,20 +116,20 @@ export function ProfilePageClient() {
           profileCompletedAt: null,
           stats: { submissions: 0, blogs: 0, votesCast: 0 },
         });
-        setAvatarSource(normalizeProfileAvatarSource(session.profileAvatarSource));
+        setAvatarSource(normalizeProfileAvatarSource(s.profileAvatarSource));
         return;
       }
       if (!res.ok) {
-        const { first, last } = splitPublicDisplayName(session.displayName);
+        const { first, last } = splitPublicDisplayName(s.displayName);
         setFirstName(first || "");
         setLastName(last);
         setUser({
           id: "",
-          discordId: session.discordId,
-          displayName: session.displayName,
+          discordId: s.discordId,
+          displayName: s.displayName,
           discordUsername: null,
-          avatarHash: session.avatarHash,
-          profileAvatarSource: session.profileAvatarSource ?? null,
+          avatarHash: s.avatarHash,
+          profileAvatarSource: s.profileAvatarSource ?? null,
           bio: null,
           github: null,
           linkedin: null,
@@ -106,7 +139,7 @@ export function ProfilePageClient() {
           profileCompletedAt: null,
           stats: { submissions: 0, blogs: 0, votesCast: 0 },
         });
-        setAvatarSource(normalizeProfileAvatarSource(session.profileAvatarSource));
+        setAvatarSource(normalizeProfileAvatarSource(s.profileAvatarSource));
         return;
       }
       const data = (await res.json()) as { user: MeUser };
@@ -121,20 +154,21 @@ export function ProfilePageClient() {
       const ts = data.user.techStack;
       setTags(Array.isArray(ts) ? (ts as string[]) : []);
     } catch {
-      const session = await getSessionClientWithRetry();
-      if (!session) {
+      const s2 = await getSessionClientWithRetry();
+      setSession(s2);
+      if (!s2) {
         setUser(null);
       } else {
-        const { first, last } = splitPublicDisplayName(session.displayName);
+        const { first, last } = splitPublicDisplayName(s2.displayName);
         setFirstName(first || "");
         setLastName(last);
         setUser({
           id: "",
-          discordId: session.discordId,
-          displayName: session.displayName,
+          discordId: s2.discordId,
+          displayName: s2.displayName,
           discordUsername: null,
-          avatarHash: session.avatarHash,
-          profileAvatarSource: session.profileAvatarSource ?? null,
+          avatarHash: s2.avatarHash,
+          profileAvatarSource: s2.profileAvatarSource ?? null,
           bio: null,
           github: null,
           linkedin: null,
@@ -144,10 +178,13 @@ export function ProfilePageClient() {
           profileCompletedAt: null,
           stats: { submissions: 0, blogs: 0, votesCast: 0 },
         });
-        setAvatarSource(normalizeProfileAvatarSource(session.profileAvatarSource));
+        setAvatarSource(normalizeProfileAvatarSource(s2.profileAvatarSource));
       }
     } finally {
-      setSessionLoading(false);
+      if (!hasResolvedSessionOnce.current) {
+        setSessionLoading(false);
+        hasResolvedSessionOnce.current = true;
+      }
     }
   }, []);
 
@@ -219,40 +256,25 @@ export function ProfilePageClient() {
   };
 
   if (sessionLoading) {
-    return (
-      <section className="section px-[clamp(1rem,4vw,2rem)]">
-        <div className="container max-w-5xl grid gap-10 lg:grid-cols-[280px_1fr]">
-          <aside className="h-fit space-y-4">
-            <div className="skeleton h-12 w-12 rounded-full" />
-            <div className="space-y-2">
-              <div className="skeleton h-3 w-40" />
-              <div className="skeleton h-3 w-28" />
-            </div>
-          </aside>
-          <div className="space-y-4">
-            <div className="skeleton h-[120px] w-full rounded border border-[var(--border)]" />
-            <div className="skeleton h-10 w-full rounded border border-[var(--border)]" />
-            <div className="skeleton h-10 w-full rounded border border-[var(--border)]" />
-            <div className="skeleton h-10 w-full rounded border border-[var(--border)]" />
-            <div className="skeleton h-11 w-40 rounded border border-[var(--border)]" />
-          </div>
-        </div>
-      </section>
-    );
+    return <ProfileFormSkeleton />;
   }
 
-  if (user === null) {
+  if (!sessionLoading && session === null) {
     return (
       <section className="section flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4">
         <h1 className="text-2xl font-bold">Profile</h1>
         <p className="text-white/60 text-center max-w-md">
-          Sign in with Discord to view and edit your profile.
+          Sign in with Discord to edit your profile.
         </p>
         <a href={loginUrl()} className="btn btn-primary">
           Sign in with Discord
         </a>
       </section>
     );
+  }
+
+  if (user === null) {
+    return <ProfileFormSkeleton />;
   }
 
   const avatar = userProfileAvatarUrl(

@@ -14,16 +14,25 @@ type PageProps = { params: Promise<{ discordId: string }> };
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { discordId } = await params;
   if (!SNOWFLAKE_RE.test(discordId)) {
-    return { title: "Member | H4ck&Stack" };
+    return {
+      title: "Member | H4ck&Stack",
+      description: "Browse community members, projects, and articles on H4ck&Stack.",
+    };
   }
   const data = await getUserPublicProfile(discordId);
   if (!data) {
-    return { title: "Member not found | H4ck&Stack" };
+    return {
+      title: "Member not found | H4ck&Stack",
+      description: "This member profile could not be found on H4ck&Stack.",
+    };
   }
   const label = memberDisplayName(data.user);
+  const bio = data.user.bio?.trim().slice(0, 160);
   return {
     title: `${label} | H4ck&Stack`,
-    description: data.user.bio?.trim().slice(0, 160) || undefined,
+    description:
+      bio ||
+      `Public profile, portfolio submissions, and articles for ${label} on H4ck&Stack.`,
   };
 }
 

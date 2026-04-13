@@ -19,11 +19,16 @@ export default function ActivityPageClient() {
 
   useEffect(() => {
     setLoading(true);
+    setErr(null);
     Promise.allSettled([getPortfolio(), getBlogs()])
       .then(([p, b]) => {
         if (p.status === "fulfilled") setPortfolio(p.value);
-        else setErr("Could not load activity.");
         if (b.status === "fulfilled") setBlogs(b.value.blogs);
+        const portfolioFailed = p.status !== "fulfilled";
+        const blogsFailed = b.status !== "fulfilled";
+        if (portfolioFailed && blogsFailed) {
+          setErr("Could not load activity.");
+        }
         setLoading(false);
       })
       .catch(() => {
@@ -71,28 +76,11 @@ export default function ActivityPageClient() {
               <p>{err}</p>
             </div>
           ) : slice.length === 0 ? (
-            <div
-              style={{
-                padding: "3rem 1rem",
-                textAlign: "center",
-                border: "1px dashed var(--border-bright)",
-                borderRadius: "2px",
-              }}
-            >
-              <p
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-sm)",
-                  color: "var(--text-dim)",
-                }}
-              >
-                No activity yet — the feed populates when members submit projects and share articles.
+            <div className="empty-state max-w-2xl mx-auto">
+              <p className="max-w-md mx-auto">
+                No activity yet — the feed fills in when members publish submissions and share articles on the site.
               </p>
-              <Link
-                href="/join"
-                className="btn btn-primary"
-                style={{ marginTop: "1rem", display: "inline-flex" }}
-              >
+              <Link href="/join" className="btn btn-primary mt-4 inline-flex">
                 Join and be the first →
               </Link>
             </div>
@@ -144,23 +132,19 @@ export default function ActivityPageClient() {
               ))}
             </div>
           ) : sortedArticles.length === 0 ? (
-            <div
-              style={{
-                padding: "3rem 1rem",
-                textAlign: "center",
-                border: "1px dashed var(--border-bright)",
-                borderRadius: "2px",
-              }}
-            >
-              <p
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-sm)",
-                  color: "var(--text-dim)",
-                }}
-              >
-                No articles shared yet. Members can share articles from the activity feed once they&apos;re signed in.
+            <div className="empty-state max-w-2xl mx-auto">
+              <p className="max-w-md mx-auto">
+                No articles here yet. Signed-in members can share links from the site; ask in Discord if you want yours
+                listed.
               </p>
+              <div className="mt-4 flex flex-wrap justify-center gap-3">
+                <Link href="/join" className="btn btn-primary inline-flex">
+                  Join the community →
+                </Link>
+                <Link href="/members?view=articles" className="btn inline-flex">
+                  Browse articles →
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
