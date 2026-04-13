@@ -3,26 +3,7 @@ import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
 import { mergedPublicDisplayName } from "../display-name";
 import { formatTechStackList } from "./helpers";
-
-function githubAvatarUrl(githubUrl: string | null | undefined): string | null {
-  if (!githubUrl?.trim()) return null;
-  const match = githubUrl.trim().match(/github\.com\/([^/?#\s]+)/i);
-  return match ? `https://avatars.githubusercontent.com/${match[1]}?size=128` : null;
-}
-
-function discordUserAvatarUrl(
-  discordId: string,
-  avatarHash: string | null | undefined,
-): string | null {
-  const hash = avatarHash?.trim();
-  if (!hash) return null;
-  return `https://cdn.discordapp.com/avatars/${discordId}/${hash}.png?size=128`;
-}
-
-function genericAvatarFallback(discordId: string): string {
-  const fallback = Number.parseInt(discordId.slice(-4), 10) % 6;
-  return `https://cdn.discordapp.com/embed/avatars/${Number.isNaN(fallback) ? 0 : fallback}.png`;
-}
+import { resolveProfileAvatarUrl } from "../profile-avatar";
 
 function profileUrl(url: string | null | undefined, kind: "github" | "linkedin"): string | null {
   if (!url?.trim()) return null;
@@ -51,6 +32,7 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
         displayName: true,
         discordUsername: true,
         avatarHash: true,
+        profileAvatarSource: true,
         bio: true,
         github: true,
         linkedin: true,
@@ -74,10 +56,13 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
 
     const stack = formatTechStackList(row.techStack);
     const stackShow = stack.slice(0, 8).join(", ") || "—";
-    const iconUrl =
-      githubAvatarUrl(row.github) ??
-      discordUserAvatarUrl(discordId, row.avatarHash) ??
-      genericAvatarFallback(discordId);
+    const iconUrl = resolveProfileAvatarUrl({
+      discordId,
+      github: row.github,
+      avatarHash: row.avatarHash,
+      profileAvatarSource: row.profileAvatarSource,
+      size: 128,
+    });
 
     const ghLine = row.github ? `GitHub: ${row.github}` : "";
     const liLine = row.linkedin ? `LinkedIn: ${row.linkedin}` : "";

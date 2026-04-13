@@ -86,7 +86,7 @@ npx prisma generate
 
 ### Slash commands
 
-After changing `src/register.ts`, register guild commands (needs `.env` with `DISCORD_APPLICATION_ID`, `DISCORD_TOKEN`, `DISCORD_TEST_GUILD_ID`):
+After changing `src/register.ts`, register guild commands. Root **`.env`** needs `DISCORD_APPLICATION_ID`, `DISCORD_TOKEN`, `DISCORD_TEST_GUILD_ID`, and **`ADMIN_ROLE_ID`** (same mod role as the Worker) so `/intro` and `/admin-*` commands are **hidden** from members without that role.
 
 ```bash
 npm run register
@@ -160,7 +160,7 @@ If `NEXT_PUBLIC_API_URL` / `HNS_WORKER_URL` is missing at build, `/hns-api` rewr
 9. **Bot `[vars]`** (root `wrangler.toml` or Dashboard): **`BASE_URL`**, **`DISCORD_GUILD_ID`**, channel IDs, **`DISCORD_PUBLIC_KEY`**, **`DISCORD_APPLICATION_ID`**. Redeploy: `npm run deploy`.
 10. **Auth `[vars]`** (`auth/wrangler.toml` or Dashboard): **`BASE_URL`**, **`DISCORD_GUILD_ID`**, **`DISCORD_CLIENT_ID`**. Secrets already set in step 8–9. Redeploy: `cd auth && npx wrangler deploy`.
 11. **Pages** (Cloudflare): **Settings → Environment variables** → set the table above (**`NEXT_PUBLIC_BASE_URL`**, API URLs, **`HNS_AUTH_WORKER_URL`** if needed, Discord IDs). **Redeploy** the site so Next picks up rewrites.
-12. **Slash commands** (optional, after bot is live): create root **`.env`** with `DISCORD_APPLICATION_ID`, `DISCORD_TOKEN`, `DISCORD_TEST_GUILD_ID` (your server id) → **`npm run register`**.
+12. **Slash commands** (optional, after bot is live): root **`.env`** with `DISCORD_APPLICATION_ID`, `DISCORD_TOKEN`, `DISCORD_TEST_GUILD_ID`, and **`ADMIN_ROLE_ID`** → **`npm run register`** (second step sets guild command permissions so only mods see admin commands).
 
 ---
 

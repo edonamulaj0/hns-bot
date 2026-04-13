@@ -4,6 +4,32 @@ import type { HonoWorkerEnv } from "../worker-env";
 import { isAdmin } from "./admin";
 import { getDiscordUserId } from "./helpers";
 
+function introMessage(base: string): string {
+  return [
+    "Hey — quick note from the team.",
+    "",
+    "If you just got here (or you’ve been lurking): welcome. We’re glad you’re around.",
+    "",
+    "H4ck&Stack is a pretty simple loop once you’re in it: each month there’s a **Developer** track (ship a project) and a **Hacker** track (security stuff — writeups, tools, research). You build during the window, put it on the site, then when voting opens people vote and you earn **XP** that feeds the leaderboard and your Discord role. Nothing revolutionary — just a reason to finish something and show it off.",
+    "",
+    "The website is live: **" + base + "**",
+    "",
+    "Whenever you’re ready, open it and hit **Sign in** with Discord (you’re already in this server, so that part’s easy). After that, poke **/profile** on the site and add GitHub, a short bio, whatever — it’s how people find you on the members page.",
+    "",
+    "When the **build window** is open: run **`/enroll`** here to pick your track and tier, then **`/submit`** will point you at the right place on the web. Voting happens on the site when we say so; we’ll shout in here.",
+    "",
+    "**`/pulse`** is optional — it’s just a peek at your GitHub activity for the month and a rough “if the month ended now” pulse number. It doesn’t add XP; think of it as a dashboard, not a reward.",
+    "",
+    "Want the full list of slash commands with short descriptions? Run **`/help`** — only you see that reply.",
+    "",
+    "The ones people use most: **`/profile`**, **`/submit`**, **`/enroll`**, **`/leaderboard`**, **`/pulse`**, **`/link-github`** / **`/unlink-github`**, **`/delete-account`** (nuclear option, same as the site).",
+    "",
+    "_This was posted with `/intro`. Questions? Drop them in chat._",
+    "",
+    "P.S. Don't forget to call your friends, their friends and their mothers to join!",
+  ].join("\n");
+}
+
 export function registerIntro(app: DiscordHono<HonoWorkerEnv>) {
   return app.command("intro", async (c) =>
     c.resDefer(async (ctx) => {
@@ -26,69 +52,16 @@ export function registerIntro(app: DiscordHono<HonoWorkerEnv>) {
       }
 
       const base = ctx.env.BASE_URL?.replace(/\/$/, "") || "https://h4cknstack.com";
+      const text = introMessage(base);
 
-      await ctx.followup({
-        embeds: [
-          {
-            title: "🚀 H4ck&Stack — site is live",
-            description: [
-              "Welcome! **H4ck&Stack** runs **monthly challenges**: a **Developer** track for shipping software and a **Hacker** track for security work (writeups, tools, research).",
-              "",
-              "Submit through the **website**, vote when the vote window opens, and earn **XP** that powers the **leaderboard** and your **Discord role** progression.",
-            ].join("\n"),
-            color: 0x57f287,
-          },
-          {
-            title: "Sign in & get started",
-            color: 0x5865f2,
-            fields: [
-              {
-                name: "Website",
-                value: `[**${base}**](${base})`,
-                inline: false,
-              },
-              {
-                name: "Sign in",
-                value:
-                  "Open the site and click **Sign in** → authorize with **Discord**. You must be a member of this server.",
-                inline: false,
-              },
-              {
-                name: "Profile",
-                value: `Complete your profile at [**${base}/profile**](${base}/profile) (GitHub URL, bio, links, tech stack).`,
-                inline: false,
-              },
-              {
-                name: "Enroll & submit",
-                value:
-                  `During the **build window**, run \`/enroll\` here to pick your **track** and **tier**, then submit at [**${base}/submit**](${base}/submit).`,
-                inline: false,
-              },
-              {
-                name: "Voting & pulse",
-                value:
-                  `Vote on the site when voting opens (links are announced here). Use \`/pulse\` anytime for a **GitHub activity preview** (no XP from the command).`,
-                inline: false,
-              },
-            ],
-          },
-          {
-            title: "Discord commands",
-            description: [
-              "**`/help`** — full command list (ephemeral).",
-              "**`/profile`** — see a member portfolio card.",
-              "**`/submit`** — submission link.",
-              "**`/enroll`** — choose challenge track/tier.",
-              "**`/leaderboard`** — top XP this month.",
-              "**`/pulse`** — GitHub stats + estimated month-end pulse XP (preview).",
-              "**`/link-github`** / **`/unlink-github`** — OAuth for private repo counts in `/pulse`.",
-              "**`/delete-account`** — remove your H4ck&Stack account.",
-            ].join("\n"),
-            color: 0xfee75c,
-            footer: { text: "Mods: /intro posts this announcement · anyone: /help for details" },
-          },
-        ],
-      });
+      if (text.length > 2000) {
+        await ctx.followup({
+          content: text.slice(0, 1997) + "…",
+        });
+        return;
+      }
+
+      await ctx.followup({ content: text });
     }),
   );
 }

@@ -12,6 +12,7 @@ export function PublicProfileView({ data }: { data: PublicMemberProfile }) {
       discordId: u.discordId,
       github: u.github,
       avatarHash: u.avatarHash,
+      profileAvatarSource: u.profileAvatarSource,
     },
     256,
   );
@@ -41,6 +42,9 @@ export function PublicProfileView({ data }: { data: PublicMemberProfile }) {
             <div className="text-center lg:text-left">
               <h1 className="font-bold text-xl">{memberDisplayName(u)}</h1>
             </div>
+            <p className="mono text-[0.65rem] text-white/40 break-all text-center lg:text-left">
+              Discord ID · {u.discordId}
+            </p>
             <p className="text-sm text-[var(--accent)] text-center lg:text-left">
               Rank #{u.rank || "—"} · {u.points} XP
             </p>

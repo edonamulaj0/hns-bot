@@ -38,6 +38,7 @@ export async function patchProfile(body: {
   github?: string | null;
   linkedin?: string | null;
   techStack?: string[];
+  profileAvatarSource?: string | null;
 }): Promise<Response> {
   return fetch(browserApiUrl("/profile"), {
     method: "PATCH",

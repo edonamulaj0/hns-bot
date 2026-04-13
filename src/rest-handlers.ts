@@ -193,6 +193,7 @@ export async function handleMe(
       displayName: user.displayName,
       discordUsername: user.discordUsername,
       avatarHash: user.avatarHash,
+      profileAvatarSource: user.profileAvatarSource ?? null,
       bio: user.bio,
       github: user.github,
       linkedin: user.linkedin,
@@ -299,6 +300,7 @@ export async function handleUserPublicProfile(
         discordId: user.discordId,
         displayName: mergedPublicDisplayName(user.displayName, user.discordUsername),
         avatarHash: user.avatarHash,
+        profileAvatarSource: user.profileAvatarSource ?? null,
         bio: user.bio,
         github: user.github,
         linkedin: user.linkedin,
@@ -612,6 +614,7 @@ export async function handleProfilePatch(
     github?: string | null;
     linkedin?: string | null;
     techStack?: string[] | null;
+    profileAvatarSource?: string | null;
   }>(request);
   if (!body) {
     return jsonResponse(env, request, { error: "invalid_json" }, 400);
@@ -692,6 +695,23 @@ export async function handleProfilePatch(
       }
     }
     data.techStack = tech;
+  }
+
+  if (body.profileAvatarSource !== undefined) {
+    if (body.profileAvatarSource !== null && typeof body.profileAvatarSource !== "string") {
+      return validation("profileAvatarSource", "profileAvatarSource must be a string or null.");
+    }
+    const raw = body.profileAvatarSource?.trim().toLowerCase() ?? null;
+    if (raw === null || raw === "" || raw === "auto") {
+      data.profileAvatarSource = null;
+    } else if (raw === "github" || raw === "discord") {
+      data.profileAvatarSource = raw;
+    } else {
+      return validation(
+        "profileAvatarSource",
+        'Use "auto", "github", or "discord".',
+      );
+    }
   }
 
   const existing = await prisma.user.findUnique({

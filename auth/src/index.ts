@@ -360,16 +360,21 @@ export default {
         if (!p)
           return corsJson({ error: "unauthorized" }, 401);
         const row = await env.DB.prepare(
-          "SELECT displayName, github FROM User WHERE discordId = ? LIMIT 1",
+          "SELECT displayName, github, profileAvatarSource FROM User WHERE discordId = ? LIMIT 1",
         )
           .bind(p.discordId)
-          .first<{ displayName: string | null; github: string | null }>();
+          .first<{
+            displayName: string | null;
+            github: string | null;
+            profileAvatarSource: string | null;
+          }>();
         const fromDb = row?.displayName?.trim();
         return corsJson({
           discordId: p.discordId,
           displayName: fromDb || p.displayName,
           avatarHash: p.avatarHash,
           github: row?.github ?? null,
+          profileAvatarSource: row?.profileAvatarSource ?? null,
         });
       }
 

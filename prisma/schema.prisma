@@ -12,6 +12,8 @@ model User {
   discordUsername       String?
   displayName           String?
   avatarHash            String?
+  /** "auto" | "github" | "discord" — which avatar to show when both exist; null = auto */
+  profileAvatarSource   String?
   bio                   String?
   github                String?
   linkedin              String?

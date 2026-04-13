@@ -41,7 +41,7 @@ const MEMBER_ROWS: { name: string; value: string }[] = [
 const ADMIN_ROWS: { name: string; value: string }[] = [
   {
     name: "/intro",
-    value: "Post the public welcome & getting-started message in this channel (mods only).",
+    value: "Post a plain-text welcome in this channel (mods only).",
   },
   {
     name: "/admin",

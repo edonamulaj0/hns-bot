@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -45,8 +45,8 @@ const ROLE_TABLE = [
 
 function coerceSort(view: View, s: string): string {
   if (view === "profiles") {
-    if (["xp", "projects", "recent"].includes(s)) return s;
-    return "xp";
+    if (["discord", "xp", "projects", "recent"].includes(s)) return s;
+    return "discord";
   }
   if (view === "projects") {
     if (["votes", "recent"].includes(s)) return s;
@@ -85,6 +85,41 @@ export default function MembersHub() {
   const [error, setError] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab] = useState<"leaderboard" | "xp">("leaderboard");
   const [showAllStacks, setShowAllStacks] = useState(false);
+  /** Mobile only: hide tech tag row while scrolling down; expand on scroll up, near top, or tap. */
+  const [mobileTechStackCollapsed, setMobileTechStackCollapsed] = useState(false);
+  const lastScrollYRef = useRef(0);
+
+  useEffect(() => {
+    const mdMq = window.matchMedia("(min-width: 768px)");
+    const onScroll = () => {
+      if (mdMq.matches) {
+        setMobileTechStackCollapsed(false);
+        return;
+      }
+      const y = window.scrollY;
+      const last = lastScrollYRef.current;
+      const delta = y - last;
+      lastScrollYRef.current = y;
+      if (y < 56) {
+        setMobileTechStackCollapsed(false);
+        return;
+      }
+      if (delta > 8) setMobileTechStackCollapsed(true);
+      else if (delta < -10) setMobileTechStackCollapsed(false);
+    };
+
+    const onMdChange = () => {
+      if (mdMq.matches) setMobileTechStackCollapsed(false);
+    };
+
+    lastScrollYRef.current = window.scrollY;
+    window.addEventListener("scroll", onScroll, { passive: true });
+    mdMq.addEventListener("change", onMdChange);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      mdMq.removeEventListener("change", onMdChange);
+    };
+  }, []);
 
   useEffect(() => {
     async function loadMembersHub() {
@@ -125,7 +160,7 @@ export default function MembersHub() {
 
   const setView = (v: View) => {
     const defaults: Record<View, string> = {
-      profiles: "xp",
+      profiles: "discord",
       projects: "votes",
       articles: "recent",
     };
@@ -198,7 +233,19 @@ export default function MembersHub() {
         );
       });
     }
-    if (effectiveSort === "xp")
+    if (effectiveSort === "discord")
+      list.sort((a, b) => {
+        try {
+          const da = BigInt(a.discordId);
+          const db = BigInt(b.discordId);
+          if (da < db) return -1;
+          if (da > db) return 1;
+          return 0;
+        } catch {
+          return a.discordId.localeCompare(b.discordId);
+        }
+      });
+    else if (effectiveSort === "xp")
       list.sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -313,7 +360,7 @@ export default function MembersHub() {
                 type="search"
                 placeholder={
                   view === "profiles"
-                    ? "Search name, bio, tech…"
+                    ? "Search name, Discord ID, bio, tech…"
                     : "Search titles…"
                 }
                 value={q}
@@ -350,36 +397,64 @@ export default function MembersHub() {
               )}
 
               <div>
-                <p className="mono text-[0.65rem] text-white/40 mb-2 uppercase tracking-wider">
-                  Tech stack {selectedStacks.length ? `(OR)` : ""}
-                </p>
-                <div className="flex gap-2 overflow-x-auto pb-1 whitespace-nowrap scrollbar-none md:flex-wrap md:overflow-visible md:whitespace-normal md:pb-0 md:max-h-none">
-                  {topStacks.map(([label]) => {
-                    const on = selectedStacks.includes(label);
-                    return (
-                      <button
-                        key={label}
-                        type="button"
-                        onClick={() => toggleStack(label)}
-                        className={`tag shrink-0 text-[0.65rem] cursor-pointer transition-colors ${
-                          on ? "border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]" : ""
-                        }`}
-                      >
-                        {label}
-                        {on && <span className="ml-1 opacity-70">×</span>}
-                      </button>
-                    );
-                  })}
-                  {stackCounts.length > 12 && (
+                <div className="flex items-center justify-between gap-2 mb-2 md:justify-start">
+                  <p className="mono text-[0.65rem] text-white/40 uppercase tracking-wider">
+                    Tech stack {selectedStacks.length ? `(OR)` : ""}
+                  </p>
+                  {mobileTechStackCollapsed ? (
                     <button
                       type="button"
-                      onClick={() => setShowAllStacks((s) => !s)}
-                      className="tag shrink-0 text-[0.65rem] border-dashed"
+                      onClick={() => setMobileTechStackCollapsed(false)}
+                      className="md:hidden text-[0.65rem] text-[var(--accent)] font-medium shrink-0"
                     >
-                      {showAllStacks ? "Show less" : "Show all"}
+                      Expand
                     </button>
-                  )}
+                  ) : null}
                 </div>
+                <div
+                  className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none md:grid-rows-[1fr] ${
+                    mobileTechStackCollapsed
+                      ? "grid-rows-[0fr] md:grid-rows-[1fr]"
+                      : "grid-rows-[1fr]"
+                  }`}
+                >
+                  <div className="min-h-0 overflow-hidden md:overflow-visible">
+                    <div className="flex gap-2 overflow-x-auto pb-1 whitespace-nowrap scrollbar-none md:flex-wrap md:overflow-visible md:whitespace-normal md:pb-0 md:max-h-none">
+                      {topStacks.map(([label]) => {
+                        const on = selectedStacks.includes(label);
+                        return (
+                          <button
+                            key={label}
+                            type="button"
+                            onClick={() => toggleStack(label)}
+                            className={`tag shrink-0 text-[0.65rem] cursor-pointer transition-colors ${
+                              on ? "border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]" : ""
+                            }`}
+                          >
+                            {label}
+                            {on && <span className="ml-1 opacity-70">×</span>}
+                          </button>
+                        );
+                      })}
+                      {stackCounts.length > 12 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAllStacks((s) => !s)}
+                          className="tag shrink-0 text-[0.65rem] border-dashed"
+                        >
+                          {showAllStacks ? "Show less" : "Show all"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {mobileTechStackCollapsed ? (
+                  <p className="md:hidden mono text-[0.6rem] text-white/35 mt-1">
+                    {selectedStacks.length
+                      ? `${selectedStacks.length} filter${selectedStacks.length === 1 ? "" : "s"} active`
+                      : "Scroll up or tap Expand for tags"}
+                  </p>
+                ) : null}
               </div>
 
               <div className="flex flex-wrap gap-3 items-center">
@@ -393,6 +468,7 @@ export default function MembersHub() {
                   >
                     {view === "profiles" && (
                       <>
+                        <option value="discord">By Discord ID</option>
                         <option value="xp">By XP</option>
                         <option value="projects">By Projects</option>
                         <option value="recent">By Recent</option>
@@ -485,6 +561,7 @@ export default function MembersHub() {
                                   discordId: m.discordId,
                                   github: m.github,
                                   avatarHash: m.avatarHash,
+                                  profileAvatarSource: m.profileAvatarSource,
                                 },
                                 128,
                               );
@@ -530,7 +607,7 @@ export default function MembersHub() {
                                   )}
                                   <div className="flex flex-wrap gap-2">
                                     <Link
-                                      href={`/u/${m.discordId}`}
+                                      href={`/members/user/${m.discordId}`}
                                       className="btn px-2 py-1 text-[0.65rem]"
                                     >
                                       Profile
@@ -610,7 +687,7 @@ export default function MembersHub() {
                                 )}
                                 <p className="mono text-[0.65rem] text-white/45 mb-3">
                                   <Link
-                                    href={`/u/${s.user.discordId}`}
+                                    href={`/members/user/${s.user.discordId}`}
                                     className="hover:text-[var(--accent)] underline-offset-2 hover:underline"
                                   >
                                     {memberDisplayName(s.user)}

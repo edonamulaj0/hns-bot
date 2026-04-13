@@ -16,6 +16,7 @@ function avatarUrl(u: SessionUser): string {
       discordId: u.discordId,
       github: u.github ?? null,
       avatarHash: u.avatarHash,
+      profileAvatarSource: u.profileAvatarSource,
     },
     64,
   );

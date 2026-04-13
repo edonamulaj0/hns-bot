@@ -1,6 +1,7 @@
 /**
  * Browser: same-origin `/hns-api/*` (Next rewrites to the bot Worker).
- * Server: `NEXT_PUBLIC_API_URL` / `HNS_WORKER_URL`, or empty in production if unset.
+ * Server (RSC / SSR): `HNS_WORKER_URL` / `NEXT_PUBLIC_API_URL` if set; otherwise same-origin
+ * `https://{host}/hns-api/api/...` so Cloudflare Pages can reach the Worker without a public env var.
  */
 
 function getServerWorkerBase(): string {
@@ -35,58 +36,48 @@ function browserApiPath(path: string): string {
   return `/hns-api${normalized}`;
 }
 
-function portfolioUrl(): string | null {
-  if (typeof window !== "undefined") return browserApiPath("/portfolio");
-  const base = getServerWorkerBase();
-  if (!base) return null;
-  return `${base}/api/portfolio`;
+function normalizeApiPath(p: string): string {
+  return p.startsWith("/") ? p : `/${p}`;
 }
 
-function membersUrl(): string | null {
-  if (typeof window !== "undefined") return browserApiPath("/members");
-  const base = getServerWorkerBase();
-  if (!base) return null;
-  return `${base}/api/members`;
-}
+/**
+ * Resolves a fetchable URL for `GET /api{pathAndQuery}` (path includes leading `/`, optional `?…`).
+ */
+async function resolveApiFetchUrl(pathAndQuery: string): Promise<string | null> {
+  const apiPath = normalizeApiPath(pathAndQuery);
+  if (typeof window !== "undefined") {
+    return browserApiPath(apiPath);
+  }
 
-function leaderboardUrl(): string | null {
-  if (typeof window !== "undefined") return browserApiPath("/leaderboard");
   const base = getServerWorkerBase();
-  if (!base) return null;
-  return `${base}/api/leaderboard`;
-}
+  if (base) {
+    return `${base}/api${apiPath}`;
+  }
 
-function blogsUrl(): string | null {
-  if (typeof window !== "undefined") return browserApiPath("/blogs");
-  const base = getServerWorkerBase();
-  if (!base) return null;
-  return `${base}/api/blogs`;
+  try {
+    const { headers } = await import("next/headers");
+    const h = await headers();
+    const host = h.get("x-forwarded-host") ?? h.get("host");
+    const rawProto = h.get("x-forwarded-proto");
+    const proto = rawProto?.split(",")[0]?.trim() || "https";
+    if (host) {
+      return `${proto}://${host}/hns-api/api${apiPath}`;
+    }
+  } catch {
+    /* not in a Next.js request (e.g. static analysis) */
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    return `http://127.0.0.1:8787/api${apiPath}`;
+  }
+  return null;
 }
 
 const PUBLIC_USER_ID_RE = /^\d{17,20}$/;
 
-function userPublicProfileUrl(discordId: string): string | null {
-  if (!PUBLIC_USER_ID_RE.test(discordId)) return null;
-  const path = `/users/${discordId}`;
-  if (typeof window !== "undefined") return browserApiPath(path);
-  const base = getServerWorkerBase();
-  if (!base) return null;
-  return `${base}/api${path}`;
-}
-
 function discordWidgetUrl(): string | null {
   if (typeof window !== "undefined") return "/api/discord-widget";
   return null;
-}
-
-function challengesUrl(track: "DEVELOPER" | "HACKER", month?: string): string | null {
-  const qs = new URLSearchParams({ track });
-  if (month) qs.set("month", month);
-  const q = `?${qs.toString()}`;
-  if (typeof window !== "undefined") return browserApiPath(`/challenges${q}`);
-  const base = getServerWorkerBase();
-  if (!base) return null;
-  return `${base}/api/challenges${q}`;
 }
 
 export type Phase =
@@ -116,6 +107,8 @@ export interface MemberSummary {
   discordId: string;
   displayName?: string | null;
   avatarHash?: string | null;
+  /** "auto" | "github" | "discord"; omit/null = GitHub then Discord */
+  profileAvatarSource?: string | null;
   bio: string | null;
   github: string | null;
   linkedin: string | null;
@@ -194,6 +187,7 @@ export interface PublicProfileUser {
   discordId: string;
   displayName: string | null;
   avatarHash: string | null;
+  profileAvatarSource?: string | null;
   bio: string | null;
   github: string | null;
   linkedin: string | null;
@@ -275,7 +269,7 @@ export const EMPTY_BLOGS: BlogsResponse = { blogs: [] };
 export const EMPTY_CHALLENGES: ChallengesResponse = { challenges: [] };
 
 export async function getPortfolio(): Promise<PortfolioResponse> {
-  const url = portfolioUrl();
+  const url = await resolveApiFetchUrl("/portfolio");
   if (!url) {
     return EMPTY_PORTFOLIO;
   }
@@ -289,7 +283,7 @@ export async function getPortfolio(): Promise<PortfolioResponse> {
 }
 
 export async function getMembers(): Promise<MembersResponse> {
-  const url = membersUrl();
+  const url = await resolveApiFetchUrl("/members");
   if (!url) return EMPTY_MEMBERS;
   try {
     const res = await fetch(url, fetchInit());
@@ -301,7 +295,7 @@ export async function getMembers(): Promise<MembersResponse> {
 }
 
 export async function getLeaderboard(): Promise<LeaderboardResponse> {
-  const url = leaderboardUrl();
+  const url = await resolveApiFetchUrl("/leaderboard");
   if (!url) return EMPTY_LEADERBOARD;
   try {
     const res = await fetch(url, fetchInit());
@@ -313,7 +307,7 @@ export async function getLeaderboard(): Promise<LeaderboardResponse> {
 }
 
 export async function getBlogs(): Promise<BlogsResponse> {
-  const url = blogsUrl();
+  const url = await resolveApiFetchUrl("/blogs");
   if (!url) return EMPTY_BLOGS;
   try {
     const res = await fetch(url, fetchInit());
@@ -327,7 +321,8 @@ export async function getBlogs(): Promise<BlogsResponse> {
 export async function getUserPublicProfile(
   discordId: string,
 ): Promise<PublicMemberProfile | null> {
-  const url = userPublicProfileUrl(discordId);
+  if (!PUBLIC_USER_ID_RE.test(discordId)) return null;
+  const url = await resolveApiFetchUrl(`/users/${discordId}`);
   if (!url) return null;
   try {
     const res = await fetch(url, fetchInit());
@@ -354,7 +349,9 @@ export async function getChallenges(
   track: "DEVELOPER" | "HACKER",
   month?: string,
 ): Promise<ChallengesResponse> {
-  const url = challengesUrl(track, month);
+  const qs = new URLSearchParams({ track });
+  if (month) qs.set("month", month);
+  const url = await resolveApiFetchUrl(`/challenges?${qs.toString()}`);
   if (!url) return EMPTY_CHALLENGES;
   try {
     const res = await fetch(url, fetchInit());
@@ -400,20 +397,42 @@ export function discordUserAvatarUrl(
   return `https://cdn.discordapp.com/avatars/${discordId}/${h}.png?size=${size}`;
 }
 
-/** Prefer GitHub, then Discord user avatar, then generic embed silhouette. */
+export type ProfileAvatarPreference = "auto" | "github" | "discord";
+
+export function normalizeProfileAvatarSource(
+  raw: string | null | undefined,
+): ProfileAvatarPreference {
+  const v = (raw ?? "").trim().toLowerCase();
+  if (v === "github") return "github";
+  if (v === "discord") return "discord";
+  return "auto";
+}
+
+/**
+ * Chooses avatar from GitHub / Discord / default silhouette based on `profileAvatarSource`
+ * (auto = GitHub first when linked, else Discord).
+ */
 export function userProfileAvatarUrl(
   opts: {
     discordId: string;
     github?: string | null;
     avatarHash?: string | null;
+    profileAvatarSource?: string | null;
   },
   size: 64 | 128 | 256 = 128,
 ): string {
-  return (
-    githubAvatarUrl(opts.github ?? null, size) ??
-    discordUserAvatarUrl(opts.discordId, opts.avatarHash, size) ??
-    discordAvatarUrl(opts.discordId)
-  );
+  const pref = normalizeProfileAvatarSource(opts.profileAvatarSource);
+  const gh = githubAvatarUrl(opts.github ?? null, size);
+  const disc = discordUserAvatarUrl(opts.discordId, opts.avatarHash, size);
+  const fallback = discordAvatarUrl(opts.discordId);
+
+  if (pref === "github") {
+    return gh ?? disc ?? fallback;
+  }
+  if (pref === "discord") {
+    return disc ?? gh ?? fallback;
+  }
+  return gh ?? disc ?? fallback;
 }
 
 export const PHASE_META: Record<

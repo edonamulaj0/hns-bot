@@ -307,6 +307,7 @@ async function membersResponse(prisma: PrismaClient): Promise<Response> {
       displayName: true,
       discordUsername: true,
       avatarHash: true,
+      profileAvatarSource: true,
       bio: true,
       github: true,
       linkedin: true,
@@ -322,7 +323,19 @@ async function membersResponse(prisma: PrismaClient): Promise<Response> {
         take: 5,
       },
     },
-    orderBy: [{ points: "desc" }, { createdAt: "asc" }],
+    orderBy: [{ createdAt: "asc" }],
+  });
+
+  rawMembers.sort((a, b) => {
+    try {
+      const da = BigInt(a.discordId);
+      const db = BigInt(b.discordId);
+      if (da < db) return -1;
+      if (da > db) return 1;
+      return 0;
+    } catch {
+      return a.discordId.localeCompare(b.discordId);
+    }
   });
 
   const members = rawMembers.map((m) => {

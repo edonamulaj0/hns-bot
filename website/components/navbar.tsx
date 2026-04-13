@@ -23,6 +23,22 @@ function linkActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** Account / settings links: avoid `/settings` matching `/settings/submissions`. */
+function accountLinkActive(pathname: string, href: string): boolean {
+  if (href === "/settings/submissions") {
+    return pathname === "/settings/submissions" || pathname.startsWith("/settings/submissions/");
+  }
+  if (href === "/settings") {
+    if (pathname === "/settings") return true;
+    if (!pathname.startsWith("/settings/")) return false;
+    return !pathname.startsWith("/settings/submissions");
+  }
+  if (href === "/profile") {
+    return pathname === "/profile" || pathname.startsWith("/profile/");
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 function NavBrand() {
   const [step, setStep] = useState<"png" | "svg" | "text">("png");
   if (step === "text") {
@@ -54,6 +70,7 @@ export function Navbar() {
   const [hasVisitedBefore, setHasVisitedBefore] = useState<boolean | null>(null);
   const voteMonth = utcMonthKey();
   const lockedScrollY = useRef(0);
+  const prevPathnameRef = useRef<string | null>(null);
 
   useEffect(() => {
     const prev = localStorage.getItem(VISITED_KEY);
@@ -67,6 +84,11 @@ export function Navbar() {
 
   useEffect(() => {
     setOpen(false);
+    if (prevPathnameRef.current !== null && prevPathnameRef.current !== pathname) {
+      lockedScrollY.current = 0;
+      window.scrollTo(0, 0);
+    }
+    prevPathnameRef.current = pathname;
   }, [pathname]);
 
   useEffect(() => {
@@ -184,7 +206,7 @@ export function Navbar() {
                       { href: `/vote/${voteMonth}`, label: "Vote" },
                     ] as const
                   ).map((item) => {
-                    const active = linkActive(pathname, item.href);
+                    const active = accountLinkActive(pathname, item.href);
                     return (
                       <Link
                         key={item.href}

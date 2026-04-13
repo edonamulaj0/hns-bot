@@ -36,9 +36,9 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
         <div className="container">
           <div className="label">Our Story</div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl mb-3 sm:mb-4 font-bold">About H4ck&Stack</h1>
-          <p className="text-white/60 max-w-[600px] text-sm sm:text-base">
-            A community-driven initiative to elevate the global developer ecosystem through collaboration,
-            innovation, and continuous learning.
+          <p className="text-white/60 max-w-[640px] text-sm sm:text-base leading-relaxed">
+            It started with wanting a place to talk about tech, make friends, and share what we&apos;re learning—no
+            pitch deck, just people who like building things and nerding out together.
           </p>
         </div>
       </motion.section>
@@ -52,11 +52,17 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
       >
         <div className="container">
           <div className="max-w-[800px] mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Our Mission</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Why we&apos;re here</h2>
+            <p className="text-white/60 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base">
+              The Discord was always meant to be social first: hang out, swap resources, ask the &quot;how does this even
+              work?&quot; questions, and actually know each other. Monthly challenges and the site came later as a way
+              to stir the pot—something optional to rally around so the server doesn&apos;t go quiet again, and so new
+              faces have an easy on-ramp if they want one.
+            </p>
             <p className="text-white/60 mb-6 sm:mb-8 leading-relaxed text-sm sm:text-base">
-              H4ck&Stack exists to foster a vibrant developer community where talented individuals around the world can
-              collaborate, build innovative projects, and grow together. We believe that by bringing developers together
-              through challenges and shared projects, we can accelerate technological progress globally.
+              You don&apos;t have to ship a project to stick around. Lurkers, beginners, career switchers, and folks who
+              have forgotten more than we&apos;ll ever know are all welcome. More people, more code, more hugs—and more
+              of the messes worth showing up for.
             </p>
 
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">What We Stand For</h2>
@@ -97,22 +103,28 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
         viewport={{ once: true }}
       >
         <div className="container">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">How We Got Started</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">How we got started</h2>
           <div className="max-w-[800px] mx-auto">
             <div className="leading-relaxed text-white/60 space-y-3 sm:space-y-4 text-xs sm:text-sm">
               <p>
-                H4ck&Stack started as a small Discord server for developers who wanted accountability and a place to show
-                their work. The idea was simple: pick something to build each month, ship it, and let the community
-                weigh in.
+                Before there were tracks, vote windows, or a website, there was just a wish for a community I could talk
+                tech with—to be friends, share resources, and not take everything so seriously all the time. For a while
+                it was basically a hangout server: one season of that was a lot of fun. Then, like a lot of small
+                servers, things slowly went quiet.
               </p>
               <p>
-                The hacker track came later, when enough security-focused members joined and wanted challenge formats
-                suited to writeups and tooling rather than shipped apps. Both tracks now run on the same calendar with
-                the same XP system.
+                Instead of calling that the end, we tried the opposite: give people a light structure if they want
+                it—monthly challenges, a bot, a proper home on the web—so there&apos;s always something happening for
+                folks who thrive on a deadline, while everyone else can still just chat, joke, and show up as they are.
               </p>
               <p>
-                The platform — bot, website, and database — is built and maintained by Cyphera, a boutique web studio
-                based in Prishtina, Kosovo.
+                The hope is simple: grow the friend list, grow the community, and end up with more people, more code,
+                and more of the small moments that make a server feel like a place—not a chore.
+              </p>
+              <p>
+                The hacker track came when enough security-minded people wanted their own lane for writeups and tooling;
+                developer and hacker share the same calendar and XP vibe. The platform—bot, site, and database—is built
+                and maintained by Cyphera, a boutique web studio in Prishtina, Kosovo.
               </p>
             </div>
           </div>
@@ -180,8 +192,8 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
         <div className="container max-w-lg mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3">Community</h2>
           <p className="text-sm text-white/55 mb-8 max-w-xl mx-auto">
-            Hang out in Discord for voice, feedback, and challenge announcements. The widget below shows who&apos;s around
-            right now.
+            Hang out in Discord for voice, feedback, and announcements. Nothing is mandatory—you can ignore challenges
+            entirely and still belong. The widget below shows who&apos;s around right now.
           </p>
           <DiscordWidget />
         </div>

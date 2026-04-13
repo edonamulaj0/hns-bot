@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { getSessionClient, loginUrl } from "@/lib/auth-client";
-import { userProfileAvatarUrl } from "@/lib/api";
+import {
+  normalizeProfileAvatarSource,
+  userProfileAvatarUrl,
+  type ProfileAvatarPreference,
+} from "@/lib/api";
 import {
   deleteProfile,
   fetchMe,
@@ -22,6 +26,7 @@ type MeUser = {
   displayName: string | null;
   discordUsername: string | null;
   avatarHash: string | null;
+  profileAvatarSource?: string | null;
   bio: string | null;
   github: string | null;
   linkedin: string | null;
@@ -46,6 +51,7 @@ export function ProfilePageClient() {
   const [err, setErr] = useState<string | null>(null);
   const [delConfirm, setDelConfirm] = useState("");
   const [saving, setSaving] = useState(false);
+  const [avatarSource, setAvatarSource] = useState<ProfileAvatarPreference>("auto");
 
   const load = useCallback(async () => {
     setSessionLoading(true);
@@ -67,6 +73,7 @@ export function ProfilePageClient() {
           displayName: session.displayName,
           discordUsername: null,
           avatarHash: session.avatarHash,
+          profileAvatarSource: session.profileAvatarSource ?? null,
           bio: null,
           github: null,
           linkedin: null,
@@ -76,6 +83,7 @@ export function ProfilePageClient() {
           profileCompletedAt: null,
           stats: { submissions: 0, blogs: 0, votesCast: 0 },
         });
+        setAvatarSource(normalizeProfileAvatarSource(session.profileAvatarSource));
         return;
       }
       if (!res.ok) {
@@ -88,6 +96,7 @@ export function ProfilePageClient() {
           displayName: session.displayName,
           discordUsername: null,
           avatarHash: session.avatarHash,
+          profileAvatarSource: session.profileAvatarSource ?? null,
           bio: null,
           github: null,
           linkedin: null,
@@ -97,10 +106,12 @@ export function ProfilePageClient() {
           profileCompletedAt: null,
           stats: { submissions: 0, blogs: 0, votesCast: 0 },
         });
+        setAvatarSource(normalizeProfileAvatarSource(session.profileAvatarSource));
         return;
       }
       const data = (await res.json()) as { user: MeUser };
       setUser(data.user);
+      setAvatarSource(normalizeProfileAvatarSource(data.user.profileAvatarSource));
       const { first, last } = splitPublicDisplayName(data.user.displayName);
       setFirstName(first || data.user.discordUsername || "");
       setLastName(last);
@@ -123,6 +134,7 @@ export function ProfilePageClient() {
           displayName: session.displayName,
           discordUsername: null,
           avatarHash: session.avatarHash,
+          profileAvatarSource: session.profileAvatarSource ?? null,
           bio: null,
           github: null,
           linkedin: null,
@@ -132,6 +144,7 @@ export function ProfilePageClient() {
           profileCompletedAt: null,
           stats: { submissions: 0, blogs: 0, votesCast: 0 },
         });
+        setAvatarSource(normalizeProfileAvatarSource(session.profileAvatarSource));
       }
     } finally {
       setSessionLoading(false);
@@ -169,6 +182,7 @@ export function ProfilePageClient() {
       github: github || null,
       linkedin: linkedin || null,
       techStack: tags,
+      profileAvatarSource: avatarSource === "auto" ? null : avatarSource,
     });
     setSaving(false);
     if (res.status === 403) {
@@ -246,6 +260,7 @@ export function ProfilePageClient() {
       discordId: user.discordId,
       github: user.github,
       avatarHash: user.avatarHash,
+      profileAvatarSource: avatarSource === "auto" ? null : avatarSource,
     },
     128,
   );
@@ -371,6 +386,42 @@ export function ProfilePageClient() {
               value={github}
               onChange={(e) => setGithub(e.target.value)}
             />
+            <fieldset className="mt-4 border border-[var(--border)] rounded-lg p-3 bg-[var(--bg-card)]/50">
+              <legend className="text-sm text-white/60 px-1">Profile picture</legend>
+              <p className="text-xs text-white/40 mb-3">
+                Discord updates when you sign in. GitHub uses your profile URL above. If one is missing,
+                we use the other.
+              </p>
+              <div className="flex flex-col gap-2 text-sm">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="avatarSource"
+                    checked={avatarSource === "auto"}
+                    onChange={() => setAvatarSource("auto")}
+                  />
+                  <span>Auto — GitHub first when linked, else Discord</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="avatarSource"
+                    checked={avatarSource === "github"}
+                    onChange={() => setAvatarSource("github")}
+                  />
+                  <span>Always GitHub (if linked)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="avatarSource"
+                    checked={avatarSource === "discord"}
+                    onChange={() => setAvatarSource("discord")}
+                  />
+                  <span>Always Discord</span>
+                </label>
+              </div>
+            </fieldset>
             <label className="block text-sm text-white/60 mt-4 mb-1">LinkedIn URL or handle</label>
             <input
               className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2 text-sm"
