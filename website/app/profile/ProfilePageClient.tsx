@@ -136,7 +136,7 @@ export function ProfilePageClient() {
     );
   }
 
-  if (!sessionLoading && user === null) {
+  if (user === null) {
     return (
       <section className="section flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4">
         <h1 className="text-2xl font-bold">Profile</h1>
