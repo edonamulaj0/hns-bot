@@ -574,8 +574,18 @@ export default function MembersHub() {
                               return (
                                 <motion.article
                                   key={m.discordId}
-                                  className="card p-4 sm:p-5"
+                                  className="card p-4 sm:p-5 cursor-pointer"
                                   variants={itemVariants}
+                                  role="link"
+                                  tabIndex={0}
+                                  aria-label={`Open profile for ${memberDisplayName(m)}`}
+                                  onClick={() => router.push(`/members/user/${m.discordId}`)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                      e.preventDefault();
+                                      router.push(`/members/user/${m.discordId}`);
+                                    }
+                                  }}
                                 >
                                   <div className="flex items-start gap-3 mb-3">
                                     <img
@@ -610,18 +620,13 @@ export default function MembersHub() {
                                     </div>
                                   )}
                                   <div className="flex flex-wrap gap-2">
-                                    <Link
-                                      href={`/members/user/${m.discordId}`}
-                                      className="btn px-2 py-1 text-[0.65rem]"
-                                    >
-                                      Profile
-                                    </Link>
                                     {gh && (
                                       <a
                                         href={gh}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="btn px-2 py-1 text-[0.65rem]"
+                                        onClick={(e) => e.stopPropagation()}
                                       >
                                         GitHub
                                       </a>
@@ -632,6 +637,7 @@ export default function MembersHub() {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="btn px-2 py-1 text-[0.65rem]"
+                                        onClick={(e) => e.stopPropagation()}
                                       >
                                         LinkedIn
                                       </a>

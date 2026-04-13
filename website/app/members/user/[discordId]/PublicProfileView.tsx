@@ -5,7 +5,13 @@ import { BlogArticleCard } from "@/components/BlogArticleCard";
 import { memberDisplayName } from "@/lib/member-label";
 import { ensureAbsoluteUrl, githubProfileHref } from "@/lib/url";
 
-export function PublicProfileView({ data }: { data: PublicMemberProfile }) {
+type PublicProfileViewProps = {
+  data: PublicMemberProfile;
+  isOwnProfile?: boolean;
+  manageLinks?: { submissions: string; articles: string };
+};
+
+export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: PublicProfileViewProps) {
   const u = data.user;
   const avatar = userProfileAvatarUrl(
     {
@@ -42,9 +48,6 @@ export function PublicProfileView({ data }: { data: PublicMemberProfile }) {
             <div className="text-center lg:text-left">
               <h1 className="font-bold text-xl">{memberDisplayName(u)}</h1>
             </div>
-            <p className="mono text-[0.65rem] text-white/40 break-all text-center lg:text-left">
-              Discord ID · {u.discordId}
-            </p>
             <p className="text-sm text-[var(--accent)] text-center lg:text-left">
               Rank #{u.rank || "—"} · {u.points} XP
             </p>
@@ -91,7 +94,14 @@ export function PublicProfileView({ data }: { data: PublicMemberProfile }) {
             </div>
 
             <div>
-              <h2 className="font-bold text-lg mb-4">Submissions</h2>
+              <div className="mb-4 flex items-center justify-between gap-2">
+              <h2 className="font-bold text-lg">Submissions</h2>
+              {isOwnProfile && manageLinks ? (
+                <Link href={manageLinks.submissions} className="btn text-xs py-1.5">
+                  Manage submissions
+                </Link>
+              ) : null}
+            </div>
               {data.submissions.length === 0 ? (
                 <div className="empty-state">
                   <p>No published submissions to show yet.</p>
@@ -139,7 +149,14 @@ export function PublicProfileView({ data }: { data: PublicMemberProfile }) {
             </div>
 
             <div>
-              <h2 className="font-bold text-lg mb-4">Articles</h2>
+              <div className="mb-4 flex items-center justify-between gap-2">
+              <h2 className="font-bold text-lg">Articles</h2>
+              {isOwnProfile && manageLinks ? (
+                <Link href={manageLinks.articles} className="btn text-xs py-1.5">
+                  Manage articles
+                </Link>
+              ) : null}
+            </div>
               {data.blogs.length === 0 ? (
                 <div className="empty-state">
                   <p>No articles shared yet.</p>
