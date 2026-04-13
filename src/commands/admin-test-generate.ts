@@ -63,9 +63,14 @@ export function registerAdminTestGenerate(app: DiscordHono<HonoWorkerEnv>) {
       };
 
       if (generated.usedFallback) {
+        const err = generated.error ?? "";
+        const overloaded = /overloaded|529|rate_limit|503|unavailable/i.test(err);
+        const content = overloaded
+          ? "⚠️ **Claude is overloaded or rate-limited** (retries were already attempted). Showing **fallback** challenges — you can still post them, or run the command again later."
+          : `❌ Generation failed. Error: ${err || "Unknown error"}\nShowing fallback challenges that would have been used.`;
         await ctx.followup({
           ...basePayload,
-          content: `❌ Generation failed. Error: ${generated.error ?? "Unknown error"}\nShowing fallback challenges that would have been used.`,
+          content,
         });
         return;
       }

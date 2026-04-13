@@ -20,6 +20,20 @@ function authWorkerOrigin(): string {
   return base;
 }
 
+/** Bot API Worker — same as next.config rewrites target; middleware makes /hns-api work without build-time rewrites. */
+function botWorkerOrigin(): string {
+  const raw =
+    process.env.HNS_WORKER_URL?.trim() ||
+    process.env.NEXT_PUBLIC_API_URL?.trim() ||
+    "";
+  let base = raw.replace(/\/$/, "");
+  if (base.includes("YOUR_SUBDOMAIN")) base = "";
+  if (!base && process.env.NODE_ENV === "development") {
+    return "http://127.0.0.1:8787";
+  }
+  return base;
+}
+
 const HOP_BY_HOP = new Set([
   "connection",
   "keep-alive",
@@ -61,30 +75,11 @@ function applyUpstreamResponseHeaders(from: Headers, to: Headers): void {
   }
 }
 
-export const config = {
-  matcher: ["/auth/:path*"],
-};
-
-export async function middleware(request: NextRequest) {
-  const base = authWorkerOrigin();
-  if (!base) {
-    return new NextResponse(
-      [
-        "Auth Worker URL is not configured.",
-        "",
-        "In Cloudflare Pages → Settings → Environment variables, set one of:",
-        "  HNS_AUTH_WORKER_URL=https://<your-auth-worker>.workers.dev",
-        "  NEXT_PUBLIC_AUTH_WORKER_URL=(same value)",
-        "",
-        "Redeploy the site after saving. Deploy the auth Worker from the auth/ folder first.",
-      ].join("\n"),
-      { status: 502, headers: { "Content-Type": "text/plain; charset=utf-8" } },
-    );
-  }
-
-  const path = request.nextUrl.pathname + request.nextUrl.search;
-  const dest = new URL(path, base.endsWith("/") ? base : `${base}/`);
-
+async function proxyToUpstream(
+  request: NextRequest,
+  dest: URL,
+  unreachableLines: string[],
+): Promise<NextResponse> {
   const method = request.method;
   const headers = buildUpstreamHeaders(request);
 
@@ -103,15 +98,10 @@ export async function middleware(request: NextRequest) {
   try {
     upstream = await fetch(dest.toString(), init);
   } catch {
-    return new NextResponse(
-      [
-        "Could not reach the auth Worker.",
-        "",
-        "Check HNS_AUTH_WORKER_URL (HTTPS, no typo) and that the Worker is deployed:",
-        "  cd auth && npx wrangler deploy",
-      ].join("\n"),
-      { status: 502, headers: { "Content-Type": "text/plain; charset=utf-8" } },
-    );
+    return new NextResponse(unreachableLines.join("\n"), {
+      status: 502,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
   }
 
   const resHeaders = new Headers();
@@ -122,4 +112,71 @@ export async function middleware(request: NextRequest) {
     statusText: upstream.statusText,
     headers: resHeaders,
   });
+}
+
+function hnsApiDest(request: NextRequest): URL | null {
+  const base = botWorkerOrigin();
+  if (!base) return null;
+  const pathname = request.nextUrl.pathname;
+  const rest = pathname.replace(/^\/hns-api\/?/, "") || "";
+  const upstreamPath = rest ? `/api/${rest}` : "/api";
+  return new URL(upstreamPath + request.nextUrl.search, base.endsWith("/") ? base : `${base}/`);
+}
+
+export const config = {
+  matcher: ["/auth/:path*", "/hns-api", "/hns-api/:path*"],
+};
+
+export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  if (pathname === "/hns-api" || pathname.startsWith("/hns-api/")) {
+    const dest = hnsApiDest(request);
+    if (!dest) {
+      return new NextResponse(
+        [
+          "Bot Worker URL is not configured.",
+          "",
+          "In Cloudflare Pages → Settings → Environment variables, set one of:",
+          "  HNS_WORKER_URL=https://<your-bot-worker>.workers.dev",
+          "  NEXT_PUBLIC_API_URL=(same value)",
+          "",
+          "Redeploy the site after saving. Build-time rewrites are optional if this is set for runtime.",
+        ].join("\n"),
+        { status: 502, headers: { "Content-Type": "text/plain; charset=utf-8" } },
+      );
+    }
+    return proxyToUpstream(request, dest, [
+      "Could not reach the bot Worker.",
+      "",
+      "Check HNS_WORKER_URL / NEXT_PUBLIC_API_URL and that the Worker is deployed:",
+      "  npx wrangler deploy",
+    ]);
+  }
+
+  const base = authWorkerOrigin();
+  if (!base) {
+    return new NextResponse(
+      [
+        "Auth Worker URL is not configured.",
+        "",
+        "In Cloudflare Pages → Settings → Environment variables, set one of:",
+        "  HNS_AUTH_WORKER_URL=https://<your-auth-worker>.workers.dev",
+        "  NEXT_PUBLIC_AUTH_WORKER_URL=(same value)",
+        "",
+        "Redeploy the site after saving. Deploy the auth Worker from the auth/ folder first.",
+      ].join("\n"),
+      { status: 502, headers: { "Content-Type": "text/plain; charset=utf-8" } },
+    );
+  }
+
+  const path = pathname + request.nextUrl.search;
+  const dest = new URL(path, base.endsWith("/") ? base : `${base}/`);
+
+  return proxyToUpstream(request, dest, [
+    "Could not reach the auth Worker.",
+    "",
+    "Check HNS_AUTH_WORKER_URL (HTTPS, no typo) and that the Worker is deployed:",
+    "  cd auth && npx wrangler deploy",
+  ]);
 }

@@ -55,7 +55,7 @@ async function main() {
     ),
     new Command(
       "admin-test-notify",
-      "Admin: preview all lifecycle notification messages",
+      "Admin: post the selected lifecycle notification template here (public, no extra channel post)",
     ).options(
       new Option("type", "Which notification to preview", "String")
         .required(true)

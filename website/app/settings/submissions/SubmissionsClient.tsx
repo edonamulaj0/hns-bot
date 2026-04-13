@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { browserApiUrl, deleteSubmit, fetchMe, patchSubmit } from "@/lib/api-browser";
-import { getSessionClient } from "@/lib/auth-client";
+import { getSessionClient, loginUrl } from "@/lib/auth-client";
 import type { PortfolioResponse } from "@/lib/api";
 
 type MePayload = {
@@ -55,6 +55,7 @@ export function SubmissionsClient() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [authIssue, setAuthIssue] = useState<string | null>(null);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -62,9 +63,13 @@ export function SubmissionsClient() {
       try {
         const session = await getSessionClient();
         if (!session) {
-          if (alive) window.location.href = "/auth/login";
+          if (alive) {
+            setAuthIssue(null);
+            setNeedsSignIn(true);
+          }
           return;
         }
+        if (alive) setNeedsSignIn(false);
         const meRes = await fetchMe();
         if (!meRes.ok) {
           if (alive) {
@@ -101,7 +106,10 @@ export function SubmissionsClient() {
     };
   }, []);
 
-  const empty = useMemo(() => !loading && items.length === 0, [loading, items.length]);
+  const empty = useMemo(
+    () => !loading && !needsSignIn && !authIssue && items.length === 0,
+    [loading, needsSignIn, authIssue, items.length],
+  );
 
   const startEdit = (s: SubmissionItem) => {
     setEditId(s.id);
@@ -187,6 +195,15 @@ export function SubmissionsClient() {
           <div className="space-y-3">
             <div className="skeleton h-36 rounded" />
             <div className="skeleton h-36 rounded" />
+          </div>
+        )}
+
+        {!loading && needsSignIn && (
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 py-8 text-center">
+            {authIssue && <p className="text-sm text-[var(--danger)] max-w-md">{authIssue}</p>}
+            <a href={loginUrl()} className="btn btn-primary">
+              Sign in to view submissions
+            </a>
           </div>
         )}
 

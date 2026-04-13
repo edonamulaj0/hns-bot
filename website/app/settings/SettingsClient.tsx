@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { deleteProfile, fetchMe, patchProfile } from "@/lib/api-browser";
+import { getSessionClient, loginUrl } from "@/lib/auth-client";
 
 type MeUser = {
   displayName: string | null;
@@ -33,15 +34,34 @@ export function SettingsClient() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [authIssue, setAuthIssue] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
     let alive = true;
     async function load() {
       try {
+        const session = await getSessionClient();
+        if (!session) {
+          if (alive) {
+            setAuthIssue(null);
+            setSignedIn(false);
+          }
+          return;
+        }
         const res = await fetchMe();
         if (!res.ok) {
-          window.location.href = "/auth/login";
+          if (alive) {
+            setAuthIssue(
+              "You're signed in, but your app session could not be verified. Try signing out and signing in again.",
+            );
+            setSignedIn(false);
+          }
           return;
+        }
+        if (alive) {
+          setAuthIssue(null);
+          setSignedIn(true);
         }
         const data = (await res.json()) as { user: MeUser };
         if (!alive) return;
@@ -144,6 +164,18 @@ export function SettingsClient() {
       setDeleteBusy(false);
     }
   };
+
+  if (!loading && !signedIn) {
+    return (
+      <section className="section flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4">
+        <h1 className="text-2xl font-bold">Settings</h1>
+        {authIssue && <p className="text-sm text-[var(--danger)] max-w-md text-center">{authIssue}</p>}
+        <a href={loginUrl()} className="btn btn-primary">
+          Sign in to manage settings
+        </a>
+      </section>
+    );
+  }
 
   return (
     <section className="section px-[clamp(1rem,4vw,2rem)]">

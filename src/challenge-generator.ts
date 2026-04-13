@@ -116,6 +116,24 @@ function parseClaudeJson(text: string): GenChallenge[] | null {
   }
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function claudeErrorShouldRetry(status: number, bodyText: string): boolean {
+  if (status === 429 || status === 503 || status === 529) return true;
+  try {
+    const j = JSON.parse(bodyText) as { error?: { type?: string; message?: string } };
+    const t = (j?.error?.type ?? "").toLowerCase();
+    const m = (j?.error?.message ?? "").toLowerCase();
+    if (t.includes("overloaded") || m.includes("overloaded")) return true;
+    if (t === "rate_limit_error") return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
 async function callClaude(
   apiKey: string,
   month: string,
@@ -130,43 +148,62 @@ Each object: track (DEVELOPER|HACKER), tier (Beginner|Intermediate|Advanced), ti
 
   const system = `You are the challenge designer for H4ck&Stack. Generate 6 unique monthly challenges: 3 Developer (shipped software) and 3 Hacker (security research, tools, CTF, vuln writeups, red team methodology). Each completable solo in 21 days. No paid APIs required.`;
 
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 8192,
-        system,
-        messages: [{ role: "user", content: user }],
-      }),
-    });
+  const maxAttempts = 5;
+  let lastError: string | null = null;
 
-    if (!res.ok) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 8192,
+          system,
+          messages: [{ role: "user", content: user }],
+        }),
+      });
+
       const raw = await res.text();
-      console.error("Claude API:", res.status, raw);
-      return { list: null, error: `Claude API HTTP ${res.status}: ${raw.slice(0, 200)}` };
-    }
 
-    const data = (await res.json()) as {
-      content?: Array<{ type: string; text?: string }>;
-    };
-    const text = data.content?.find((c) => c.type === "text")?.text ?? "";
-    let parsed = parseClaudeJson(text);
-    if (!parsed) {
-      parsed = parseClaudeJson(text.replace(/^[\s\S]*?(\[[\s\S]*\])[\s\S]*$/, "$1"));
+      if (!res.ok) {
+        console.error("Claude API:", res.status, raw.slice(0, 500));
+        lastError = `Claude API HTTP ${res.status}: ${raw.slice(0, 200)}`;
+        if (claudeErrorShouldRetry(res.status, raw) && attempt < maxAttempts - 1) {
+          await sleep(Math.min(12_000, 1500 * 2 ** attempt));
+          continue;
+        }
+        return { list: null, error: lastError };
+      }
+
+      const data = JSON.parse(raw) as {
+        content?: Array<{ type: string; text?: string }>;
+      };
+      const text = data.content?.find((c) => c.type === "text")?.text ?? "";
+      let parsed = parseClaudeJson(text);
+      if (!parsed) {
+        parsed = parseClaudeJson(text.replace(/^[\s\S]*?(\[[\s\S]*\])[\s\S]*$/, "$1"));
+      }
+      if (!parsed) {
+        lastError = "Claude returned non-parseable JSON challenge list.";
+        return { list: null, error: lastError };
+      }
+      return { list: parsed, error: null };
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      if (attempt < maxAttempts - 1) {
+        await sleep(Math.min(12_000, 1500 * 2 ** attempt));
+        continue;
+      }
+      return { list: null, error: lastError };
     }
-    if (!parsed) {
-      return { list: null, error: "Claude returned non-parseable JSON challenge list." };
-    }
-    return { list: parsed, error: null };
-  } catch (err) {
-    return { list: null, error: err instanceof Error ? err.message : String(err) };
   }
+
+  return { list: null, error: lastError ?? "Claude request failed after retries." };
 }
 
 export async function generateChallenges(
@@ -187,14 +224,9 @@ export async function generateChallenges(
   let errMsg: string | null = null;
 
   if (c.env.CLAUDE_API_KEY?.trim()) {
-    const first = await callClaude(c.env.CLAUDE_API_KEY.trim(), month, recentTitles);
-    list = first.list;
-    errMsg = first.error;
-    if (!list) {
-      const second = await callClaude(c.env.CLAUDE_API_KEY.trim(), month, recentTitles);
-      list = second.list;
-      errMsg = second.error ?? errMsg;
-    }
+    const result = await callClaude(c.env.CLAUDE_API_KEY.trim(), month, recentTitles);
+    list = result.list;
+    errMsg = result.error;
   } else {
     errMsg = "Missing CLAUDE_API_KEY.";
   }

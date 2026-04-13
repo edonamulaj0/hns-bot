@@ -3,62 +3,37 @@ import { MessageFlags } from "discord-api-types/v10";
 import type { HonoWorkerEnv } from "../worker-env";
 import { isAdmin } from "./admin";
 import {
-  notifyChallengesLive,
-  notifyDeadlineWarning,
-  notifyResultsPublished,
-  notifySubmissionsClosed,
-  notifyVotingOpen,
+  buildAdminTestNotifyPayload,
+  isAdminNotifyTemplateType,
 } from "../notifications";
-
-type NotifyType = "challenges-live" | "deadline-warning" | "submissions-closed" | "voting-open" | "results-published";
 
 export function registerAdminTestNotify(app: DiscordHono<HonoWorkerEnv>) {
   return app.command("admin-test-notify", async (c) =>
-    c.flags("EPHEMERAL").resDefer(async (ctx) => {
+    c.resDefer(async (ctx) => {
       if (!ctx.env.ADMIN_ROLE_ID || !isAdmin(ctx.interaction, ctx.env.ADMIN_ROLE_ID)) {
-        await ctx.followup({ content: "⛔ Unauthorized." });
+        await ctx.followup({ content: "⛔ Unauthorized.", flags: MessageFlags.Ephemeral });
         return;
       }
 
-      const type = String((ctx.var as { type?: string }).type ?? "") as NotifyType;
-      if (!type) {
+      const type = String((ctx.var as { type?: string }).type ?? "");
+      if (!type || !isAdminNotifyTemplateType(type)) {
         await ctx.followup({
-          content: "Missing required option: type",
+          content: "Missing or invalid **type** option.",
           flags: MessageFlags.Ephemeral,
         });
         return;
       }
 
-      const channelId = (ctx.interaction as { channel_id?: string })?.channel_id?.trim();
-      const fallbackAdmin = ctx.env.ADMIN_CHANNEL_ID?.trim();
-      const target = channelId || fallbackAdmin;
-      if (!target) {
+      try {
+        const payload = await buildAdminTestNotifyPayload(ctx.env, type);
+        await ctx.followup(payload);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
         await ctx.followup({
-          content: "Could not resolve a channel (missing interaction channel and ADMIN_CHANNEL_ID).",
+          content: `❌ Could not build notification template: ${msg}`,
           flags: MessageFlags.Ephemeral,
         });
-        return;
       }
-
-      const opts = { channelsOverride: [target] };
-      if (type === "challenges-live") await notifyChallengesLive(ctx, ctx.env, opts);
-      else if (type === "deadline-warning") await notifyDeadlineWarning(ctx, ctx.env, opts);
-      else if (type === "submissions-closed") await notifySubmissionsClosed(ctx, ctx.env, opts);
-      else if (type === "voting-open") await notifyVotingOpen(ctx, ctx.env, opts);
-      else if (type === "results-published") await notifyResultsPublished(ctx, ctx.env, opts);
-      else {
-        await ctx.followup({
-          content: `Unknown notify type: ${type}`,
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-      await ctx.followup({
-        content: channelId
-          ? "✅ Preview posted in this channel."
-          : "✅ Preview posted (used ADMIN_CHANNEL_ID — run this command in a server channel to post where you are).",
-        flags: MessageFlags.Ephemeral,
-      });
     }),
   );
 }
