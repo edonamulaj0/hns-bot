@@ -12,7 +12,6 @@ import { getValidGithubAccessTokenForUser } from "../github-oauth";
 import { monthKey } from "../time";
 import { awardPoints } from "../points";
 import { getDiscordUserId } from "./helpers";
-import { syncDiscordIdentity } from "../discord-identity";
 
 async function safeFollowup(
   ctx: { followup: (data: object) => Promise<unknown> },
@@ -27,7 +26,7 @@ async function safeFollowup(
 
 export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
   return app.command("pulse", async (c) =>
-    c.flags("EPHEMERAL").resDefer(async (ctx) => {
+    c.resDefer(async (ctx) => {
       try {
         const prisma = getPrisma(ctx.env.DB);
         const discordId = getDiscordUserId(ctx.interaction);
@@ -40,9 +39,7 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
           return;
         }
 
-        await syncDiscordIdentity(prisma, discordId, ctx.interaction);
-
-        const currentMonth = monthKey();
+          const currentMonth = monthKey();
 
         const user = await prisma.user.findUnique({
           where: { discordId },
@@ -106,7 +103,6 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
               ];
 
         await safeFollowup(ctx, {
-          flags: MessageFlags.Ephemeral,
           embeds: [
             {
               title: `⚡ GitHub Pulse — ${currentMonth}`,

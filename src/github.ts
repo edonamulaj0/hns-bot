@@ -52,8 +52,13 @@ const MAX_EVENT_PAGES = 10;
 
 export function extractGithubUsername(githubUrl: string | null | undefined): string | null {
   if (!githubUrl) return null;
-  const match = githubUrl.match(/github\.com\/([^/?#\s]+)/);
-  return match?.[1] ?? null;
+  const raw = githubUrl.trim();
+  if (!raw) return null;
+  const match = raw.match(/github\.com\/([^/?#\s]+)/i);
+  if (match?.[1]) return match[1];
+  const bare = raw.replace(/^@/, "").replace(/^https?:\/\//i, "").replace(/^\/+/, "");
+  if (!bare || bare.includes("/") || bare.includes(" ")) return null;
+  return bare;
 }
 
 function githubHeaders(token?: string): Record<string, string> {

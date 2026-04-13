@@ -235,7 +235,7 @@ export default function MembersHub() {
           (b.content ?? "").toLowerCase().includes(qLower),
       );
     }
-    if (effectiveSort === "votes") list.sort((a, b) => b.upvotes - a.upvotes);
+    if (effectiveSort === "votes") list.sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
     else list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return list;
   }, [blogs, qLower, effectiveSort, selectedStacks, memberByDiscord]);
@@ -403,7 +403,7 @@ export default function MembersHub() {
                     )}
                     {view === "articles" && (
                       <>
-                        <option value="votes">By Votes</option>
+                        <option value="votes">By Views</option>
                         <option value="recent">By Recent</option>
                       </>
                     )}

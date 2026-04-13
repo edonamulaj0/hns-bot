@@ -17,6 +17,7 @@ import {
   handleSubmitPost,
   handleSubmitPatch,
   handleSubmitDelete,
+  handleBlogView,
 } from "./rest-handlers";
 
 /** Stable pathname for routing (collapse slashes, trim trailing slash, keep leading slash). */
@@ -92,6 +93,12 @@ export async function handleApiRequest(
     const redirMatch = pathname.match(/^\/api\/redirect\/([^/]+)$/);
     if (redirMatch && method === "GET") {
       const body = await handleRedirectSlug(prisma, redirMatch[1]!, env, request);
+      return tagApi(body, method);
+    }
+
+    const blogViewMatch = pathname.match(/^\/api\/blogs\/([^/]+)\/view$/);
+    if (blogViewMatch && method === "GET") {
+      const body = await handleBlogView(prisma, blogViewMatch[1]!, request);
       return tagApi(body, method);
     }
 
@@ -390,7 +397,7 @@ async function blogsResponse(prisma: PrismaClient): Promise<Response> {
         },
       },
     },
-    orderBy: [{ upvotes: "desc" }, { createdAt: "desc" }],
+    orderBy: [{ views: "desc" }, { createdAt: "desc" }],
     take: 100,
   });
 
@@ -398,7 +405,9 @@ async function blogsResponse(prisma: PrismaClient): Promise<Response> {
     id: b.id,
     title: b.title,
     url: b.url,
+    viewUrl: `/hns-api/blogs/${b.id}/view`,
     upvotes: b.upvotes,
+    views: b.views,
     createdAt: b.createdAt,
     user: b.user,
     content: b.content ? b.content.slice(0, 500) : null,

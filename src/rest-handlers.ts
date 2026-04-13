@@ -76,6 +76,31 @@ async function readJson<T>(request: Request): Promise<T | null> {
   }
 }
 
+function normalizeGithubInput(raw: string | null | undefined): string | null {
+  const t = raw?.trim();
+  if (!t) return null;
+  if (t.startsWith("https://github.com/") || t.startsWith("https://gitlab.com/")) return t;
+  if (t.startsWith("http://")) return null;
+  if (/^[A-Za-z0-9_.-]+$/.test(t.replace(/^@/, ""))) {
+    return `https://github.com/${t.replace(/^@/, "")}`;
+  }
+  return null;
+}
+
+function normalizeLinkedinInput(raw: string | null | undefined): string | null {
+  const t = raw?.trim();
+  if (!t) return null;
+  if (t.startsWith("https://linkedin.com/") || t.startsWith("https://www.linkedin.com/")) {
+    return t;
+  }
+  if (t.startsWith("http://")) return null;
+  const handle = t.replace(/^@/, "").replace(/^\/+/, "");
+  if (/^[A-Za-z0-9_-]+$/.test(handle)) {
+    return `https://linkedin.com/in/${handle}`;
+  }
+  return null;
+}
+
 async function validateRepoReachable(urlStr: string): Promise<boolean> {
   try {
     const u = new URL(urlStr);
@@ -513,13 +538,12 @@ export async function handleProfilePatch(
     if (body.github !== null && typeof body.github !== "string") {
       return validation("github", "github must be a string or null.");
     }
-    const github = body.github?.trim() || null;
-    if (
-      github &&
-      !github.startsWith("https://github.com/") &&
-      !github.startsWith("https://gitlab.com/")
-    ) {
-      return validation("github", "github must start with https://github.com/ or https://gitlab.com/.");
+    const github = normalizeGithubInput(body.github ?? null);
+    if (body.github && !github) {
+      return validation(
+        "github",
+        "github must be a GitHub/GitLab URL or a valid handle.",
+      );
     }
     data.github = github;
   }
@@ -528,9 +552,12 @@ export async function handleProfilePatch(
     if (body.linkedin !== null && typeof body.linkedin !== "string") {
       return validation("linkedin", "linkedin must be a string or null.");
     }
-    const linkedin = body.linkedin?.trim() || null;
-    if (linkedin && !linkedin.startsWith("https://linkedin.com/")) {
-      return validation("linkedin", "linkedin must start with https://linkedin.com/.");
+    const linkedin = normalizeLinkedinInput(body.linkedin ?? null);
+    if (body.linkedin && !linkedin) {
+      return validation(
+        "linkedin",
+        "linkedin must be a LinkedIn URL or a valid handle.",
+      );
     }
     data.linkedin = linkedin;
   }
@@ -607,6 +634,28 @@ export async function handleProfileDelete(
   });
 
   return jsonResponse(env, request, { deleted: true }, 200);
+}
+
+export async function handleBlogView(
+  prisma: PrismaClient,
+  id: string,
+  request: Request,
+): Promise<Response> {
+  const blog = await prisma.blog.findUnique({
+    where: { id },
+    select: { id: true, url: true },
+  });
+  if (!blog) {
+    return new Response(JSON.stringify({ error: "not_found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  }
+  await prisma.blog.update({
+    where: { id: blog.id },
+    data: { views: { increment: 1 } },
+  });
+  return Response.redirect(blog.url, 302);
 }
 
 export async function handleSubmitPost(

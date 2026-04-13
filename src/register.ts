@@ -22,14 +22,28 @@ async function main() {
       new Option("user", "Member to view (optional — defaults to you)", "User"),
     ),
     new Command("submit", "Open the website to submit your monthly project"),
-    new Command("pulse", "Sync your GitHub activity and earn XP (once per month)"),
+    new Command("pulse", "Sync your GitHub activity and earn XP"),
     new Command(
       "link-github",
       "Connect GitHub (OAuth) so /pulse can count private repo contributions",
     ),
     new Command("unlink-github", "Remove stored GitHub OAuth from this bot"),
     new Command("leaderboard", "See the top contributors this month"),
-    new Command("enroll", "Enroll in a monthly challenge before you submit on the web"),
+    new Command("enroll", "Enroll in a monthly challenge before you submit on the web").options(
+      new Option("track", "Challenge track (optional — omit to pick from a menu)", "String")
+        .required(false)
+        .choices(
+          { name: "Developer", value: "DEVELOPER" },
+          { name: "Hacker", value: "HACKER" },
+        ),
+      new Option("tier", "Challenge tier (optional — use with track)", "String")
+        .required(false)
+        .choices(
+          { name: "Beginner", value: "Beginner" },
+          { name: "Intermediate", value: "Intermediate" },
+          { name: "Advanced", value: "Advanced" },
+        ),
+    ),
     new Command("admin", "Admin health-check for XP role mappings and hierarchy"),
     new Command(
       "admin-test-claude",
@@ -43,19 +57,15 @@ async function main() {
       "admin-test-notify",
       "Admin: preview all lifecycle notification messages",
     ).options(
-      new Option(
-        "type",
-        "Which notification to preview",
-        "String",
-        true,
-        [
-          "challenges-live",
-          "deadline-warning",
-          "submissions-closed",
-          "voting-open",
-          "results-published",
-        ],
-      ),
+      new Option("type", "Which notification to preview", "String")
+        .required(true)
+        .choices(
+          { name: "Challenges live", value: "challenges-live" },
+          { name: "Deadline warning", value: "deadline-warning" },
+          { name: "Submissions closed", value: "submissions-closed" },
+          { name: "Voting open", value: "voting-open" },
+          { name: "Results published", value: "results-published" },
+        ),
     ),
     new Command(
       "admin-reset-month",

@@ -2,7 +2,6 @@ import type { DiscordHono } from "discord-hono";
 import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
 import { formatTechStackList } from "./helpers";
-import { syncDiscordIdentity } from "../discord-identity";
 
 function discordAvatarUrl(discordId: string, avatarHash: string | null | undefined): string {
   const hash = avatarHash?.trim();
@@ -29,8 +28,6 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
       return c.flags("EPHEMERAL").res("Could not detect your Discord ID.");
     }
 
-    await syncDiscordIdentity(prisma, callerId, c.interaction);
-
     const optUser = (c.var as { user?: string }).user;
     const discordId =
       optUser && String(optUser).trim() !== "" ? String(optUser) : callerId;
@@ -54,7 +51,9 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
     });
 
     if (!row?.profileCompletedAt) {
-      return c.flags("EPHEMERAL").res("This user hasn't set up a profile yet.");
+      return c
+        .flags("EPHEMERAL")
+        .res("This user hasn't set up a profile yet. Profiles are edited on the website.");
     }
 
     const approvedProjects = await prisma.submission.count({

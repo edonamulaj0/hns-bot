@@ -43,7 +43,14 @@ export function registerAdminTestNotify(app: DiscordHono<HonoWorkerEnv>) {
       else if (type === "deadline-warning") await notifyDeadlineWarning(ctx, ctx.env, opts);
       else if (type === "submissions-closed") await notifySubmissionsClosed(ctx, ctx.env, opts);
       else if (type === "voting-open") await notifyVotingOpen(ctx, ctx.env, opts);
-      else await notifyResultsPublished(ctx, ctx.env, opts);
+      else if (type === "results-published") await notifyResultsPublished(ctx, ctx.env, opts);
+      else {
+        await ctx.followup({
+          content: `Unknown notify type: ${type}`,
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
       await ctx.followup({
         content: "✅ Preview sent to admin channel.",
         flags: MessageFlags.Ephemeral,

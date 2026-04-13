@@ -5,7 +5,6 @@ import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
 import { getMonthlyPhase, monthKey } from "../time";
 import { getDiscordUserId } from "./helpers";
-import { syncDiscordIdentity } from "../discord-identity";
 import { sendDirectMessage } from "../discord-api";
 import type { PrismaClient } from "@prisma/client/edge";
 
@@ -46,8 +45,6 @@ export async function processDiscordEnrollment(
 ): Promise<void> {
   const prisma = getPrisma(ctx.env.DB);
   const base = webBase(ctx.env);
-
-  await syncDiscordIdentity(prisma, discordId, ctx.interaction);
 
   const phase = getMonthlyPhase();
   const m = monthKey();
@@ -106,7 +103,6 @@ export async function processDiscordEnrollment(
         },
       },
     ],
-    flags: MessageFlags.Ephemeral,
   });
 
   await sendDirectMessage(ctx.env.DISCORD_TOKEN, discordId, {
@@ -124,8 +120,6 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
 
       const prisma = getPrisma(c.env.DB);
       const base = webBase(c.env);
-      await syncDiscordIdentity(prisma, discordId, c.interaction);
-
       const phase = getMonthlyPhase();
       const m = monthKey();
       if (phase !== "BUILD") {
@@ -148,6 +142,57 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
         return c.flags("EPHEMERAL").res(
           `No challenges have been posted for **${m}** yet. Check back soon.`,
         );
+      }
+
+      const selectedTrack = ((c.var as { track?: string }).track ?? "").toUpperCase();
+      const selectedTier = ((c.var as { tier?: string }).tier ?? "").trim();
+      if (selectedTrack && selectedTier) {
+        const picked = challenges.find(
+          (ch) =>
+            ch.track.toUpperCase() === selectedTrack &&
+            ch.tier.toLowerCase() === selectedTier.toLowerCase(),
+        );
+        if (!picked) {
+          return c.flags("EPHEMERAL").res(
+            `No ${selectedTier} ${trackLabel(selectedTrack)} challenge found for **${m}**.`,
+          );
+        }
+
+        await prisma.enrollment.upsert({
+          where: {
+            userId_challengeId: { userId: prof.userId, challengeId: picked.id },
+          },
+          create: { userId: prof.userId, challengeId: picked.id },
+          update: {},
+        });
+
+        const brief =
+          picked.description.length > 300
+            ? `${picked.description.slice(0, 300)}…`
+            : picked.description;
+
+        await sendDirectMessage(c.env.DISCORD_TOKEN, discordId, {
+          content: `📋 **${picked.title}** (${picked.month})\n\n${picked.description.slice(0, 3500)}${picked.description.length > 3500 ? "…" : ""}${picked.resources ? `\n\n**Resources**\n${picked.resources.slice(0, 1500)}` : ""}`,
+        }).catch(() => {});
+
+        return c.res({
+          embeds: [
+            {
+              title: `✅ Enrolled in ${picked.tier} ${trackLabel(picked.track)} Challenge`,
+              color: 0xccff00,
+              fields: [
+                { name: "Challenge", value: picked.title, inline: false },
+                { name: "Month", value: picked.month, inline: true },
+                { name: "Track", value: trackLabel(picked.track), inline: true },
+                { name: "Tier", value: picked.tier, inline: true },
+                { name: "Brief", value: brief.slice(0, 1024), inline: false },
+              ],
+              footer: {
+                text: `Build and submit at ${base}/submit before day 21. Full brief sent in DM.`,
+              },
+            },
+          ],
+        });
       }
 
       const options = challenges.map((ch) => ({

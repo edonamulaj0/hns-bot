@@ -130,9 +130,11 @@ export interface Blog {
   id: string;
   title: string;
   url: string;
+  viewUrl?: string;
   /** Up to 500 chars excerpt when sourced from uploaded markdown */
   content?: string | null;
   upvotes: number;
+  views?: number;
   createdAt: string;
   user: {
     discordId: string;

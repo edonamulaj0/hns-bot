@@ -42,11 +42,12 @@ export function BlogArticleCard({ blog }: { blog: Blog }) {
           {blog.createdAt && (
             <span className="mono text-[0.6rem] text-white/35">{formatFeedTime(blog.createdAt)}</span>
           )}
+          <span className="mono text-[0.65rem] text-white/45">👁 {blog.views ?? 0}</span>
           <span className="mono text-[0.65rem] text-[var(--accent)]">▲ {blog.upvotes}</span>
         </div>
       </div>
       <a
-        href={blog.url}
+        href={blog.viewUrl ?? blog.url}
         target="_blank"
         rel="noopener noreferrer"
         className="btn text-xs mt-3 w-fit"

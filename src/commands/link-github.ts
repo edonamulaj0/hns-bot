@@ -4,7 +4,6 @@ import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
 import { createGithubAuthorizeUrl, oauthConfigReady } from "../github-oauth";
 import { getDiscordUserId } from "./helpers";
-import { syncDiscordIdentity } from "../discord-identity";
 
 async function safeFollowup(
   ctx: { followup: (data: object) => Promise<unknown> },
@@ -30,8 +29,6 @@ export function registerLinkGithub(app: DiscordHono<HonoWorkerEnv>) {
         });
         return;
       }
-
-      await syncDiscordIdentity(prisma, discordId, ctx.interaction);
 
       if (!oauthConfigReady(ctx.env)) {
         const missing: string[] = [];
@@ -86,8 +83,6 @@ export function registerUnlinkGithub(app: DiscordHono<HonoWorkerEnv>) {
         });
         return;
       }
-
-      await syncDiscordIdentity(prisma, discordId, ctx.interaction);
 
       await prisma.user.updateMany({
         where: { discordId },
