@@ -5,6 +5,8 @@ import { getUserPublicProfile } from "@/lib/api";
 import { memberDisplayName } from "@/lib/member-label";
 import { PublicProfileView } from "./PublicProfileView";
 
+export const runtime = "edge";
+
 const SNOWFLAKE_RE = /^\d{17,20}$/;
 
 type PageProps = { params: Promise<{ discordId: string }> };
