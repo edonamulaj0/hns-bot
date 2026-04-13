@@ -11,8 +11,8 @@ database_id = "4b4b1a3d-44bf-42c7-9522-e0a50c6b4f52"
 
 [vars]
 BASE_URL = "https://h4cknstack.com"
-DISCORD_GUILD_ID = ""
-DISCORD_CLIENT_ID = ""
+DISCORD_GUILD_ID="1387695542934437979"
+DISCORD_CLIENT_ID="1475217166558298303"
 # Optional: set cookie Domain=.h4cknstack.com in production (omit on localhost)
 # COOKIE_DOMAIN = ".h4cknstack.com"
 
