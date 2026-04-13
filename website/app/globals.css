@@ -41,6 +41,7 @@
   
   /* ── Container ─────────────────────────────────────────────────────────────── */
   --container-max: 1280px;
+  --cta-direction: row;
 }
 
 * {
@@ -382,4 +383,43 @@ footer.footer {
   color: var(--text-dim);
   font-family: var(--font-mono);
   font-size: 0.85rem;
+}
+
+@media (max-width: 767px) {
+  /* Minimum touch target for all interactive elements */
+  .btn, button, a[class*="btn"] {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Section breathing room */
+  .section {
+    padding-top: clamp(2.5rem, 8vh, 4rem);
+    padding-bottom: clamp(2.5rem, 8vh, 4rem);
+  }
+
+  /* Cards: full bleed on small screens */
+  .card {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  /* Tag pills: larger tap area */
+  .tag {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+  }
+
+  /* Stat blocks: 2-col grid always */
+  .stat-block .value {
+    font-size: clamp(1.75rem, 8vw, 2.5rem);
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --cta-direction: column;
+  }
 }

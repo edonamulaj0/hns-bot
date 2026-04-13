@@ -472,6 +472,7 @@ export async function handleProfilePatch(
   if (!ctx.session) return ctx.membershipError!;
 
   const body = await readJson<{
+    displayName?: string | null;
     bio?: string | null;
     github?: string | null;
     linkedin?: string | null;
@@ -481,30 +482,93 @@ export async function handleProfilePatch(
     return jsonResponse(env, request, { error: "invalid_json" }, 400);
   }
 
-  const user = await prisma.user.findUnique({
-    where: { discordId: ctx.session.discordId },
-  });
-  if (!user) {
-    return jsonResponse(env, request, { error: "user_not_found" }, 404);
+  function validation(field: string, message: string): Response {
+    return jsonResponse(env, request, { error: "validation", field, message }, 400);
   }
 
-  const techStack =
-    Array.isArray(body.techStack) ? body.techStack.filter((t) => typeof t === "string") : undefined;
-
   const data: Record<string, unknown> = {};
-  if (body.bio !== undefined) data.bio = body.bio?.slice(0, 2000) ?? null;
-  if (body.github !== undefined) data.github = body.github?.trim() || null;
-  if (body.linkedin !== undefined) data.linkedin = body.linkedin?.trim() || null;
-  if (techStack !== undefined) data.techStack = techStack;
 
-  const firstProfile = !user.profileCompletedAt;
-  if (firstProfile && (data.bio || data.github || data.linkedin || techStack?.length)) {
+  if (body.displayName !== undefined) {
+    if (body.displayName !== null && typeof body.displayName !== "string") {
+      return validation("displayName", "displayName must be a string.");
+    }
+    const displayName = body.displayName?.trim() ?? null;
+    if (displayName && displayName.length > 32) {
+      return validation("displayName", "displayName max length is 32.");
+    }
+    data.displayName = displayName;
+  }
+
+  if (body.bio !== undefined) {
+    if (body.bio !== null && typeof body.bio !== "string") {
+      return validation("bio", "bio must be a string or null.");
+    }
+    if (typeof body.bio === "string" && body.bio.length > 500) {
+      return validation("bio", "bio max length is 500.");
+    }
+    data.bio = body.bio ?? null;
+  }
+
+  if (body.github !== undefined) {
+    if (body.github !== null && typeof body.github !== "string") {
+      return validation("github", "github must be a string or null.");
+    }
+    const github = body.github?.trim() || null;
+    if (
+      github &&
+      !github.startsWith("https://github.com/") &&
+      !github.startsWith("https://gitlab.com/")
+    ) {
+      return validation("github", "github must start with https://github.com/ or https://gitlab.com/.");
+    }
+    data.github = github;
+  }
+
+  if (body.linkedin !== undefined) {
+    if (body.linkedin !== null && typeof body.linkedin !== "string") {
+      return validation("linkedin", "linkedin must be a string or null.");
+    }
+    const linkedin = body.linkedin?.trim() || null;
+    if (linkedin && !linkedin.startsWith("https://linkedin.com/")) {
+      return validation("linkedin", "linkedin must start with https://linkedin.com/.");
+    }
+    data.linkedin = linkedin;
+  }
+
+  if (body.techStack !== undefined) {
+    if (body.techStack !== null && !Array.isArray(body.techStack)) {
+      return validation("techStack", "techStack must be an array of strings.");
+    }
+    const tech = body.techStack ?? [];
+    if (tech.length > 15) {
+      return validation("techStack", "techStack max items is 15.");
+    }
+    for (const t of tech) {
+      if (typeof t !== "string") {
+        return validation("techStack", "techStack entries must be strings.");
+      }
+      if (t.length > 30) {
+        return validation("techStack", "techStack entries max length is 30.");
+      }
+    }
+    data.techStack = tech;
+  }
+
+  const existing = await prisma.user.findUnique({
+    where: { discordId: ctx.session.discordId },
+    select: { profileCompletedAt: true },
+  });
+  if (!existing?.profileCompletedAt) {
     data.profileCompletedAt = new Date();
   }
 
-  const updated = await prisma.user.update({
-    where: { id: user.id },
-    data: data as any,
+  const updated = await prisma.user.upsert({
+    where: { discordId: ctx.session.discordId },
+    update: data as any,
+    create: {
+      discordId: ctx.session.discordId,
+      ...data,
+    } as any,
   });
 
   return jsonResponse(env, request, { ok: true, user: updated });
@@ -518,17 +582,31 @@ export async function handleProfileDelete(
   const ctx = await authCtx(prisma, request, env);
   if (!ctx.session) return ctx.membershipError!;
 
-  await prisma.user.delete({ where: { discordId: ctx.session.discordId } });
-
-  const h = new Headers({
-    "Content-Type": "application/json",
-    ...corsHeaders(env, request),
+  const user = await prisma.user.findUnique({
+    where: { discordId: ctx.session.discordId },
+    select: { id: true, discordId: true },
   });
-  h.append(
-    "Set-Cookie",
-    "hns_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0",
-  );
-  return new Response(JSON.stringify({ ok: true }), { status: 200, headers: h });
+  if (!user) {
+    return jsonResponse(env, request, { error: "user_not_found" }, 404);
+  }
+
+  await prisma.vote.deleteMany({
+    where: { voterDiscordId: user.discordId },
+  });
+  await prisma.submission.deleteMany({
+    where: { userId: user.id },
+  });
+  await prisma.enrollment.deleteMany({
+    where: { userId: user.id },
+  });
+  await prisma.blog.deleteMany({
+    where: { userId: user.id },
+  });
+  await prisma.user.delete({
+    where: { id: user.id },
+  });
+
+  return jsonResponse(env, request, { deleted: true }, 200);
 }
 
 export async function handleSubmitPost(
@@ -668,7 +746,7 @@ export async function handleSubmitPatch(
     return jsonResponse(env, request, { error: "not_found" }, 404);
   }
   if (sub.isLocked) {
-    return jsonResponse(env, request, { error: "locked" }, 400);
+    return jsonResponse(env, request, { error: "locked" }, 403);
   }
 
   const body = await readJson<{
@@ -712,4 +790,46 @@ export async function handleSubmitPatch(
   });
 
   return jsonResponse(env, request, { ok: true, submission: updated });
+}
+
+export async function handleSubmitDelete(
+  prisma: PrismaClient,
+  id: string,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const ctx = await authCtx(prisma, request, env);
+  if (!ctx.session) return ctx.membershipError!;
+
+  const user = await prisma.user.findUnique({
+    where: { discordId: ctx.session.discordId },
+    select: { id: true },
+  });
+  if (!user) {
+    return jsonResponse(env, request, { error: "user_not_found" }, 404);
+  }
+
+  const sub = await prisma.submission.findFirst({
+    where: { id, userId: user.id },
+    select: { id: true, isApproved: true, challengeId: true },
+  });
+  if (!sub) {
+    return jsonResponse(env, request, { error: "not_found" }, 404);
+  }
+
+  await prisma.submission.delete({ where: { id: sub.id } });
+
+  const deduction =
+    (sub.isApproved ? XP.SUBMISSION_APPROVED : 0) +
+    (sub.challengeId ? XP.ENROLLMENT_BONUS : 0);
+  if (deduction > 0) {
+    await awardPoints(prisma, user.id, -deduction, env);
+  }
+
+  const updatedUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { points: true },
+  });
+
+  return jsonResponse(env, request, { deleted: true, newXp: updatedUser?.points ?? 0 });
 }

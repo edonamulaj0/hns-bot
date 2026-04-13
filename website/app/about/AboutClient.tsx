@@ -61,7 +61,7 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
 
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">What We Stand For</h2>
             <motion.div
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12"
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"

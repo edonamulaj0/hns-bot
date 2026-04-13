@@ -9,6 +9,7 @@ export async function fetchMe(): Promise<Response> {
 }
 
 export async function patchProfile(body: {
+  displayName?: string | null;
   bio?: string | null;
   github?: string | null;
   linkedin?: string | null;
@@ -53,6 +54,13 @@ export async function patchSubmit(
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+  });
+}
+
+export async function deleteSubmit(id: string): Promise<Response> {
+  return fetch(`${H}/submit/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    credentials: "include",
   });
 }
 

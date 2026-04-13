@@ -319,48 +319,18 @@ export default function MembersHub() {
                 style={{ fontFamily: "var(--font-mono)" }}
               />
 
-              <div>
-                <p className="mono text-[0.65rem] text-white/40 mb-2 uppercase tracking-wider">
-                  Tech stack {selectedStacks.length ? `(OR)` : ""}
-                </p>
-                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto md:max-h-none">
-                  {topStacks.map(([label]) => {
-                    const on = selectedStacks.includes(label);
-                    return (
-                      <button
-                        key={label}
-                        type="button"
-                        onClick={() => toggleStack(label)}
-                        className={`tag text-[0.65rem] cursor-pointer transition-colors ${
-                          on ? "border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]" : ""
-                        }`}
-                      >
-                        {label}
-                        {on && <span className="ml-1 opacity-70">×</span>}
-                      </button>
-                    );
-                  })}
-                  {stackCounts.length > 12 && (
-                    <button
-                      type="button"
-                      onClick={() => setShowAllStacks((s) => !s)}
-                      className="tag text-[0.65rem] border-dashed"
-                    >
-                      {showAllStacks ? "Show less" : "Show all"}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3 items-center">
-                {view === "projects" && (
-                  <div className="flex rounded border border-[var(--border)] overflow-hidden">
+              {view === "projects" && (
+                <div className="flex flex-col gap-2">
+                  <p className="mono text-[0.65rem] text-white/40 uppercase tracking-wider">
+                    Track
+                  </p>
+                  <div className="flex w-full rounded border border-[var(--border)] overflow-hidden">
                     {(["all", "developer", "hacker"] as const).map((t) => (
                       <button
                         key={t}
                         type="button"
                         onClick={() => patchQuery({ track: t === "all" ? null : t })}
-                        className={`px-3 py-1.5 text-xs font-bold uppercase ${
+                        className={`flex-1 px-3 py-2 text-xs font-bold uppercase ${
                           (t === "all" && track === "all") ||
                           track === t ||
                           (t === "all" && !["developer", "hacker"].includes(track))
@@ -373,8 +343,43 @@ export default function MembersHub() {
                       </button>
                     ))}
                   </div>
-                )}
+                </div>
+              )}
 
+              <div>
+                <p className="mono text-[0.65rem] text-white/40 mb-2 uppercase tracking-wider">
+                  Tech stack {selectedStacks.length ? `(OR)` : ""}
+                </p>
+                <div className="flex gap-2 overflow-x-auto pb-1 whitespace-nowrap scrollbar-none md:flex-wrap md:overflow-visible md:whitespace-normal md:pb-0 md:max-h-none">
+                  {topStacks.map(([label]) => {
+                    const on = selectedStacks.includes(label);
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => toggleStack(label)}
+                        className={`tag shrink-0 text-[0.65rem] cursor-pointer transition-colors ${
+                          on ? "border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]" : ""
+                        }`}
+                      >
+                        {label}
+                        {on && <span className="ml-1 opacity-70">×</span>}
+                      </button>
+                    );
+                  })}
+                  {stackCounts.length > 12 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllStacks((s) => !s)}
+                      className="tag shrink-0 text-[0.65rem] border-dashed"
+                    >
+                      {showAllStacks ? "Show less" : "Show all"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3 items-center">
                 <label className="flex items-center gap-2 text-sm text-white/70">
                   <span className="mono text-[0.65rem] uppercase">Sort</span>
                   <select
@@ -494,6 +499,9 @@ export default function MembersHub() {
                                     <div className="min-w-0">
                                       <p className="mono text-xs truncate">
                                         {memberDisplayName(m)}
+                                        {m.discordUsername ? (
+                                          <span className="ml-1 text-white/45">@{m.discordUsername}</span>
+                                        ) : null}
                                       </p>
                                       <p className="text-[var(--accent)] font-bold text-sm">
                                         {m.points} XP · #{m.rank || "—"}
@@ -507,7 +515,7 @@ export default function MembersHub() {
                                   )}
                                   {stack.length > 0 && (
                                     <div className="flex flex-wrap gap-1.5 mb-3">
-                                      {stack.slice(0, 4).map((t) => (
+                                      {stack.slice(0, 3).map((t) => (
                                         <span key={t} className="tag text-[0.65rem]">
                                           {t}
                                         </span>

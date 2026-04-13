@@ -48,9 +48,14 @@ export function PhaseCountdown({ phase: phaseFromApi }: { phase?: Phase }) {
       <p className="mono text-xs sm:text-sm text-white/70 mb-3">{headline}</p>
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         {blocks.map((b, i) => (
-          <div key={b.label} className="flex items-center gap-2 sm:gap-3">
+          <div
+            key={b.label}
+            className={`flex items-center gap-2 sm:gap-3 ${
+              b.label === "MM" || b.label === "SS" ? "max-[359px]:hidden" : ""
+            }`}
+          >
             <motion.div
-              className={`rounded border bg-[var(--bg-card)] px-3 py-2 sm:px-4 sm:py-3 text-center min-w-[3.25rem] sm:min-w-[4rem] ${
+              className={`rounded border bg-[var(--bg-card)] px-3 py-2 sm:px-4 sm:py-3 text-center min-w-[48px] sm:min-w-[4rem] ${
                 urgent ? "animate-phase-countdown-border" : "border-[var(--border)]"
               }`}
               style={
@@ -60,7 +65,7 @@ export function PhaseCountdown({ phase: phaseFromApi }: { phase?: Phase }) {
               }
             >
               <div
-                className="mono text-lg sm:text-2xl font-bold tabular-nums text-[var(--text)]"
+                className="mono text-[clamp(1.5rem,6vw,2rem)] sm:text-2xl font-bold tabular-nums text-[var(--text)]"
                 style={{ fontFamily: "var(--font-mono)" }}
               >
                 {b.value}
@@ -70,7 +75,13 @@ export function PhaseCountdown({ phase: phaseFromApi }: { phase?: Phase }) {
               </div>
             </motion.div>
             {i < blocks.length - 1 && (
-              <span className="mono text-white/30 text-lg hidden sm:inline">·</span>
+              <span
+                className={`mono text-white/30 text-lg ${
+                  i >= 1 ? "max-[359px]:hidden" : ""
+                }`}
+              >
+                ·
+              </span>
             )}
           </div>
         ))}

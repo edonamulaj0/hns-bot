@@ -101,7 +101,7 @@ export default function ChallengesPage() {
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Two Tracks</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <motion.div
-              className="card p-5 sm:p-7"
+              className="card w-full p-5 sm:p-7"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: EASE_OUT }}
@@ -116,16 +116,16 @@ export default function ChallengesPage() {
                 (days 1–21). Choose a tier (Beginner, Intermediate, or Advanced) and ship something real — an
                 app, a library, a tool, anything.
               </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="tag tag-accent">Days 1–21: Build</span>
-                <span className="tag">Days 22–25: Vote</span>
-                <span className="tag">Days 26–28: Review</span>
-                <span className="tag">Day 29: Publish</span>
+              <div className="flex w-full flex-wrap gap-2">
+                <span className="tag tag-accent whitespace-normal break-words leading-snug">Days 1–21: Build</span>
+                <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
+                <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
+                <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
               </div>
             </motion.div>
 
             <motion.div
-              className="card p-5 sm:p-7"
+              className="card w-full p-5 sm:p-7"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1, ease: EASE_OUT }}
@@ -140,11 +140,11 @@ export default function ChallengesPage() {
                 writeups, build security tools, research vulnerabilities, or run red team simulations — all on the
                 same build, vote, and publish rhythm.
               </p>
-              <div className="flex flex-wrap gap-2 mb-3">
-                <span className="tag tag-accent">Days 1–21: Build</span>
-                <span className="tag">Days 22–25: Vote</span>
-                <span className="tag">Days 26–28: Review</span>
-                <span className="tag">Day 29: Publish</span>
+              <div className="mb-3 flex w-full flex-wrap gap-2">
+                <span className="tag tag-accent whitespace-normal break-words leading-snug">Days 1–21: Build</span>
+                <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
+                <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
+                <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {["CTF Writeup", "Tool Build", "Vuln Research", "Red Team"].map((t) => (

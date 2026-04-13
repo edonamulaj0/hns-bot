@@ -3,27 +3,23 @@ import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
 import { XP_ROLES } from "../roles";
 import { ensureRolesExist } from "../role-manager";
+import { isAdmin } from "./admin";
 
 function getDiscordUserId(interaction: any): string | null {
   return interaction?.member?.user?.id ?? interaction?.user?.id ?? null;
-}
-
-function getMemberRoleIds(interaction: any): string[] {
-  return Array.isArray(interaction?.member?.roles) ? interaction.member.roles : [];
 }
 
 export function registerAdminHealth(app: DiscordHono<HonoWorkerEnv>) {
   return app.command("admin", async (c) =>
     c.flags("EPHEMERAL").resDefer(async (ctx) => {
       const callerId = getDiscordUserId(ctx.interaction);
-      const memberRoles = getMemberRoleIds(ctx.interaction);
       if (!callerId) {
         await ctx.followup({ content: "Could not detect your Discord ID." });
         return;
       }
 
-      if (!ctx.env.ADMIN_ROLE_ID || !memberRoles.includes(ctx.env.ADMIN_ROLE_ID)) {
-        await ctx.followup({ content: "This command is admin-only." });
+      if (!ctx.env.ADMIN_ROLE_ID || !isAdmin(ctx.interaction, ctx.env.ADMIN_ROLE_ID)) {
+        await ctx.followup({ content: "⛔ Unauthorized." });
         return;
       }
 

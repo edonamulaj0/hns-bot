@@ -16,6 +16,7 @@ import {
   handleProfileDelete,
   handleSubmitPost,
   handleSubmitPatch,
+  handleSubmitDelete,
 } from "./rest-handlers";
 
 /** Stable pathname for routing (collapse slashes, trim trailing slash, keep leading slash). */
@@ -97,6 +98,15 @@ export async function handleApiRequest(
     const patchSubmitMatch = pathname.match(/^\/api\/submit\/([^/]+)$/);
     if (patchSubmitMatch && method === "PATCH") {
       const body = await handleSubmitPatch(
+        prisma,
+        patchSubmitMatch[1]!,
+        request,
+        env,
+      );
+      return tagApi(body, method);
+    }
+    if (patchSubmitMatch && method === "DELETE") {
+      const body = await handleSubmitDelete(
         prisma,
         patchSubmitMatch[1]!,
         request,

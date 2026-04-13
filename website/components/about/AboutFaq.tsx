@@ -76,11 +76,13 @@ export function AboutFaq() {
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? null : i)}
-                  className="w-full flex items-center justify-between gap-4 text-left px-4 py-4 sm:px-5 sm:py-4 hover:bg-white/[0.03] transition-colors"
+                  className="w-full min-h-12 flex items-center justify-between gap-4 text-left px-4 py-3 sm:px-5 sm:py-4 hover:bg-white/[0.03] transition-colors"
                   aria-expanded={isOpen}
                 >
                   <span className="font-bold text-sm sm:text-base pr-2">{item.q}</span>
-                  <span className="mono text-[var(--accent)] shrink-0 text-lg">{isOpen ? "−" : "+"}</span>
+                  <span className="mono text-[var(--accent)] shrink-0 w-6 h-6 inline-flex items-center justify-center text-xl leading-none">
+                    {isOpen ? "−" : "+"}
+                  </span>
                 </button>
                 <AnimatePresence initial={false}>
                   {isOpen && (

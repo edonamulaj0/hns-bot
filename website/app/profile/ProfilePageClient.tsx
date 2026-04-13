@@ -26,7 +26,8 @@ type MeUser = {
 };
 
 export function ProfilePageClient() {
-  const [user, setUser] = useState<MeUser | null | undefined>(undefined);
+  const [user, setUser] = useState<MeUser | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
   const [bio, setBio] = useState("");
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
@@ -38,22 +39,29 @@ export function ProfilePageClient() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetchMe();
-    if (res.status === 401) {
+    setSessionLoading(true);
+    try {
+      const res = await fetchMe();
+      if (res.status === 401) {
+        setUser(null);
+        return;
+      }
+      if (!res.ok) {
+        setUser(null);
+        return;
+      }
+      const data = (await res.json()) as { user: MeUser };
+      setUser(data.user);
+      setBio(data.user.bio ?? "");
+      setGithub(data.user.github ?? "");
+      setLinkedin(data.user.linkedin ?? "");
+      const ts = data.user.techStack;
+      setTags(Array.isArray(ts) ? (ts as string[]) : []);
+    } catch {
       setUser(null);
-      return;
+    } finally {
+      setSessionLoading(false);
     }
-    if (!res.ok) {
-      setUser(null);
-      return;
-    }
-    const data = (await res.json()) as { user: MeUser };
-    setUser(data.user);
-    setBio(data.user.bio ?? "");
-    setGithub(data.user.github ?? "");
-    setLinkedin(data.user.linkedin ?? "");
-    const ts = data.user.techStack;
-    setTags(Array.isArray(ts) ? (ts as string[]) : []);
   }, []);
 
   useEffect(() => {
@@ -105,15 +113,30 @@ export function ProfilePageClient() {
     }
   };
 
-  if (user === undefined) {
+  if (sessionLoading) {
     return (
-      <section className="section flex min-h-[40vh] items-center justify-center">
-        <p className="text-white/50">Loading…</p>
+      <section className="section px-[clamp(1rem,4vw,2rem)]">
+        <div className="container max-w-5xl grid gap-10 lg:grid-cols-[280px_1fr]">
+          <aside className="h-fit space-y-4">
+            <div className="skeleton h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <div className="skeleton h-3 w-40" />
+              <div className="skeleton h-3 w-28" />
+            </div>
+          </aside>
+          <div className="space-y-4">
+            <div className="skeleton h-[120px] w-full rounded border border-[var(--border)]" />
+            <div className="skeleton h-10 w-full rounded border border-[var(--border)]" />
+            <div className="skeleton h-10 w-full rounded border border-[var(--border)]" />
+            <div className="skeleton h-10 w-full rounded border border-[var(--border)]" />
+            <div className="skeleton h-11 w-40 rounded border border-[var(--border)]" />
+          </div>
+        </div>
       </section>
     );
   }
 
-  if (user === null) {
+  if (!sessionLoading && user === null) {
     return (
       <section className="section flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4">
         <h1 className="text-2xl font-bold">Profile</h1>
@@ -135,7 +158,7 @@ export function ProfilePageClient() {
   return (
     <section className="section px-[clamp(1rem,4vw,2rem)]">
       <div className="container max-w-5xl grid gap-10 lg:grid-cols-[280px_1fr]">
-        <aside className="lg:sticky lg:top-24 h-fit space-y-4">
+        <aside className="hidden lg:block lg:sticky lg:top-24 h-fit space-y-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={avatar}
@@ -170,6 +193,50 @@ export function ProfilePageClient() {
         </aside>
 
         <div className="space-y-8">
+          <div className="lg:hidden rounded border border-[var(--border)] bg-[var(--bg-card)] p-4">
+            <div className="flex flex-col items-center text-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={avatar}
+                alt=""
+                width={72}
+                height={72}
+                className="rounded-full border border-[var(--border)]"
+              />
+              <p className="mt-3 text-xl font-bold">
+                {user.displayName?.trim() || user.discordUsername || user.discordId}
+              </p>
+              {user.discordUsername && (
+                <p className="mono text-sm text-white/50">@{user.discordUsername}</p>
+              )}
+              <p className="mt-1 text-sm text-[var(--accent)]">
+                Rank #{user.rank} · {user.points} XP
+              </p>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="rounded border border-[var(--border)] bg-[var(--bg)] p-2">
+                <p className="mono text-[0.65rem] text-white/45">Submissions</p>
+                <p className="font-bold text-sm">{user.stats.submissions}</p>
+              </div>
+              <div className="rounded border border-[var(--border)] bg-[var(--bg)] p-2">
+                <p className="mono text-[0.65rem] text-white/45">Articles</p>
+                <p className="font-bold text-sm">{user.stats.blogs}</p>
+              </div>
+              <div className="rounded border border-[var(--border)] bg-[var(--bg)] p-2">
+                <p className="mono text-[0.65rem] text-white/45">Votes cast</p>
+                <p className="font-bold text-sm">{user.stats.votesCast}</p>
+              </div>
+              <div className="rounded border border-[var(--border)] bg-[var(--bg)] p-2">
+                <p className="mono text-[0.65rem] text-white/45">Member since</p>
+                <p className="font-bold text-sm">
+                  {user.profileCompletedAt
+                    ? new Date(user.profileCompletedAt).toLocaleDateString()
+                    : "—"}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div>
             <h1 className="text-2xl font-bold mb-2">Edit profile</h1>
             {msg && <p className="text-sm text-[var(--success)] mb-2">{msg}</p>}
@@ -225,7 +292,7 @@ export function ProfilePageClient() {
             </div>
             <button
               type="button"
-              className="btn btn-primary mt-6"
+              className="btn btn-primary mt-6 w-full sm:w-auto min-h-12"
               disabled={saving}
               onClick={save}
             >
@@ -233,7 +300,8 @@ export function ProfilePageClient() {
             </button>
           </div>
 
-          <div className="border border-[var(--danger)]/40 rounded p-6 bg-[rgba(237,66,69,0.06)]">
+          <div className="border-t border-[var(--border)] mt-10 pt-8">
+            <div className="border border-[var(--danger)]/40 rounded p-6 bg-[rgba(237,66,69,0.06)]">
             <h2 className="text-lg font-bold text-[var(--danger)] mb-2">Danger zone</h2>
             <p className="text-sm text-white/60 mb-4">
               Permanently delete your account and all submissions, votes, and enrollments. Type{" "}
@@ -252,6 +320,7 @@ export function ProfilePageClient() {
             >
               Delete my account
             </button>
+            </div>
           </div>
         </div>
       </div>

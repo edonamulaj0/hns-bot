@@ -60,11 +60,11 @@ export function OpenStatsPanel({ data }: { data: AboutStatsPayload }) {
                   const pct = Math.round((row.count / maxStack) * 100);
                   return (
                     <li key={row.name}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-white/80">{row.name}</span>
-                        <span className="mono text-white/45">{row.count}</span>
+                      <div className="mb-1 flex items-start gap-2 text-xs">
+                        <span className="min-w-0 flex-1 break-words text-white/80">{row.name}</span>
+                        <span className="mono shrink-0 text-white/45">{row.count}</span>
                       </div>
-                      <div className="h-2 rounded-full bg-[var(--border)] overflow-hidden">
+                      <div className="h-2 min-h-2 rounded-full bg-[var(--border)] overflow-hidden">
                         <motion.div
                           className="h-full rounded-full bg-[var(--accent)]"
                           initial={{ width: 0 }}

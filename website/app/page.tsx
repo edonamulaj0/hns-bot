@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, useInView } from "framer-motion";
 import { useEffect, useState, useRef, useMemo } from "react";
 import {
@@ -55,6 +56,9 @@ function relativeTime(dateStr: string): string {
 }
 
 export default function HomePage() {
+  const searchParams = useSearchParams();
+  const [showAllProjects, setShowAllProjects] = useState(false);
+  const [showDeletedToast, setShowDeletedToast] = useState(false);
   const [data, setData] = useState<{
     portfolio: PortfolioResponse | null;
     members: MembersResponse | null;
@@ -83,6 +87,16 @@ export default function HomePage() {
       });
     });
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("deleted") !== "1") return;
+    setShowDeletedToast(true);
+    const t = window.setTimeout(() => setShowDeletedToast(false), 3000);
+    const u = new URL(window.location.href);
+    u.searchParams.delete("deleted");
+    window.history.replaceState({}, "", `${u.pathname}${u.search}${u.hash}`);
+    return () => window.clearTimeout(t);
+  }, [searchParams]);
 
   const portfolioData = data?.portfolio ?? null;
   const membersData = data?.members?.members ?? [];
@@ -113,6 +127,9 @@ export default function HomePage() {
   const monthsCount = useCountUp(monthsSinceLaunch, statsInView);
 
   const heroWords = ["Build.", "Ship.", "Get seen."];
+  const latestProjects = Object.entries(portfolioData?.published ?? {})
+    .flatMap(([, subs]) => subs as any[])
+    .slice(0, 6);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -133,6 +150,11 @@ export default function HomePage() {
 
   return (
     <>
+      {showDeletedToast && (
+        <div className="fixed right-4 top-[4.5rem] z-[120] rounded border border-[var(--accent)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--accent)] shadow-lg">
+          Your account has been deleted.
+        </div>
+      )}
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="section flex min-h-[min(80dvh,720px)] items-center">
         <div className="container">
@@ -181,15 +203,20 @@ export default function HomePage() {
             </motion.p>
 
             <motion.div
-              className="flex gap-3 sm:gap-4 flex-wrap"
+              className="flex"
+              style={{
+                display: "flex",
+                gap: "0.75rem",
+                flexDirection: "var(--cta-direction, row)" as any,
+              }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.85, ease: EASE_OUT }}
             >
-              <Link href="/join" className="btn btn-primary">
+              <Link href="/join" className="btn btn-primary max-[480px]:w-full max-[480px]:justify-center">
                 Join Us →
               </Link>
-              <Link href="/challenges" className="btn">
+              <Link href="/challenges" className="btn max-[480px]:w-full max-[480px]:justify-center">
                 View Challenges
               </Link>
             </motion.div>
@@ -224,7 +251,6 @@ export default function HomePage() {
               <div className="value min-h-[2.75rem] flex flex-col justify-center text-left">
                 <PhaseCountdownLine phase={(portfolioData?.phase as Phase) ?? undefined} />
               </div>
-              <span className="label">Challenge phase</span>
             </div>
             {totalMembers === 0 && totalSubmissions === 0 && (
               <p
@@ -275,10 +301,10 @@ export default function HomePage() {
             ].map((item) => (
               <motion.div
                 key={item.step}
-                className="bg-[var(--bg)] p-4 sm:p-5 lg:p-6"
+                className="bg-[var(--bg)] border-l-2 border-[var(--accent)] pl-4 sm:border-l-0 sm:pl-5 p-4 sm:p-5 lg:p-6"
                 variants={itemVariants}
               >
-                <p className="mono text-[0.65rem] sm:text-xs text-white/40 mb-2 sm:mb-3">{item.step}</p>
+                <p className="mono hidden sm:block text-[0.65rem] sm:text-xs text-white/40 mb-2 sm:mb-3">{item.step}</p>
                 <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3">{item.title}</h3>
                 <p className="text-white/60 text-xs sm:text-sm leading-relaxed">{item.body}</p>
               </motion.div>
@@ -444,13 +470,12 @@ export default function HomePage() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.15 }}
           >
-            {Object.entries(portfolioData?.published ?? {})
-              .flatMap(([, subs]) => subs as any[])
-              .slice(0, 6)
-              .map((sub: any) => (
+            {latestProjects.map((sub: any, idx: number) => (
                 <motion.article
                   key={sub.id}
-                  className="card card-lift p-4 sm:p-5 lg:p-6"
+                  className={`card card-lift p-4 sm:p-5 lg:p-6 ${
+                    idx >= 3 && !showAllProjects ? "hidden sm:block" : ""
+                  }`}
                   variants={itemVariants}
                 >
                   <div className="flex justify-between items-start mb-2 sm:mb-3">
@@ -490,6 +515,18 @@ export default function HomePage() {
                 </motion.article>
               ))}
           </motion.div>
+
+          {latestProjects.length > 3 && (
+            <div className="mt-4 sm:hidden">
+              <button
+                type="button"
+                className="btn w-full justify-center"
+                onClick={() => setShowAllProjects((v) => !v)}
+              >
+                {showAllProjects ? "Show fewer projects" : "Show more projects"}
+              </button>
+            </div>
+          )}
 
           {totalSubmissions === 0 && (
             <div className="empty-state">

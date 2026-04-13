@@ -217,7 +217,7 @@ export async function syncUserRole(
   }
 }
 
-export async function syncAllRoles(c: any, prisma: PrismaClient): Promise<void> {
+export async function syncAllRoles(c: any, prisma: PrismaClient): Promise<number> {
   const users = await prisma.user.findMany({
     select: { discordId: true, points: true },
     orderBy: { points: "desc" },
@@ -233,4 +233,5 @@ export async function syncAllRoles(c: any, prisma: PrismaClient): Promise<void> 
     );
     await new Promise((r) => setTimeout(r, 250));
   }
+  return users.length;
 }

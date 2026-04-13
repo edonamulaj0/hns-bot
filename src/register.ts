@@ -32,6 +32,40 @@ async function main() {
     new Command("enroll", "Enroll in a monthly challenge before you submit on the web"),
     new Command("admin", "Admin health-check for XP role mappings and hierarchy"),
     new Command(
+      "admin-test-claude",
+      "Admin: test Claude API connectivity and challenge generation",
+    ),
+    new Command(
+      "admin-test-generate",
+      "Admin: generate this month's challenges and preview (no public post)",
+    ),
+    new Command(
+      "admin-test-notify",
+      "Admin: preview all lifecycle notification messages",
+    ).options(
+      new Option(
+        "type",
+        "Which notification to preview",
+        "String",
+        true,
+        [
+          "challenges-live",
+          "deadline-warning",
+          "submissions-closed",
+          "voting-open",
+          "results-published",
+        ],
+      ),
+    ),
+    new Command(
+      "admin-reset-month",
+      "Admin: reset current month's challenges and submissions for testing",
+    ),
+    new Command(
+      "admin-sync-roles",
+      "Admin: manually sync all member Discord roles based on current XP",
+    ),
+    new Command(
       "delete-account",
       "Permanently delete your H4ck&Stack account (same as website danger zone)",
     ),

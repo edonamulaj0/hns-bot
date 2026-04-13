@@ -12,6 +12,13 @@ type GenChallenge = {
   deliverables: string;
 };
 
+export type GeneratedChallengesResult = {
+  month: string;
+  challenges: GenChallenge[];
+  usedFallback: boolean;
+  error: string | null;
+};
+
 const FALLBACK: GenChallenge[] = [
   {
     track: "DEVELOPER",
@@ -113,7 +120,7 @@ async function callClaude(
   apiKey: string,
   month: string,
   recentTitles: string[],
-): Promise<GenChallenge[] | null> {
+): Promise<{ list: GenChallenge[] | null; error: string | null }> {
   const recent =
     recentTitles.length > 0 ? recentTitles.join("; ") : "(none yet)";
   const user = `Current month: ${month}
@@ -123,46 +130,51 @@ Each object: track (DEVELOPER|HACKER), tier (Beginner|Intermediate|Advanced), ti
 
   const system = `You are the challenge designer for H4ck&Stack. Generate 6 unique monthly challenges: 3 Developer (shipped software) and 3 Hacker (security research, tools, CTF, vuln writeups, red team methodology). Each completable solo in 21 days. No paid APIs required.`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 8192,
-      system,
-      messages: [{ role: "user", content: user }],
-    }),
-  });
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 8192,
+        system,
+        messages: [{ role: "user", content: user }],
+      }),
+    });
 
-  if (!res.ok) {
-    console.error("Claude API:", res.status, await res.text());
-    return null;
-  }
+    if (!res.ok) {
+      const raw = await res.text();
+      console.error("Claude API:", res.status, raw);
+      return { list: null, error: `Claude API HTTP ${res.status}: ${raw.slice(0, 200)}` };
+    }
 
-  const data = (await res.json()) as {
-    content?: Array<{ type: string; text?: string }>;
-  };
-  const text = data.content?.find((c) => c.type === "text")?.text ?? "";
-  let parsed = parseClaudeJson(text);
-  if (!parsed) {
-    parsed = parseClaudeJson(text.replace(/^[\s\S]*?(\[[\s\S]*\])[\s\S]*$/, "$1"));
+    const data = (await res.json()) as {
+      content?: Array<{ type: string; text?: string }>;
+    };
+    const text = data.content?.find((c) => c.type === "text")?.text ?? "";
+    let parsed = parseClaudeJson(text);
+    if (!parsed) {
+      parsed = parseClaudeJson(text.replace(/^[\s\S]*?(\[[\s\S]*\])[\s\S]*$/, "$1"));
+    }
+    if (!parsed) {
+      return { list: null, error: "Claude returned non-parseable JSON challenge list." };
+    }
+    return { list: parsed, error: null };
+  } catch (err) {
+    return { list: null, error: err instanceof Error ? err.message : String(err) };
   }
-  return parsed;
 }
 
-export async function generateAndPostChallenges(
+export async function generateChallenges(
   c: { env: WorkerBindings },
   prisma: PrismaClient,
   now: Date,
-): Promise<void> {
+): Promise<GeneratedChallengesResult> {
   const month = monthKey(now);
-  const token = c.env.DISCORD_TOKEN;
-  const base = c.env.BASE_URL?.replace(/\/$/, "") || "https://h4cknstack.com";
-
   const recent = await prisma.challenge.findMany({
     where: { month: { not: month } },
     orderBy: { createdAt: "desc" },
@@ -172,28 +184,41 @@ export async function generateAndPostChallenges(
   const recentTitles = recent.map((r) => r.title);
 
   let list: GenChallenge[] | null = null;
-  let genErr: string | null = null;
+  let errMsg: string | null = null;
 
   if (c.env.CLAUDE_API_KEY?.trim()) {
-    list = await callClaude(c.env.CLAUDE_API_KEY.trim(), month, recentTitles);
+    const first = await callClaude(c.env.CLAUDE_API_KEY.trim(), month, recentTitles);
+    list = first.list;
+    errMsg = first.error;
     if (!list) {
-      list = await callClaude(c.env.CLAUDE_API_KEY.trim(), month, recentTitles);
+      const second = await callClaude(c.env.CLAUDE_API_KEY.trim(), month, recentTitles);
+      list = second.list;
+      errMsg = second.error ?? errMsg;
     }
+  } else {
+    errMsg = "Missing CLAUDE_API_KEY.";
   }
 
   if (!list) {
-    list = FALLBACK;
-    genErr = "Claude generation failed; used fallback challenges.";
+    return {
+      month,
+      challenges: FALLBACK,
+      usedFallback: true,
+      error: errMsg ?? "Claude generation failed; used fallback challenges.",
+    };
   }
 
-  let cfg = await prisma.config.findFirst();
-  if (!cfg) cfg = await prisma.config.create({ data: {} });
-  if (genErr) {
-    await prisma.config.update({
-      where: { id: cfg.id },
-      data: { lastChallengeGenError: genErr.slice(0, 500) },
-    });
-  }
+  return { month, challenges: list, usedFallback: false, error: null };
+}
+
+export async function postChallengesToDiscord(
+  c: { env: WorkerBindings },
+  prisma: PrismaClient,
+  month: string,
+  list: GenChallenge[],
+): Promise<void> {
+  const token = c.env.DISCORD_TOKEN;
+  const base = c.env.BASE_URL?.replace(/\/$/, "") || "https://h4cknstack.com";
 
   for (const ch of list) {
     const track = ch.track === "HACKER" ? "HACKER" : "DEVELOPER";
@@ -282,4 +307,21 @@ export async function generateAndPostChallenges(
   if (hackCh && hackCh !== devCh) {
     await sendChannelMessage(token, hackCh, { content: announce });
   }
+}
+
+export async function generateAndPostChallenges(
+  c: { env: WorkerBindings },
+  prisma: PrismaClient,
+  now: Date,
+): Promise<void> {
+  const generated = await generateChallenges(c, prisma, now);
+  let cfg = await prisma.config.findFirst();
+  if (!cfg) cfg = await prisma.config.create({ data: {} });
+  if (generated.usedFallback && generated.error) {
+    await prisma.config.update({
+      where: { id: cfg.id },
+      data: { lastChallengeGenError: generated.error.slice(0, 500) },
+    });
+  }
+  await postChallengesToDiscord(c, prisma, generated.month, generated.challenges);
 }

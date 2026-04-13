@@ -17,6 +17,17 @@ import { registerCron } from "./commands/cron";
 import { registerEnroll } from "./commands/enroll";
 import { registerDeleteAccount } from "./commands/delete-account";
 import { registerAdminHealth } from "./commands/admin-health";
+import { registerAdminTestClaude } from "./commands/admin-test-claude";
+import {
+  handleAdminGenerateComponent,
+  registerAdminTestGenerate,
+} from "./commands/admin-test-generate";
+import { registerAdminTestNotify } from "./commands/admin-test-notify";
+import { registerAdminSyncRoles } from "./commands/admin-sync-roles";
+import {
+  handleAdminResetComponent,
+  registerAdminResetMonth,
+} from "./commands/admin-reset-month";
 import { processDiscordEnrollment } from "./commands/enroll";
 import { getDiscordUserId } from "./commands/helpers";
 import { MessageFlags } from "discord-api-types/v10";
@@ -35,9 +46,21 @@ app = registerCron(app);
 app = registerEnroll(app);
 app = registerDeleteAccount(app);
 app = registerAdminHealth(app);
+app = registerAdminTestClaude(app);
+app = registerAdminTestGenerate(app);
+app = registerAdminTestNotify(app);
+app = registerAdminSyncRoles(app);
+app = registerAdminResetMonth(app);
 
 app = app.component("", async (c) => {
   const customId: string = c.interaction?.data?.custom_id ?? "";
+  if (customId.startsWith("admin:")) {
+    return c.flags("EPHEMERAL").resDefer(async (ctx) => {
+      if (await handleAdminGenerateComponent(ctx)) return;
+      if (await handleAdminResetComponent(ctx)) return;
+      await ctx.followup({ content: "Unknown admin action.", flags: MessageFlags.Ephemeral });
+    });
+  }
   if (!customId.startsWith("enroll:")) {
     return c.res("Unknown component.");
   }
