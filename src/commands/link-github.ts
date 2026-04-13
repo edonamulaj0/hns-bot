@@ -34,9 +34,19 @@ export function registerLinkGithub(app: DiscordHono<HonoWorkerEnv>) {
       await syncDiscordIdentity(prisma, discordId, ctx.interaction);
 
       if (!oauthConfigReady(ctx.env)) {
+        const missing: string[] = [];
+        if (!ctx.env.WORKER_PUBLIC_URL?.trim()) missing.push("WORKER_PUBLIC_URL (var)");
+        if (!ctx.env.GITHUB_OAUTH_CLIENT_ID?.trim()) missing.push("GITHUB_OAUTH_CLIENT_ID (var)");
+        if (!ctx.env.GITHUB_OAUTH_CLIENT_SECRET?.trim())
+          missing.push("GITHUB_OAUTH_CLIENT_SECRET (secret)");
+        if (!ctx.env.GITHUB_LINK_SECRET?.trim()) missing.push("GITHUB_LINK_SECRET (secret)");
         await safeFollowup(ctx, {
-          content:
-            "GitHub OAuth is not configured. On the Worker set: **WORKER_PUBLIC_URL** (e.g. `https://your-bot.workers.dev`), **GITHUB_OAUTH_CLIENT_ID** (var), **GITHUB_OAUTH_CLIENT_SECRET** (`wrangler secret put`), **GITHUB_LINK_SECRET** (`wrangler secret put` — long random string for encrypting tokens). Create a GitHub OAuth app with callback `{WORKER_PUBLIC_URL}/oauth/github/callback`.",
+          content: [
+            "GitHub OAuth is not configured.",
+            "Missing on Worker: " + (missing.length ? missing.join(", ") : "unknown"),
+            "Required: WORKER_PUBLIC_URL + GITHUB_OAUTH_CLIENT_ID (vars), GITHUB_OAUTH_CLIENT_SECRET + GITHUB_LINK_SECRET (secrets).",
+            "OAuth callback must be: {WORKER_PUBLIC_URL}/oauth/github/callback",
+          ].join("\n"),
           flags: MessageFlags.Ephemeral,
         });
         return;

@@ -40,7 +40,12 @@ export function registerAdminHealth(app: DiscordHono<HonoWorkerEnv>) {
         }
 
         const prisma = getPrisma(ctx.env.DB);
-        const roleMap = await ensureRolesExist(prisma, ctx.env.DISCORD_GUILD_ID, ctx.env.DISCORD_TOKEN);
+        let roleMap = new Map<string, string>();
+        try {
+          roleMap = await ensureRolesExist(prisma, ctx.env.DISCORD_GUILD_ID, ctx.env.DISCORD_TOKEN);
+        } catch (e) {
+          console.error("admin role mapping init failed:", e);
+        }
 
         const rolesRes = await fetch(
           `https://discord.com/api/v10/guilds/${ctx.env.DISCORD_GUILD_ID}/roles`,
@@ -88,6 +93,12 @@ export function registerAdminHealth(app: DiscordHono<HonoWorkerEnv>) {
           }
         }
 
+        if (XP_ROLES.some((def) => !roleMap.get(def.key))) {
+          warnings.push(
+            "Could not verify/create one or more XP roles (bot may lack Manage Roles permission).",
+          );
+        }
+
         await ctx.followup({
           embeds: [
             {
@@ -112,7 +123,7 @@ export function registerAdminHealth(app: DiscordHono<HonoWorkerEnv>) {
       } catch (error) {
         console.error("admin command failed:", error);
         await ctx.followup({
-          content: "Admin check failed. Verify bot env/config and try again.",
+          content: `Admin check failed. ${error instanceof Error ? error.message : String(error)}`,
         });
       }
     }),
