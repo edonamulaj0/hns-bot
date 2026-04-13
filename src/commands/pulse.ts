@@ -49,7 +49,6 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
           select: {
             id: true,
             github: true,
-            lastPulseMonth: true,
             githubAccessTokenEnc: true,
             githubRefreshTokenEnc: true,
             githubTokenExpiresAt: true,
@@ -60,14 +59,6 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
         if (!user?.github) {
           await safeFollowup(ctx, {
             content: "You haven't set a GitHub URL yet. Add it on the website: **/profile**.",
-            flags: MessageFlags.Ephemeral,
-          });
-          return;
-        }
-
-        if (user.lastPulseMonth === currentMonth) {
-          await safeFollowup(ctx, {
-            content: `You've already run \`/pulse\` for **${currentMonth}**. Come back next month!`,
             flags: MessageFlags.Ephemeral,
           });
           return;
@@ -87,11 +78,6 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
         const pulse = userOAuth
           ? await fetchMonthlyPulseViaViewerGraphql(userOAuth, currentMonth)
           : await fetchMonthlyPulse(username, currentMonth, ctx.env.GITHUB_TOKEN);
-
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastPulseMonth: currentMonth },
-        });
 
         if (pulse.xpEarned > 0) {
           await awardPoints(prisma, user.id, pulse.xpEarned, ctx.env);
@@ -140,8 +126,8 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
               footer: {
                 text:
                   pulse.source === "viewer"
-                    ? "Once/month · max 100 XP · OAuth viewer (private repos you allowed)"
-                    : `Once/month · max 100 XP · ${pulse.source} (public) · /link-github for private`,
+                    ? "Max 100 XP/run · OAuth viewer (private repos you allowed)"
+                    : `Max 100 XP/run · ${pulse.source} (public) · /link-github for private`,
               },
             },
           ],

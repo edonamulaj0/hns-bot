@@ -25,8 +25,8 @@ HACKER_CHALLENGES_CHANNEL_ID = "1492903075269312593"
 
 
 # GitHub OAuth (/link-github → private-aware /pulse). Uncomment and set, plus secrets below.
-# WORKER_PUBLIC_URL = "https://hns-bot.edonaamulaj.workers.dev"
-# GITHUB_OAUTH_CLIENT_ID = "Ov23liqmPme3wOzqWJGE"
+WORKER_PUBLIC_URL = "https://hns-bot.edonaamulaj.workers.dev"
+GITHUB_OAUTH_CLIENT_ID = "Ov23liqmPme3wOzqWJGE"
 
 # Callback URL in GitHub OAuth app settings must be: {WORKER_PUBLIC_URL}/oauth/github/callback
 # wrangler secret put GITHUB_OAUTH_CLIENT_SECRET
