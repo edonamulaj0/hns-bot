@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { loginUrl } from "@/lib/auth-client";
+import { getSessionClient, loginUrl } from "@/lib/auth-client";
 import {
   deleteProfile,
   fetchMe,
@@ -41,13 +41,47 @@ export function ProfilePageClient() {
   const load = useCallback(async () => {
     setSessionLoading(true);
     try {
-      const res = await fetchMe();
-      if (res.status === 401) {
+      const session = await getSessionClient();
+      if (!session) {
         setUser(null);
         return;
       }
+
+      const res = await fetchMe();
+      if (res.status === 401) {
+        setUser({
+          id: "",
+          discordId: session.discordId,
+          discordUsername: session.discordUsername,
+          displayName: session.displayName,
+          avatarHash: session.avatarHash,
+          bio: null,
+          github: null,
+          linkedin: null,
+          techStack: [],
+          points: 0,
+          rank: 0,
+          profileCompletedAt: null,
+          stats: { submissions: 0, blogs: 0, votesCast: 0 },
+        });
+        return;
+      }
       if (!res.ok) {
-        setUser(null);
+        setUser({
+          id: "",
+          discordId: session.discordId,
+          discordUsername: session.discordUsername,
+          displayName: session.displayName,
+          avatarHash: session.avatarHash,
+          bio: null,
+          github: null,
+          linkedin: null,
+          techStack: [],
+          points: 0,
+          rank: 0,
+          profileCompletedAt: null,
+          stats: { submissions: 0, blogs: 0, votesCast: 0 },
+        });
         return;
       }
       const data = (await res.json()) as { user: MeUser };
@@ -58,7 +92,26 @@ export function ProfilePageClient() {
       const ts = data.user.techStack;
       setTags(Array.isArray(ts) ? (ts as string[]) : []);
     } catch {
-      setUser(null);
+      const session = await getSessionClient();
+      if (!session) {
+        setUser(null);
+      } else {
+        setUser({
+          id: "",
+          discordId: session.discordId,
+          discordUsername: session.discordUsername,
+          displayName: session.displayName,
+          avatarHash: session.avatarHash,
+          bio: null,
+          github: null,
+          linkedin: null,
+          techStack: [],
+          points: 0,
+          rank: 0,
+          profileCompletedAt: null,
+          stats: { submissions: 0, blogs: 0, votesCast: 0 },
+        });
+      }
     } finally {
       setSessionLoading(false);
     }

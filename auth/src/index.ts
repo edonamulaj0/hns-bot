@@ -15,7 +15,7 @@ export interface Env {
 
 const COOKIE_SESSION = "hns_session";
 const COOKIE_STATE = "hns_oauth_state";
-const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
+const SESSION_MAX_AGE = 60 * 60 * 24 * 90;
 
 async function sha256Key(secret: string): Promise<ArrayBuffer> {
   return crypto.subtle.digest("SHA-256", new TextEncoder().encode(secret));
