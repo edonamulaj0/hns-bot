@@ -7,7 +7,7 @@ export type WorkerBindings = {
   /** Same secret as auth Worker; verifies `hns_session` and decrypts stored Discord tokens. */
   SESSION_SECRET?: string;
   /** Discord server id — membership re-check on authenticated API writes. */
-  DISCORD_GUILD_ID?: string;
+  DISCORD_GUILD_ID: string;
   /** Anthropic API key for monthly challenge generation (day 1 cron). */
   CLAUDE_API_KEY?: string;
 

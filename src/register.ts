@@ -30,6 +30,7 @@ async function main() {
     new Command("unlink-github", "Remove stored GitHub OAuth from this bot"),
     new Command("leaderboard", "See the top contributors this month"),
     new Command("enroll", "Enroll in a monthly challenge before you submit on the web"),
+    new Command("admin", "Admin health-check for XP role mappings and hierarchy"),
     new Command(
       "delete-account",
       "Permanently delete your H4ck&Stack account (same as website danger zone)",

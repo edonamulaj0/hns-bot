@@ -157,3 +157,10 @@ model Config {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
+
+model RoleMapping {
+  key       String   @id
+  roleId    String
+  guildId   String
+  createdAt DateTime @default(now())
+}

@@ -1,9 +1,14 @@
 import type { PrismaClient } from "@prisma/client/edge";
+import type { WorkerBindings } from "./worker-env";
+import { syncUserRole } from "./role-manager";
 
 export const XP = {
   SUBMISSION_APPROVED: 50,
-  BLOG_POSTED: 10,
   VOTE_RECEIVED: 2,
+  BLOG_POSTED: 10,
+  PULSE_MAX: 100,
+  ENROLLMENT_BONUS: 25,
+  FIRST_SUBMISSION: 10,
 } as const;
 
 /**
@@ -15,24 +20,30 @@ export async function awardPoints(
   prisma: PrismaClient,
   userId: string,
   amount: number,
+  env: WorkerBindings,
 ): Promise<void> {
-  // Award points to the user
-  await prisma.user.update({
+  const updated = await prisma.user.update({
     where: { id: userId },
     data: { points: { increment: amount } },
+    select: { discordId: true, points: true },
   });
 
-  // Use a single raw SQL query to compute ranks for ALL users at once
-  // This avoids the N+1 problem of updating each user individually
   await prisma.$executeRaw`
-    UPDATE User
+    UPDATE "User"
     SET rank = (
       SELECT COUNT(*) + 1
-      FROM User AS u2
-      WHERE u2.points > User.points
-         OR (u2.points = User.points AND u2.createdAt < User.createdAt)
+      FROM "User" u2
+      WHERE u2.points > "User".points
     )
   `;
+
+  await syncUserRole(
+    prisma,
+    updated.discordId,
+    updated.points,
+    env.DISCORD_GUILD_ID,
+    env.DISCORD_TOKEN,
+  );
 }
 
 export function formatLeaderboardEmbed(

@@ -205,7 +205,7 @@ export async function handleVotePost(
     return jsonResponse(env, request, { error: "missing_submissionId" }, 400);
   }
 
-  const result = await castVote(prisma, ctx.session.discordId, submissionId);
+  const result = await castVote(prisma, ctx.session.discordId, submissionId, env);
   if (!result.ok) {
     return jsonResponse(env, request, { error: "vote_failed", message: result.message }, 400);
   }
@@ -629,7 +629,18 @@ export async function handleSubmitPost(
     },
   });
 
-  await awardPoints(prisma, user.id, XP.SUBMISSION_APPROVED);
+  await awardPoints(prisma, user.id, XP.SUBMISSION_APPROVED, env);
+
+  if (sub.challengeId) {
+    await awardPoints(prisma, user.id, XP.ENROLLMENT_BONUS, env);
+  }
+
+  const approvedCount = await prisma.submission.count({
+    where: { userId: user.id, isApproved: true },
+  });
+  if (approvedCount === 1) {
+    await awardPoints(prisma, user.id, XP.FIRST_SUBMISSION, env);
+  }
 
   return jsonResponse(env, request, { ok: true, submission: sub });
 }

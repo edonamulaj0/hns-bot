@@ -28,10 +28,19 @@ const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const STAGGER_MS = 0.08;
 
 const XP_TABLE = [
-  { action: "Submission approved", xp: 50 },
-  { action: "Blog post shared", xp: 10 },
-  { action: "Vote received", xp: 2 },
-  { action: "GitHub Pulse (max/month)", xp: 100 },
+  { action: "Submission approved", xp: 50, note: "Per submission" },
+  { action: "Vote received", xp: 2, note: "Per vote on your work" },
+  { action: "Article shared", xp: 10, note: "Per article" },
+  { action: "GitHub pulse", xp: "5–100", note: "Once per month" },
+  { action: "Challenge enrollment bonus", xp: 25, note: "On first approval" },
+  { action: "First submission ever", xp: 10, note: "One-time bonus" },
+];
+
+const ROLE_TABLE = [
+  { role: "🌱 Newcomer", range: "0–99 XP", color: "#888888" },
+  { role: "⚡ Builder", range: "100–499 XP", color: "#57f287" },
+  { role: "🔥 Veteran", range: "500–1499 XP", color: "#f59e0b" },
+  { role: "💎 Elite", range: "1500+ XP", color: "#CCFF00" },
 ];
 
 function coerceSort(view: View, s: string): string {
@@ -718,10 +727,37 @@ export default function MembersHub() {
                                   <td className="py-2 text-right mono text-xs text-[var(--accent)] font-bold">
                                     +{row.xp}
                                   </td>
+                                  <td className="py-2 text-right mono text-[0.65rem] text-white/45">
+                                    {row.note}
+                                  </td>
                                 </tr>
                               ))}
                             </tbody>
                           </table>
+                          <div className="mt-4 border-t border-[var(--border)] pt-3">
+                            <p className="mono text-[0.65rem] text-white/40 mb-2 uppercase tracking-wider">
+                              Discord roles
+                            </p>
+                            <table className="w-full text-sm">
+                              <tbody>
+                                {ROLE_TABLE.map((row) => (
+                                  <tr
+                                    key={row.role}
+                                    className="border-b border-[var(--border)] last:border-0"
+                                  >
+                                    <td className="py-2 text-xs">
+                                      <span className="mono" style={{ color: row.color }}>
+                                        {row.role}
+                                      </span>
+                                    </td>
+                                    <td className="py-2 text-right mono text-[0.65rem] text-white/60">
+                                      {row.range}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>

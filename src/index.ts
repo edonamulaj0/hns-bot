@@ -16,11 +16,14 @@ import { registerLeaderboard } from "./commands/leaderboard";
 import { registerCron } from "./commands/cron";
 import { registerEnroll } from "./commands/enroll";
 import { registerDeleteAccount } from "./commands/delete-account";
+import { registerAdminHealth } from "./commands/admin-health";
 import { processDiscordEnrollment } from "./commands/enroll";
 import { getDiscordUserId } from "./commands/helpers";
 import { MessageFlags } from "discord-api-types/v10";
+import { ensureRolesExist } from "./role-manager";
 
 let app = new DiscordHono<HonoWorkerEnv>();
+let startupRolesInit = false;
 
 app = registerProfile(app);
 app = registerSubmit(app);
@@ -31,6 +34,7 @@ app = registerLeaderboard(app);
 app = registerCron(app);
 app = registerEnroll(app);
 app = registerDeleteAccount(app);
+app = registerAdminHealth(app);
 
 app = app.component("", async (c) => {
   const customId: string = c.interaction?.data?.custom_id ?? "";
@@ -88,6 +92,15 @@ function rootApiDiscoveryResponse(): Response {
 
 export default {
   fetch: async (request: Request, env: WorkerBindings, executionCtx?: ExecutionContext) => {
+    if (!startupRolesInit) {
+      try {
+        await ensureRolesExist(getPrisma(env.DB), env.DISCORD_GUILD_ID, env.DISCORD_TOKEN);
+        startupRolesInit = true;
+      } catch (e) {
+        console.error("role init error:", e);
+      }
+    }
+
     const pathname = getNormalizedPathname(request);
 
     if (pathname === "/oauth/github/callback" && request.method === "GET") {

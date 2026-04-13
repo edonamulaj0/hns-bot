@@ -94,7 +94,7 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
         });
 
         if (pulse.xpEarned > 0) {
-          await awardPoints(prisma, user.id, pulse.xpEarned);
+          await awardPoints(prisma, user.id, pulse.xpEarned, ctx.env);
         }
 
         const noActivity =

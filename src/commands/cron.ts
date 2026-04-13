@@ -2,6 +2,7 @@ import { getPrisma } from "../db";
 import { getMonthlyPhase, monthKey } from "../time";
 import { sendChannelMessage } from "../discord-api";
 import { generateAndPostChallenges } from "../challenge-generator";
+import { syncAllRoles } from "../role-manager";
 
 function webBase(env: { BASE_URL?: string }): string {
   return env.BASE_URL?.replace(/\/$/, "") || "https://h4cknstack.com";
@@ -73,6 +74,8 @@ export function registerCron(app: any) {
     }
 
     try {
+      await syncAllRoles(c, prisma);
+
       if (day === 1) {
         if (config.lastChallengeMonth !== currentMonth) {
           await generateAndPostChallenges(c, prisma, now);

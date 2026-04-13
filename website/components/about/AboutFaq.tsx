@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { ReactNode } from "react";
 
-const FAQ: { q: string; a: string }[] = [
+const FAQ: { q: string; a: ReactNode }[] = [
   {
     q: "What is H4ck&Stack?",
     a: "H4ck&Stack is a global community for developers and security researchers. Each month we run structured challenge cycles: a developer track for shipping software projects and a hacker track for security work like CTF writeups, tools, and research. You join on Discord, submit through the bot, vote during the vote window, and see approved work published on this site with XP and rankings.",
@@ -26,7 +27,21 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "What is XP and how do I earn it?",
-    a: "XP is the on-server points total shown on your profile and the leaderboard. You earn it from approved submissions, blog shares, votes on your work, GitHub pulse, and other activities the bot tracks. It is a fun, cumulative signal of participation — not a currency.",
+    a: (
+      <>
+        XP is your cumulative points total on H4ck&Stack. It powers the leaderboard and determines your Discord role
+        progression: Newcomer → Builder → Veteran → Elite.
+        <br />
+        <br />
+        XP sources:
+        <br />- Submission approved: +50 (per submission)
+        <br />- Vote received: +2 (per vote on your work)
+        <br />- Article shared: +10 (per article)
+        <br />- GitHub pulse: +5 to +100 (once per month, capped)
+        <br />- Challenge enrollment bonus: +25 (on first approval)
+        <br />- First submission ever: +10 (one-time bonus)
+      </>
+    ),
   },
   {
     q: "Can I submit more than one project per month?",
@@ -76,9 +91,9 @@ export function AboutFaq() {
                       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden"
                     >
-                      <p className="px-4 sm:px-5 pb-5 text-sm text-white/65 leading-relaxed border-t border-[var(--border)] pt-4">
+                      <div className="px-4 sm:px-5 pb-5 text-sm text-white/65 leading-relaxed border-t border-[var(--border)] pt-4">
                         {item.a}
-                      </p>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>

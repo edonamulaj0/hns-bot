@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client/edge";
 import { awardPoints, XP } from "./points";
 import { monthKey } from "./time";
+import type { WorkerBindings } from "./worker-env";
 
 function trackLabel(track: string): string {
   return track === "HACKER" ? "Hacker" : "Developer";
@@ -17,6 +18,7 @@ export async function castVote(
   prisma: PrismaClient,
   voterDiscordId: string,
   submissionId: string,
+  env: WorkerBindings,
 ): Promise<CastVoteResult> {
   const submission = await prisma.submission.findUnique({
     where: { id: submissionId },
@@ -84,7 +86,7 @@ export async function castVote(
     select: { votes: true, userId: true },
   });
 
-  await awardPoints(prisma, full.userId, XP.VOTE_RECEIVED);
+  await awardPoints(prisma, full.userId, XP.VOTE_RECEIVED, env);
 
   return { ok: true, votes: full.votes };
 }
