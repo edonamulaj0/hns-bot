@@ -70,7 +70,7 @@ export function SubmissionsClient() {
           .flatMap((arr) => arr as SubmissionItem[])
           .filter((s) => s.user?.discordId === me.user.discordId)
           .map((s) => ({ ...s, isApproved: true }));
-        const combined = [...fromPortfolio];
+        const combined: SubmissionItem[] = [...fromPortfolio];
         if (me.submission) combined.push(me.submission);
         const deduped = new Map<string, SubmissionItem>();
         for (const s of combined) deduped.set(s.id, s);
