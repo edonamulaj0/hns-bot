@@ -13,6 +13,8 @@ import { registerSubmit } from "./commands/submit";
 import { registerPulse } from "./commands/pulse";
 import { registerLinkGithub, registerUnlinkGithub } from "./commands/link-github";
 import { registerLeaderboard } from "./commands/leaderboard";
+import { registerHelp } from "./commands/help";
+import { registerIntro } from "./commands/intro";
 import { registerCron } from "./commands/cron";
 import { registerEnroll } from "./commands/enroll";
 import { registerDeleteAccount } from "./commands/delete-account";
@@ -28,7 +30,7 @@ import {
   handleAdminResetComponent,
   registerAdminResetMonth,
 } from "./commands/admin-reset-month";
-import { processDiscordEnrollment } from "./commands/enroll";
+import { processDiscordEnrollment, type EnrollmentDeferCtx } from "./commands/enroll";
 import { getDiscordUserId } from "./commands/helpers";
 import { MessageFlags } from "discord-api-types/v10";
 import { ensureRolesExist } from "./role-manager";
@@ -42,6 +44,8 @@ app = registerPulse(app);
 app = registerLinkGithub(app);
 app = registerUnlinkGithub(app);
 app = registerLeaderboard(app);
+app = registerHelp(app);
+app = registerIntro(app);
 app = registerCron(app);
 app = registerEnroll(app);
 app = registerDeleteAccount(app);
@@ -77,7 +81,14 @@ app = app.component("", async (c) => {
       });
       return;
     }
-    await processDiscordEnrollment(ctx, discordId, challengeId);
+    const enrollCtx: EnrollmentDeferCtx = {
+      env: ctx.env,
+      followup: (data, file) =>
+        file !== undefined
+          ? ctx.followup(data as never, file as never)
+          : ctx.followup(data as never),
+    };
+    await processDiscordEnrollment(enrollCtx, discordId, challengeId);
   });
 });
 

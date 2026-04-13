@@ -34,12 +34,14 @@ async function requireProfile(
   return { ok: true, userId: row.id };
 }
 
+/** Deferred component/slash context from discord-hono (followup return type varies by version). */
+export type EnrollmentDeferCtx = {
+  env: HonoWorkerEnv["Bindings"];
+  followup: (data?: object, file?: unknown) => Promise<unknown>;
+};
+
 export async function processDiscordEnrollment(
-  ctx: {
-    env: HonoWorkerEnv["Bindings"];
-    followup: (opts: Record<string, unknown>) => Promise<void>;
-    interaction: { member?: { user?: { id?: string } }; user?: { id?: string } };
-  },
+  ctx: EnrollmentDeferCtx,
   discordId: string,
   challengeId: string,
 ): Promise<void> {

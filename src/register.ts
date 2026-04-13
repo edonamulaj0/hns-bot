@@ -29,6 +29,8 @@ async function main() {
     ),
     new Command("unlink-github", "Remove stored GitHub OAuth from this bot"),
     new Command("leaderboard", "See the top contributors this month"),
+    new Command("help", "List all bot commands and what they do (ephemeral)"),
+    new Command("intro", "Post the public welcome & getting-started guide (mods only)"),
     new Command("enroll", "Enroll in a monthly challenge before you submit on the web").options(
       new Option("track", "Challenge track (optional — omit to pick from a menu)", "String")
         .required(false)
