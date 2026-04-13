@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { motion, useInView } from "framer-motion";
 import { useEffect, useState, useRef, useMemo } from "react";
 import {
@@ -56,7 +55,6 @@ function relativeTime(dateStr: string): string {
 }
 
 export default function HomePage() {
-  const searchParams = useSearchParams();
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [showDeletedToast, setShowDeletedToast] = useState(false);
   const [data, setData] = useState<{
@@ -89,14 +87,15 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (searchParams.get("deleted") !== "1") return;
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get("deleted") !== "1") return;
     setShowDeletedToast(true);
     const t = window.setTimeout(() => setShowDeletedToast(false), 3000);
     const u = new URL(window.location.href);
     u.searchParams.delete("deleted");
     window.history.replaceState({}, "", `${u.pathname}${u.search}${u.hash}`);
     return () => window.clearTimeout(t);
-  }, [searchParams]);
+  }, []);
 
   const portfolioData = data?.portfolio ?? null;
   const membersData = data?.members?.members ?? [];
@@ -122,7 +121,7 @@ export default function HomePage() {
   const submissionsCount = useCountUp(totalSubmissions, statsInView);
   const monthsSinceLaunch = Math.max(
     0,
-    (new Date().getUTCFullYear() - 2025) * 12 + new Date().getUTCMonth() - 6,
+    (new Date().getUTCFullYear() - 2025) * 12 + new Date().getUTCMonth() - 5,
   );
   const monthsCount = useCountUp(monthsSinceLaunch, statsInView);
 

@@ -177,7 +177,7 @@ export function Navbar() {
                           src={
                             session.avatarHash
                               ? `https://cdn.discordapp.com/avatars/${session.discordId}/${session.avatarHash}.png?size=64`
-                              : `https://cdn.discordapp.com/embed/avatars/${Number(BigInt(session.discordId) % 6n)}.png`
+                              : `https://cdn.discordapp.com/embed/avatars/${Number(BigInt(session.discordId) % BigInt(6))}.png`
                           }
                           alt=""
                           style={{ width: 36, height: 36, borderRadius: "50%", border: "1px solid var(--border)" }}
