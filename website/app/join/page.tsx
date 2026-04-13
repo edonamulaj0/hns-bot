@@ -28,7 +28,7 @@ export default async function JoinPage({
 
   return (
     <>
-      <section className="section-sm page-header min-h-[min(50dvh,520px)] flex flex-col justify-center grid-bg">
+      <section className="section-sm page-header min-h-[min(50dvh,520px)] flex flex-col justify-center">
         <div className="container max-w-3xl">
           <p className="label mb-2">Welcome</p>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-5">Ready to build?</h1>
@@ -36,8 +36,8 @@ export default async function JoinPage({
             <div
               className="mb-6 rounded border p-4 text-sm leading-relaxed"
               style={{
-                borderColor: "rgba(237,66,69,0.35)",
-                background: "rgba(237,66,69,0.08)",
+                borderColor: "#7c2feb59",
+                background: "#7c2feb14",
               }}
             >
               Sign-in requires membership in the H4ck&Stack Discord. Join with the link below, then try{" "}
@@ -48,8 +48,8 @@ export default async function JoinPage({
             <div
               className="mb-6 rounded border p-4 text-sm text-white/80"
               style={{
-                borderColor: "rgba(245,158,11,0.35)",
-                background: "rgba(245,158,11,0.08)",
+                borderColor: "#7c2feb59",
+                background: "#7c2feb14",
               }}
             >
               Discord sign-in could not be completed. Please try again.

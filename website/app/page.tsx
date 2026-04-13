@@ -8,6 +8,7 @@ import {
   getMembers,
   getLeaderboard,
   getBlogs,
+  getDiscordWidget,
   PHASE_META,
   type MembersResponse,
   type LeaderboardResponse,
@@ -59,6 +60,7 @@ export default function HomePage() {
     members: MembersResponse | null;
     leaderboard: LeaderboardResponse | null;
     blogs: BlogsResponse | null;
+    discordWidgetMembers: number | null;
   } | null>(null);
 
   useEffect(() => {
@@ -67,12 +69,17 @@ export default function HomePage() {
       getMembers(),
       getLeaderboard(),
       getBlogs(),
-    ]).then(([portfolio, members, leaderboard, blogs]) => {
+      getDiscordWidget(),
+    ]).then(([portfolio, members, leaderboard, blogs, discordWidget]) => {
       setData({
         portfolio: portfolio.status === "fulfilled" ? portfolio.value : null,
         members: members.status === "fulfilled" ? members.value : null,
         leaderboard: leaderboard.status === "fulfilled" ? leaderboard.value : null,
         blogs: blogs.status === "fulfilled" ? blogs.value : null,
+        discordWidgetMembers:
+          discordWidget.status === "fulfilled"
+            ? (discordWidget.value?.approximate_member_count ?? null)
+            : null,
       });
     });
   }, []);
@@ -85,7 +92,7 @@ export default function HomePage() {
   const phase = (portfolioData?.phase ?? "BUILD") as keyof typeof PHASE_META;
   const phaseMeta = PHASE_META[phase];
   const totalSubmissions = Object.values(portfolioData?.published ?? {}).flat().length;
-  const totalMembers = membersData.length;
+  const totalMembers = data?.discordWidgetMembers ?? membersData.length;
   const top3 = leaderboardData.slice(0, 3);
   const maxXp = top3[0]?.points ?? 1;
   const latestBlogs = blogsData.slice(0, 3);
@@ -99,7 +106,11 @@ export default function HomePage() {
   const statsInView = useInView(statsRef, { once: true, amount: 0.15 });
   const membersCount = useCountUp(totalMembers, statsInView);
   const submissionsCount = useCountUp(totalSubmissions, statsInView);
-  const monthsCount = useCountUp(Object.keys(portfolioData?.published ?? {}).length, statsInView);
+  const monthsSinceLaunch = Math.max(
+    0,
+    (new Date().getUTCFullYear() - 2025) * 12 + new Date().getUTCMonth() - 6,
+  );
+  const monthsCount = useCountUp(monthsSinceLaunch, statsInView);
 
   const heroWords = ["Build.", "Ship.", "Get seen."];
 
@@ -123,7 +134,7 @@ export default function HomePage() {
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="section grid-bg flex min-h-[min(80dvh,720px)] items-center">
+      <section className="section flex min-h-[min(80dvh,720px)] items-center">
         <div className="container">
           <div className="max-w-[720px]">
             <motion.div

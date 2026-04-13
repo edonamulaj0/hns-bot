@@ -152,8 +152,8 @@ export default function ChallengesPage() {
                     key={t}
                     className="tag text-[0.65rem]"
                     style={{
-                      background: "rgba(237,66,69,0.1)",
-                      borderColor: "rgba(237,66,69,0.3)",
+                      background: "#7c2feb1a",
+                      borderColor: "#7c2feb4d",
                       color: "#ccff00",
                     }}
                   >
@@ -203,7 +203,7 @@ export default function ChallengesPage() {
             </motion.div>
 
             <motion.div
-              className="card p-6 sm:p-8 flex flex-col gap-4 min-h-[220px] border-[rgba(237,66,69,0.25)]"
+              className="card p-6 sm:p-8 flex flex-col gap-4 min-h-[220px] border-[#7c2feb40]"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.06, ease: EASE_OUT }}
@@ -221,7 +221,7 @@ export default function ChallengesPage() {
                 href="/challenges/hackers"
                 className="btn w-fit"
                 style={{
-                  borderColor: "rgba(237,66,69,0.4)",
+                  borderColor: "#7c2feb66",
                   color: "#ccff00",
                 }}
               >

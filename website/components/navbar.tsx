@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: "/members", label: "Members" },
   { href: "/activity", label: "Activity" },
   { href: "/about", label: "About" },
+  { href: "/join", label: "Join Us" },
 ];
 
 function linkActive(pathname: string, href: string) {
@@ -123,6 +124,7 @@ export function Navbar() {
                     <span>{link.label}</span>
                     <span
                       aria-hidden
+                      className="md:hidden"
                       style={{
                         width: 6,
                         height: 6,
@@ -136,9 +138,6 @@ export function Navbar() {
               })}
             </div>
             <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-6 md:ml-2 md:flex-row md:items-center md:gap-2 md:border-t-0 md:pt-0">
-              <Link href="/join" className="btn btn-primary flex w-full justify-center md:w-auto">
-                Join Us
-              </Link>
               <AuthNav />
             </div>
           </div>

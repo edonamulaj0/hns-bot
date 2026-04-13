@@ -49,6 +49,12 @@ function blogsUrl(): string | null {
   return `${base}/api/blogs`;
 }
 
+function discordWidgetUrl(): string | null {
+  const guildId = process.env.NEXT_PUBLIC_DISCORD_GUILD_ID?.trim() ?? "";
+  if (!guildId) return null;
+  return `https://discord.com/api/guilds/${encodeURIComponent(guildId)}/widget.json`;
+}
+
 function challengesUrl(track: "DEVELOPER" | "HACKER", month?: string): string | null {
   const qs = new URLSearchParams({ track });
   if (month) qs.set("month", month);
@@ -159,6 +165,33 @@ export interface BlogsResponse {
   blogs: Blog[];
 }
 
+export interface DiscordWidgetChannel {
+  id: string;
+  name: string;
+  position: number;
+}
+
+export interface DiscordWidgetMember {
+  id: string;
+  username: string;
+  discriminator: string;
+  status: string;
+  avatar_url?: string | null;
+  game?: { name: string } | null;
+  /** Present on some widget payloads */
+  nick?: string | null;
+}
+
+export interface DiscordWidgetResponse {
+  id: string;
+  name: string;
+  instant_invite?: string;
+  presence_count?: number;
+  approximate_member_count?: number;
+  channels?: DiscordWidgetChannel[];
+  members?: DiscordWidgetMember[];
+}
+
 const REVALIDATE = 60; // seconds
 
 function fetchInit(): RequestInit & { next?: { revalidate: number } } {
@@ -229,6 +262,18 @@ export async function getBlogs(): Promise<BlogsResponse> {
   }
 }
 
+export async function getDiscordWidget(): Promise<DiscordWidgetResponse | null> {
+  const url = discordWidgetUrl();
+  if (!url) return null;
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch Discord widget");
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
 export async function getChallenges(
   track: "DEVELOPER" | "HACKER",
   month?: string,
@@ -272,7 +317,7 @@ export const PHASE_META: Record<
 > = {
   BUILD: {
     label: "BUILD PHASE",
-    color: "#f97316",
+    color: "#7c2feb",
     description: "Days 1–21 · Submissions open",
   },
   VOTE: {

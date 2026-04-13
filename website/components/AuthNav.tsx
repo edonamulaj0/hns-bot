@@ -49,7 +49,7 @@ export function AuthNav() {
         href={loginUrl()}
         className="btn btn-primary text-xs sm:text-sm py-1.5 px-3 whitespace-nowrap"
       >
-        Sign in with Discord
+        Sign in
       </a>
     );
   }
