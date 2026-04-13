@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { DiscordWidgetResponse } from "@/lib/api";
-
-const DISCORD_INVITE = "https://discord.gg/xrxTUsgdv9";
+import { DISCORD_INVITE_URL } from "@/lib/branding";
 
 function statusColor(status: string): string {
   switch (status) {
@@ -50,7 +49,7 @@ export function DiscordWidget({ className = "" }: { className?: string }) {
   const inviteHref =
     (data?.instant_invite && data.instant_invite.startsWith("http")
       ? data.instant_invite
-      : null) || DISCORD_INVITE;
+      : null) || DISCORD_INVITE_URL;
   const serverName = data?.name ?? "H4ck&Stack";
   const totalMembers = data?.approximate_member_count;
   const online = data?.presence_count;
@@ -72,7 +71,7 @@ export function DiscordWidget({ className = "" }: { className?: string }) {
           Join the server for challenges, voice, and project feedback.
         </p>
         <a
-          href={DISCORD_INVITE}
+          href={DISCORD_INVITE_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="btn btn-primary inline-flex"

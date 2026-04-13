@@ -70,7 +70,6 @@ export function Navbar() {
   const [hasVisitedBefore, setHasVisitedBefore] = useState<boolean | null>(null);
   const voteMonth = utcMonthKey();
   const lockedScrollY = useRef(0);
-  const prevPathnameRef = useRef<string | null>(null);
 
   useEffect(() => {
     const prev = localStorage.getItem(VISITED_KEY);
@@ -84,11 +83,6 @@ export function Navbar() {
 
   useEffect(() => {
     setOpen(false);
-    if (prevPathnameRef.current !== null && prevPathnameRef.current !== pathname) {
-      lockedScrollY.current = 0;
-      window.scrollTo(0, 0);
-    }
-    prevPathnameRef.current = pathname;
   }, [pathname]);
 
   useEffect(() => {

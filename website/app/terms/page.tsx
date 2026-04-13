@@ -60,7 +60,7 @@ export default function TermsPage() {
         <h2 className="text-xl font-bold">Termination</h2>
         <p className="text-white/75 leading-[1.7]">
           You may delete your account at any time via the website where that feature is available,
-          or by contacting an administrator. We may suspend or terminate access for violations of
+          or by asking a server administrator in Discord. We may suspend or terminate access for violations of
           these terms or for operational or legal reasons, with or without notice where permitted by
           law.
         </p>
@@ -87,8 +87,7 @@ export default function TermsPage() {
       <section className="space-y-4 mb-12">
         <h2 className="text-xl font-bold">Contact</h2>
         <p className="text-white/75 leading-[1.7]">
-          Questions about these terms: reach out to a server administrator in Discord or via the
-          contact method published in the server.
+          Questions about these terms: reach a server administrator in our Discord server.
         </p>
       </section>
 

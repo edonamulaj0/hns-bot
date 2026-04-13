@@ -24,3 +24,21 @@ export async function getSessionClient(): Promise<SessionUser | null> {
     return null;
   }
 }
+
+/** After OAuth redirect the session cookie can lag one frame; retry before showing signed-out UI. */
+export async function getSessionClientWithRetry(options?: {
+  attempts?: number;
+  delayMs?: number;
+}): Promise<SessionUser | null> {
+  if (typeof window === "undefined") return null;
+  const attempts = options?.attempts ?? 5;
+  const delayMs = options?.delayMs ?? 120;
+  for (let i = 0; i < attempts; i++) {
+    const session = await getSessionClient();
+    if (session) return session;
+    if (i < attempts - 1) {
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  return null;
+}

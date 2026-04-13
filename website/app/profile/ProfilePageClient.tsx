@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { getSessionClient, loginUrl } from "@/lib/auth-client";
+import { getSessionClientWithRetry, loginUrl } from "@/lib/auth-client";
 import {
   normalizeProfileAvatarSource,
   userProfileAvatarUrl,
@@ -56,7 +56,7 @@ export function ProfilePageClient() {
   const load = useCallback(async () => {
     setSessionLoading(true);
     try {
-      const session = await getSessionClient();
+      const session = await getSessionClientWithRetry();
       if (!session) {
         setUser(null);
         return;
@@ -121,7 +121,7 @@ export function ProfilePageClient() {
       const ts = data.user.techStack;
       setTags(Array.isArray(ts) ? (ts as string[]) : []);
     } catch {
-      const session = await getSessionClient();
+      const session = await getSessionClientWithRetry();
       if (!session) {
         setUser(null);
       } else {

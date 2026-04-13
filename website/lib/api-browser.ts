@@ -13,6 +13,11 @@ const LOCAL_API_PREFIX = "/hns-api";
 
 export function browserApiUrl(path: string): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
+  // Same-origin only in the browser so session cookies (scoped to this site) are always sent.
+  // Middleware proxies `/hns-api/*` to the bot Worker at runtime.
+  if (typeof window !== "undefined") {
+    return `${LOCAL_API_PREFIX}${normalized}`;
+  }
   const worker = browserWorkerBase();
   if (worker) return `${worker}/api${normalized}`;
   return `${LOCAL_API_PREFIX}${normalized}`;

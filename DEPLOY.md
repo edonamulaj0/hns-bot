@@ -27,8 +27,17 @@ This stack has **three Cloudflare pieces** plus **Discord**:
 | **Bot Worker** (`wrangler.toml` at repo root) | Discord interactions, cron, REST API under `/api/*` |
 | **Auth Worker** (`auth/wrangler.toml`) | Discord OAuth, `hns_session` cookie, `/auth/*` |
 | **D1** | Single SQLite database shared by both Workers |
+| **Wiki** (`hns-wiki/`) | VitePress site (FMHY `edit` fork) for `wiki.h4cknstack.com` — separate Pages project |
 
 The browser calls **same-origin** `/auth/*` and `/hns-api/*`. Those requests must reach the right Worker (see [Routing](#routing) below).
+
+### Wiki (`hns-wiki/`)
+
+The curated resource wiki lives in **`hns-wiki/`** (fork of [fmhy/edit](https://github.com/fmhy/edit)). It uses **pnpm** and **Node 25+** (see `hns-wiki/package.json` `engines`).
+
+- **Local dev:** `cd hns-wiki && pnpm install && pnpm docs:dev`
+- **Production build:** `cd hns-wiki && pnpm docs:build` → static output under **`hns-wiki/docs/.vitepress/dist`**
+- **Cloudflare Pages:** new project, **Root directory** `hns-wiki`, **Build command** `pnpm install && pnpm docs:build`, **Build output** `docs/.vitepress/dist` (paths relative to root directory). Attach **`wiki.h4cknstack.com`** under Custom domains.
 
 ---
 

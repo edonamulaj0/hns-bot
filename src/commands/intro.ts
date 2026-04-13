@@ -24,9 +24,9 @@ function introMessage(base: string): string {
     "",
     "The ones people use most: **`/profile`**, **`/submit`**, **`/enroll`**, **`/leaderboard`**, **`/pulse`**, **`/link-github`** / **`/unlink-github`**, **`/delete-account`** (nuclear option, same as the site).",
     "",
-    "_This was posted with `/intro`. Questions? Drop them in chat._",
+    "Don't forget to call your friends, their friends and their mothers to join!",
     "",
-    "P.S. Don't forget to call your friends, their friends and their mothers to join!",
+    "_This was posted with `/intro`. Questions? Drop them in chat._"
   ].join("\n");
 }
 

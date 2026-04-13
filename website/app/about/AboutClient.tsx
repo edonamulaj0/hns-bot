@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
 import type { AboutStatsPayload } from "@/lib/about-stats";
+import { BUILDER_SITE_URL, DISCORD_INVITE_URL } from "@/lib/branding";
 import { OpenStatsPanel } from "@/components/about/OpenStatsPanel";
 import { AboutFaq } from "@/components/about/AboutFaq";
-import { DiscordWidget } from "@/components/DiscordWidget";
 
 export default function AboutClient({ openStats }: { openStats: AboutStatsPayload }) {
   const containerVariants = {
@@ -124,7 +123,16 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
               <p>
                 The hacker track came when enough security-minded people wanted their own lane for writeups and tooling;
                 developer and hacker share the same calendar and XP vibe. The platform—bot, site, and database—is built
-                and maintained by Cyphera, a boutique web studio in Prishtina, Kosovo.
+                and maintained by{" "}
+                <a
+                  href={BUILDER_SITE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--accent)] hover:underline"
+                >
+                  Cyphera
+                </a>
+                , a tech company in Prishtina, Kosovo.
               </p>
             </div>
           </div>
@@ -149,34 +157,36 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
           >
             <motion.div className="card p-4 sm:p-6 text-center" variants={itemVariants}>
               <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">👨‍💻 Join as Developer</h3>
-              <p className="text-white/60 mb-3 sm:mb-4 text-xs sm:text-sm">
+              <p className="text-white/60 text-xs sm:text-sm">
                 Participate in challenges, build projects, and grow with the community.
               </p>
-              <Link href="/join" className="btn btn-primary w-full justify-center">
-                Join Us
-              </Link>
             </motion.div>
 
             <motion.div className="card p-4 sm:p-6 text-center" variants={itemVariants}>
               <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">🤝 Partner With Us</h3>
-              <p className="text-white/60 mb-3 sm:mb-4 text-xs sm:text-sm">
-                Support the community and connect with talented developers.
+              <p className="text-white/60 text-xs sm:text-sm">
+                Support the community and connect with talented developers. For partnerships or questions, reach a
+                moderator in our Discord server.
               </p>
-              <a href="mailto:contact@hackstack.dev" className="btn btn-primary w-full justify-center">
-                Contact Us
-              </a>
             </motion.div>
 
             <motion.div className="card p-4 sm:p-6 text-center sm:col-span-2 lg:col-span-1" variants={itemVariants}>
               <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">💬 Community</h3>
-              <p className="text-white/60 mb-3 sm:mb-4 text-xs sm:text-sm">
-                Start on the onboarding page, then jump into Discord when you&apos;re ready.
+              <p className="text-white/60 text-xs sm:text-sm">
+                Hang out in Discord for voice, feedback, and announcements. New here? Read how we work on the join page.
               </p>
-              <Link href="/join" className="btn btn-outline w-full justify-center">
-                How to join →
-              </Link>
             </motion.div>
           </motion.div>
+          <div className="mt-8 flex justify-center">
+            <a
+              href={DISCORD_INVITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary inline-flex justify-center"
+            >
+              Join Us
+            </a>
+          </div>
         </div>
       </motion.section>
 
@@ -191,11 +201,10 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
       >
         <div className="container max-w-lg mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3">Community</h2>
-          <p className="text-sm text-white/55 mb-8 max-w-xl mx-auto">
+          <p className="text-sm text-white/55 max-w-xl mx-auto">
             Hang out in Discord for voice, feedback, and announcements. Nothing is mandatory—you can ignore challenges
-            entirely and still belong. The widget below shows who&apos;s around right now.
+            entirely and still belong.
           </p>
-          <DiscordWidget />
         </div>
       </motion.section>
 
@@ -209,7 +218,17 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
         viewport={{ once: true }}
       >
         <div className="container">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Built by Cyphera</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">
+            Built by{" "}
+            <a
+              href={BUILDER_SITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--accent)] hover:underline"
+            >
+              Cyphera
+            </a>
+          </h2>
           <p className="text-white/60 max-w-[600px] mx-auto text-xs sm:text-sm">
             H4ck&Stack is a community project built by developers, for developers. We&apos;re proud to be part of the growing
             global tech ecosystem.

@@ -32,8 +32,8 @@ export default function PrivacyPage() {
         <h2 className="text-xl font-bold">Data we do not collect</h2>
         <p className="text-white/75 leading-[1.7]">
           We do <strong className="text-white">not</strong> ask for passwords (Discord handles
-          authentication). We do not collect payment card data. We do not require an email address
-          for core community participation.
+          authentication). We do not collect payment card data. We do not collect a contact address
+          for core community participation—Discord is the account and support channel.
         </p>
       </section>
 
@@ -87,7 +87,7 @@ export default function PrivacyPage() {
         <h2 className="text-xl font-bold">Your rights</h2>
         <p className="text-white/75 leading-[1.7]">
           You may delete your account and associated data through the website where available, or by
-          contacting an administrator. Deletion removes your profile, submissions, votes, and
+          asking a server administrator in Discord. Deletion removes your profile, submissions, votes, and
           other linked records subject to technical and legal retention limits.
         </p>
       </section>

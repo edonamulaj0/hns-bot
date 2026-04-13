@@ -2,15 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const runtime = "edge";
-import { DiscordWidget } from "@/components/DiscordWidget";
+import { DISCORD_INVITE_URL } from "@/lib/branding";
 
 export const metadata: Metadata = {
   title: "Join Us | H4ck&Stack",
   description:
     "Start building with H4ck&Stack: join Discord, set up your profile, pick a track, and ship your first project.",
 };
-
-const DISCORD_INVITE = "https://discord.gg/xrxTUsgdv9";
 
 const ROLES = [
   { name: "Builder", desc: "Submitted at least one project" },
@@ -62,7 +60,7 @@ export default async function JoinPage({
           </p>
           <div className="flex flex-wrap gap-3 sm:gap-4">
             <a
-              href={DISCORD_INVITE}
+              href={DISCORD_INVITE_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-primary"
@@ -86,14 +84,11 @@ export default async function JoinPage({
                 title: "Join the Discord server",
                 body: (
                   <>
-                    <p className="text-white/65 text-sm sm:text-base leading-relaxed mb-4">
+                    <p className="text-white/65 text-sm sm:text-base leading-relaxed">
                       Click the invite link above. The server has channels for both tracks —{" "}
                       <strong className="text-white/90">#dev-chat</strong> for builders and{" "}
                       <strong className="text-white/90">#hacker-lounge</strong> for security folks.
                     </p>
-                    <div className="max-w-md">
-                      <DiscordWidget />
-                    </div>
                   </>
                 ),
               },
@@ -188,12 +183,6 @@ export default async function JoinPage({
         </div>
       </section>
 
-      <section className="section border-t border-[var(--border)]">
-        <div className="container max-w-lg mx-auto text-center">
-          <h2 className="text-xl font-bold mb-6">Live server</h2>
-          <DiscordWidget />
-        </div>
-      </section>
     </>
   );
 }

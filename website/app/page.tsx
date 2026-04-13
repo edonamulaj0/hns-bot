@@ -17,7 +17,7 @@ import {
 } from "@/lib/api";
 import type { Phase } from "@/lib/phase";
 import { PhaseCountdownLine } from "@/components/PhaseCountdown";
-import { DiscordWidget } from "@/components/DiscordWidget";
+import { DISCORD_INVITE_URL } from "@/lib/branding";
 import { buildActivityFeed } from "@/lib/activity-feed";
 import { ActivityFeedList, SeeAllActivityLink } from "@/components/ActivityTimeline";
 import { memberDisplayName } from "@/lib/member-label";
@@ -578,15 +578,17 @@ export default function HomePage() {
         <div className="container text-center max-w-2xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">Join the community</h2>
           <p className="text-sm sm:text-base text-white/60 leading-relaxed mb-8">
-            Hundreds of developers and security researchers. Monthly challenges. Real projects. Join the Discord and
-            start building.
+            Hundreds of developers and security researchers. Monthly challenges. Real projects—on Discord and here on
+            the site.
           </p>
-          <div className="mx-auto w-full max-w-[480px]">
-            <DiscordWidget />
-          </div>
-          <Link href="/join" className="btn btn-primary mt-8 inline-flex">
-            Join Us →
-          </Link>
+          <a
+            href={DISCORD_INVITE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary inline-flex justify-center"
+          >
+            Join Us
+          </a>
         </div>
       </motion.section>
     </>
