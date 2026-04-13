@@ -20,6 +20,7 @@ import { transform, transformGuide } from './transformer'
 
 // @unocss-include
 
+/** Site branding: `meta`, `nav`, `sidebar`, `socialLinks`, etc. — see `./shared.ts`. */
 export * from './shared'
 
 export const search: DefaultTheme.Config['search'] = {

@@ -19,13 +19,30 @@ import type { DefaultTheme } from 'vitepress'
 // @unocss-include
 
 export const meta = {
-    name: 'freemediaheckyeah',
-    description: 'The largest collection of free stuff on the internet!',
-    hostname: 'https://fmhy.net',
-    keywords: ['stream', 'movies', 'gaming', 'reading', 'anime'],
+    name: 'H4ck&Stack Wiki',
+    hostname: 'https://wiki.h4cknstack.com',
+    description:
+        'Free resources for developers, builders, and security researchers — curated by the H4ck&Stack community.',
+    keywords: [
+        'H4ck&Stack',
+        'wiki',
+        'developers',
+        'security',
+        'resources',
+        'builders',
+        'open source'
+    ],
+    tags: {
+        title: 'H4ck&Stack Wiki',
+        description: 'Free resources for developers, builders, and security researchers.',
+        image: 'https://wiki.h4cknstack.com/og.png',
+        url: 'https://wiki.h4cknstack.com'
+    },
     build: {
-        api: true,
-        nsfw: true
+        /** Opt in with `FMHY_BUILD_API=true` (e.g. local FMHY parity). */
+        api: false,
+        /** Opt in with `FMHY_BUILD_NSFW=true`. */
+        nsfw: false
     }
 }
 
@@ -40,15 +57,18 @@ export const excluded = [
 
 const safeEnv = (key: string) => typeof process !== 'undefined' ? process.env?.[key] : undefined
 
-if (safeEnv('FMHY_BUILD_NSFW') === 'false') {
-    meta.build.nsfw = false
+if (safeEnv('FMHY_BUILD_NSFW') === 'true') {
+    meta.build.nsfw = true
 }
-if (safeEnv('FMHY_BUILD_API') === 'false') {
-    meta.build.api = false
+if (safeEnv('FMHY_BUILD_API') === 'true') {
+    meta.build.api = true
 }
 
+/** Monorepo root — wiki lives in hns-wiki/docs */
+const HNS_BOT_REPO = 'h4cknstack/hns-bot'
+
 const formatCommitRef = (commitRef: string) =>
-    `<a href="https://github.com/fmhy/edit/commit/${commitRef}">${commitRef.slice(0, 8)}</a>`
+    `<a href="https://github.com/${HNS_BOT_REPO}/commit/${commitRef}">${commitRef.slice(0, 8)}</a>`
 
 const cfStart = safeEnv('CF_PAGES_COMMIT_SHA')
 const commitStart = safeEnv('COMMIT_REF')
@@ -60,49 +80,20 @@ export const commitRef =
             ? formatCommitRef(commitStart)
             : 'dev'
 
-export const feedback = `<a href="/feedback" class="feedback-footer">Made with ❤</a>`
+export const feedback = `<span class="feedback-footer">H4ck&Stack Wiki</span>`
 
 export const socialLinks: DefaultTheme.SocialLink[] = [
-    { icon: 'github', link: 'https://github.com/fmhy/edit' },
-    { icon: 'discord', link: 'https://github.com/fmhy/FMHY/wiki/FMHY-Discord' },
-    {
-        icon: 'reddit',
-        link: 'https://reddit.com/r/FREEMEDIAHECKYEAH'
-    }
+    { icon: 'github', link: `https://github.com/${HNS_BOT_REPO}` },
+    { icon: 'discord', link: 'https://discord.gg/xrxTUsgdv9' }
 ]
 
 export const nav: DefaultTheme.NavItem[] = [
-    { text: '📑 Changelog', link: '/posts/changelog-sites' },
-    { text: '📖 Glossary', link: 'https://rentry.org/The-Piracy-Glossary' },
+    { text: '← H4ck&Stack', link: 'https://h4cknstack.com' },
+    { text: '📖 Beginners Guide', link: '/beginners-guide' },
+    { text: '🌐 Search', link: '/posts/search' },
     {
-        text: '💾 Backups',
-        link: '/other/backups'
-    },
-    {
-        text: '🌱 Ecosystem',
-        items: [
-            { text: '🌐 Search', link: '/posts/search' },
-            { text: '❓ FAQs', link: '/other/FAQ' },
-            { text: '🔖 Bookmarks', link: 'https://github.com/fmhy/bookmarks' },
-            { text: '✅ SafeGuard', link: 'https://github.com/fmhy/FMHY-SafeGuard' },
-            { text: '🚀 Startpage', link: 'https://fmhy.net/startpage' },
-            { text: '✴️ rss.fmhy', link: 'https://rss.fmhy.bid/' },
-            { text: '🔎 SearXNG', link: 'https://searx.fmhy.net/' },
-            {
-                text: '💡 Site Hunting',
-                link: 'https://www.reddit.com/r/FREEMEDIAHECKYEAH/wiki/find-new-sites/'
-            },
-            {
-                text: '😇 SFW FMHY',
-                link: 'https://fmhy.xyz/'
-            },
-            {
-                text: '🏠 Selfhosting',
-                link: '/other/selfhosting'
-            },
-            { text: '🏞 Wallpapers', link: '/other/wallpapers' },
-            { text: '💙 Feedback', link: '/feedback' }
-        ]
+        text: '💡 Contribute',
+        link: `https://github.com/${HNS_BOT_REPO}/issues`
     }
 ]
 
@@ -117,7 +108,7 @@ export const sidebar: DefaultTheme.Sidebar | DefaultTheme.NavItemWithLink[] = [
     },
     {
         text: '<span class="i-twemoji:light-bulb"></span> Contribute',
-        link: '/other/contributing'
+        link: `https://github.com/${HNS_BOT_REPO}/issues`
     },
     {
         text: 'Wiki',
@@ -132,30 +123,6 @@ export const sidebar: DefaultTheme.Sidebar | DefaultTheme.NavItemWithLink[] = [
                 link: '/ai'
             },
             {
-                text: '<span class="i-twemoji:television"></span> Movies / TV / Anime',
-                link: '/video'
-            },
-            {
-                text: '<span class="i-twemoji:musical-note"></span> Music / Podcasts / Radio',
-                link: '/audio'
-            },
-            {
-                text: '<span class="i-twemoji:video-game"></span> Gaming / Emulation',
-                link: '/gaming'
-            },
-            {
-                text: '<span class="i-twemoji:green-book"></span> Books / Comics / Manga',
-                link: '/reading'
-            },
-            {
-                text: '<span class="i-twemoji:floppy-disk"></span> Downloading',
-                link: '/downloading'
-            },
-            {
-                text: '<span class="i-twemoji:cyclone"></span> Torrenting',
-                link: '/torrenting'
-            },
-            {
                 text: '<span class="i-twemoji:brain"></span> Educational',
                 link: '/educational'
             },
@@ -166,14 +133,6 @@ export const sidebar: DefaultTheme.Sidebar | DefaultTheme.NavItemWithLink[] = [
             {
                 text: '<span class="i-twemoji:penguin"></span> Linux / macOS',
                 link: '/linux-macos'
-            },
-            {
-                text: '<span class="i-twemoji:globe-showing-asia-australia"></span> Non-English',
-                link: '/non-english'
-            },
-            {
-                text: '<span class="i-twemoji:file-folder"></span> Miscellaneous',
-                link: '/misc'
             }
         ]
     },
@@ -202,6 +161,52 @@ export const sidebar: DefaultTheme.Sidebar | DefaultTheme.NavItemWithLink[] = [
                 link: '/text-tools'
             },
             {
+                text: '<span class="i-twemoji:red-apple"></span> Educational Tools',
+                link: '/educational#educational-tools'
+            },
+            {
+                text: '<span class="i-twemoji:man-technologist"></span> Developer Tools',
+                link: '/developer-tools'
+            }
+        ]
+    },
+    {
+        text: 'Other',
+        collapsed: true,
+        items: [
+            {
+                text: '<span class="i-twemoji:television"></span> Movies / TV / Anime',
+                link: '/video'
+            },
+            {
+                text: '<span class="i-twemoji:musical-note"></span> Music / Podcasts / Radio',
+                link: '/audio'
+            },
+            {
+                text: '<span class="i-twemoji:video-game"></span> Gaming / Emulation',
+                link: '/gaming'
+            },
+            {
+                text: '<span class="i-twemoji:green-book"></span> Books / Comics / Manga',
+                link: '/reading'
+            },
+            {
+                text: '<span class="i-twemoji:floppy-disk"></span> Downloading',
+                link: '/downloading'
+            },
+            {
+                text: '<span class="i-twemoji:cyclone"></span> Torrenting',
+                link: '/torrenting'
+            },
+            {
+                text: '<span class="i-twemoji:globe-showing-asia-australia"></span> Non-English',
+                link: '/non-english'
+            },
+            {
+                text: '<span class="i-twemoji:file-folder"></span> Miscellaneous',
+                link: '/misc'
+            },
+            {
                 text: '<span class="i-twemoji:alien-monster"></span> Gaming Tools',
                 link: '/gaming-tools'
             },
@@ -216,30 +221,6 @@ export const sidebar: DefaultTheme.Sidebar | DefaultTheme.NavItemWithLink[] = [
             {
                 text: '<span class="i-twemoji:speaker-high-volume"></span> Audio Tools',
                 link: '/audio#audio-tools'
-            },
-            {
-                text: '<span class="i-twemoji:red-apple"></span> Educational Tools',
-                link: '/educational#educational-tools'
-            },
-            {
-                text: '<span class="i-twemoji:man-technologist"></span> Developer Tools',
-                link: '/developer-tools'
-            }
-        ]
-    },
-    {
-        text: 'More',
-        collapsed: true,
-        items: [
-            meta.build.nsfw
-                ? {
-                    text: '<span class="i-twemoji:no-one-under-eighteen"></span> NSFW',
-                    link: 'https://rentry.org/NSFW-Checkpoint'
-                }
-                : {},
-            {
-                text: '<span class="i-twemoji:warning"></span> Unsafe Sites',
-                link: '/unsafe'
             },
             {
                 text: '<span class="i-twemoji:package"></span> Storage',

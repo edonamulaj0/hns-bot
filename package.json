@@ -9,6 +9,7 @@
   },
   "scripts": {
     "postinstall": "prisma generate",
+    "pages:wiki:build": "cd hns-wiki && corepack enable pnpm && pnpm install --frozen-lockfile && pnpm docs:build",
     "register": "npx tsx --env-file=.env src/register.ts",
     "deploy": "wrangler deploy"
   },

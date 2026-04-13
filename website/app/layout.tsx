@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { BRAND_NAME, BUILDER_SITE_URL } from "@/lib/branding";
+import { BRAND_NAME, BUILDER_SITE_URL, WIKI_URL } from "@/lib/branding";
 import { Navbar } from "@/components/navbar";
 import { ChallengesSubNav } from "@/components/ChallengesSubNav";
 import { SplashScreen } from "@/components/SplashScreen";
@@ -61,6 +61,14 @@ export default function RootLayout({
               </a>
               <a href="/privacy" className="text-white/50 hover:text-[var(--accent)] no-underline">
                 Privacy
+              </a>
+              <a
+                href={WIKI_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/50 hover:text-[var(--accent)] no-underline"
+              >
+                Wiki
               </a>
               <a
                 href={BUILDER_SITE_URL}

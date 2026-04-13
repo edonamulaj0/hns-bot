@@ -1,30 +1,18 @@
 ---
-title: Welcome
+title: H4ck&Stack Wiki
 layout: home
-description: The largest collection of free stuff on the internet!
+description: Free resources for developers, builders, and security researchers.
 
 hero:
-  name: freemediaheckyeah
-  tagline: The largest collection of free stuff on the internet!
-  announcement:
-    title: April 2026 Updates 🌅
-    link: /posts/april-2026
-  image:
-    src: test.png
-    alt: FMHY Icon
+  name: H4ck&Stack Wiki
+  tagline: Curated free resources for developers and security researchers.
   actions:
     - theme: brand
-      text: See Beginners Guide
-      link: /beginners-guide
+      text: Browse resources
+      link: /developer-tools
     - theme: alt
-      text: Posts
-      link: /posts
-    - theme: alt
-      text: Contribute
-      link: /other/contributing
-    - theme: alt
-      text: Discord
-      link: https://github.com/fmhy/FMHY/wiki/FMHY-Discord
+      text: Back to H4ck&Stack
+      link: https://h4cknstack.com
 
 features:
   - title: Adblocking / Privacy
@@ -116,6 +104,13 @@ features:
     details: Various topics like food, travel, news, shopping, fun sites and more!
 ---
 
+::: tip Link decoder
+Some links on this wiki open a decode prompt. This is intentional — click
+"Open Link" to proceed to the resource. Install the
+[FMHY Base64 Auto Decoder](https://greasyfork.org/en/scripts/485772-fmhy-base64-auto-decoder)
+userscript to skip this step automatically.
+:::
+
 <script setup>
 import { onMounted } from 'vue'
 
@@ -135,7 +130,7 @@ onMounted(() => {
   const resetKawaii = () => {
     const images = document.querySelectorAll('.VPImage.image-src')
     images.forEach((img) => {
-      img.src = '/test.png'
+      img.src = '/branding/hns-name.svg'
     })
   }
   if (kawaii === 'true') {

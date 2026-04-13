@@ -1,0 +1,29 @@
+:root {
+  --vp-c-brand-1: #CCFF00;
+  --vp-c-brand-2: #99cc00;
+  --vp-c-brand-3: #BBEE00;
+  --vp-c-brand-soft: rgba(204, 255, 0, 0.1);
+
+  --vp-button-brand-bg: #CCFF00;
+  --vp-button-brand-hover-bg: #BBEE00;
+  --vp-button-brand-active-bg: #99cc00;
+  --vp-button-brand-text: #000000;
+  --vp-button-brand-hover-text: #000000;
+}
+
+/* Dark mode (VitePress default is dark — these are the primary values) */
+.dark {
+  --vp-c-bg: #050505;
+  --vp-c-bg-soft: #111111;
+  --vp-c-bg-mute: #1a1a1a;
+  --vp-c-divider: #222222;
+  --vp-c-text-1: #ffffff;
+  --vp-c-text-2: #888888;
+}
+
+/* Nav logo text if using text instead of image */
+.VPNavBarTitle .title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #CCFF00 !important;
+}

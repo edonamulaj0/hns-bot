@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const runtime = "edge";
-import { DISCORD_INVITE_URL } from "@/lib/branding";
+import { DISCORD_INVITE_URL, WIKI_URL } from "@/lib/branding";
 
 export const metadata: Metadata = {
   title: "Join Us | H4ck&Stack",
@@ -76,7 +76,22 @@ export default async function JoinPage({
 
       <section className="section border-t border-[var(--border)]">
         <div className="container max-w-3xl">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-10">Your first week</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6">Your first week</h2>
+          <div className="mb-10 rounded border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3 sm:px-5 sm:py-4">
+            <p className="mono text-[0.65rem] text-white/40 uppercase tracking-wider mb-1">Resources</p>
+            <p className="text-sm sm:text-base text-white/65 leading-relaxed">
+              Browse free tools and resources at{" "}
+              <a
+                href={WIKI_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--accent)] hover:underline font-medium"
+              >
+                wiki.h4cknstack.com
+              </a>{" "}
+              →
+            </p>
+          </div>
 
           <div className="relative border-l-2 border-[var(--border)] pl-8 sm:pl-10 space-y-14">
             {[

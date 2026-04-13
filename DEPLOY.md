@@ -33,11 +33,28 @@ The browser calls **same-origin** `/auth/*` and `/hns-api/*`. Those requests mus
 
 ### Wiki (`hns-wiki/`)
 
-The curated resource wiki lives in **`hns-wiki/`** (fork of [fmhy/edit](https://github.com/fmhy/edit)). It uses **pnpm** and **Node 25+** (see `hns-wiki/package.json` `engines`).
+The curated resource wiki lives in **`hns-wiki/`** (fork of [fmhy/edit](https://github.com/fmhy/edit)). It uses **pnpm** (see `hns-wiki/package.json` `packageManager` / `engines` for local tooling).
 
 - **Local dev:** `cd hns-wiki && pnpm install && pnpm docs:dev`
 - **Production build:** `cd hns-wiki && pnpm docs:build` → static output under **`hns-wiki/docs/.vitepress/dist`**
-- **Cloudflare Pages:** new project, **Root directory** `hns-wiki`, **Build command** `pnpm install && pnpm docs:build`, **Build output** `docs/.vitepress/dist` (paths relative to root directory). Attach **`wiki.h4cknstack.com`** under Custom domains.
+- **Wrangler (optional):** `hns-wiki/wrangler.toml` sets `name = "hns-wiki"` and `pages_build_output_dir = "docs/.vitepress/dist"` for `wrangler pages` workflows.
+
+**Cloudflare Pages (production)**
+
+1. Create a **Pages** project from this repo (or upload). Set **Root directory** to **`hns-wiki`**.
+2. **Build command:** `pnpm install && pnpm docs:build` (or `pnpm docs:build` if install is handled separately).
+3. **Build output directory:** `docs/.vitepress/dist` (relative to `hns-wiki/`).
+4. **Environment variables → Production (and Preview if needed):**
+   - **`NODE_VERSION`** = `21`
+   - **`FMHY_BUILD_NSFW`** — omit or leave empty (**default** for this wiki). Set to **`true`** only if you need FMHY NSFW build paths.
+   - **`FMHY_BUILD_API`** — omit or leave empty (**default**). Set to **`true`** only if you need FMHY feedback API hooks.
+5. **Custom domain:** Pages → **Custom domains** → add **`wiki.h4cknstack.com`**. In **Cloudflare DNS** for the zone, add:
+   - **Type:** CNAME  
+   - **Name:** `wiki`  
+   - **Target:** `hns-wiki.pages.dev` (or the hostname Pages shows for your project)  
+   - **Proxy:** Proxied  
+
+After DNS propagates, the wiki should serve on **`https://wiki.h4cknstack.com`**.
 
 ---
 

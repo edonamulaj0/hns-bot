@@ -26,9 +26,9 @@ import { replaceNoteLink } from './utils/markdown'
 
 const baseUrl = process.env.GITHUB_ACTIONS ? '/edit' : '/'
 export default defineConfig({
-  title: 'FMHY',
+  title: meta.name,
   description: meta.description,
-  titleTemplate: ':title • freemediaheckyeah',
+  titleTemplate: ':title • H4ck&Stack Wiki',
   lang: 'en-US',
   lastUpdated: false,
   cleanUrls: true,
@@ -43,7 +43,7 @@ export default defineConfig({
     ['meta', { name: 'theme-color', content: '#7bc5e4' }],
     ['meta', { name: 'og:type', content: 'website' }],
     ['meta', { name: 'og:locale', content: 'en' }],
-    ['link', { rel: 'icon', href: '/test.png' }],
+    ['link', { rel: 'icon', href: '/branding/hns-name.svg', type: 'image/svg+xml' }],
     // PWA
     ['link', { rel: 'manifest', href: '/manifest.json' }],
     ['link', { rel: 'icon', href: '/pwa_icon.png', type: 'image/svg+xml' }],
@@ -53,22 +53,6 @@ export default defineConfig({
     ['link', { rel: 'apple-touch-icon', href: '/pwa_icon.png', sizes: '192x192' }],
     ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
     ['meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'default' }],
-    // Bing site verification
-    [
-      'meta',
-      {
-        name: 'msvalidate.01',
-        content: 'F3028112EF6F929B562F4B18E58E3691'
-      }
-    ],
-    // Google site verification
-    [
-      'meta',
-      {
-        name: 'google-site-verification',
-        content: 'XCq-ZTw6VJPQ7gVNEOl8u0JRqfadK7WcsJ0H598Wv9E'
-      }
-    ],
     // Redirect to main site if embedded in iframe
     [
       'script',
@@ -118,6 +102,12 @@ export default defineConfig({
           replacement: fileURLToPath(
             new URL('./theme/components/VPNav.vue', import.meta.url)
           )
+        },
+        {
+          find: /^.*VPHome\.vue$/,
+          replacement: fileURLToPath(
+            new URL('./theme/components/VPHome.vue', import.meta.url)
+          )
         }
       ]
     },
@@ -164,9 +154,9 @@ export default defineConfig({
           ]
         },
         manifest: {
-          name: 'FMHY - freemediaheckyeah',
-          short_name: 'FMHY',
-          description: 'The largest collection of free stuff on the internet!',
+          name: 'H4ck&Stack Wiki',
+          short_name: 'H&S Wiki',
+          description: meta.description,
           theme_color: '#000000ff',
           background_color: '#000000ff',
           display: 'standalone',
@@ -232,17 +222,20 @@ export default defineConfig({
     footer: {
       message: `${feedback} (rev: ${commitRef})`,
       copyright:
-        `© ${new Date().getFullYear()}, <a href="https://i.ibb.co/VJQmQ9t/image.png">Estd 2018.</a>` +
-        `<br/> This site does not host any files.`
+        `© ${new Date().getFullYear()} H4ck&Stack Wiki · Content sourced from FMHY (CC BY-SA 4.0) · ` +
+        `wiki.h4cknstack.com is not affiliated with fmhy.net` +
+        `<br/> This site does not host any files.` +
+        `<br/> <a href="https://rentry.org/The-Piracy-Glossary" rel="noopener noreferrer">Piracy glossary</a> (external reference)`
     },
     editLink: {
-      pattern: 'https://github.com/fmhy/edit/edit/main/docs/:path',
+      pattern:
+        'https://github.com/h4cknstack/hns-bot/edit/main/hns-wiki/docs/:path',
       text: '📝 Edit this page'
     },
     outline: 'deep',
     logo: {
-      src: '/fmhy.ico',
-      alt: 'FMHY Logo'
+      src: '/branding/hns-name.svg',
+      alt: 'H4ck&Stack'
     },
     nav,
     sidebar,
