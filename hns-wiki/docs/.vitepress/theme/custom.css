@@ -65,7 +65,9 @@ h1, h2, h3, h4 {
   backdrop-filter: blur(12px);
 }
 
-.VPNavBar {
+.VPNavBar,
+.VPNavBar .container,
+.VPNavBar .content {
   max-width: var(--container-max);
   margin: 0 auto;
   padding-left: clamp(1rem, 4vw, 2.5rem);
@@ -79,16 +81,24 @@ h1, h2, h3, h4 {
 }
 
 .VPNavBarTitle .logo {
+  display: block !important;
   height: 34px !important;
   width: auto !important;
   max-width: min(260px, 60vw);
   object-fit: contain;
 }
 
+.VPNavBarTitle .logo-link {
+  margin-right: 0.75rem;
+}
+
 .VPNavBarMenuLink {
   color: var(--text-dim) !important;
   border: 1px solid transparent;
   border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 0.45rem 0.75rem !important;
 }
 
 .VPNavBarMenuLink:hover,
@@ -100,6 +110,16 @@ h1, h2, h3, h4 {
 .VPSidebar {
   background: var(--bg) !important;
   border-right: 1px solid var(--border);
+}
+
+.VPSidebar .group .link,
+.VPSidebar .group .text {
+  color: var(--text-dim) !important;
+}
+
+.VPSidebar .group .link:hover,
+.VPSidebar .group .link.active {
+  color: var(--accent) !important;
 }
 
 .VPContent .container,
