@@ -35,7 +35,7 @@ export const meta = {
     tags: {
         title: 'H4ck&Stack Wiki',
         description: 'Free resources for developers, builders, and security researchers.',
-        image: 'https://wiki.h4cknstack.com/og.png',
+        image: 'https://h4cknstack.com/branding/hns-name.svg',
         url: 'https://wiki.h4cknstack.com'
     },
     build: {

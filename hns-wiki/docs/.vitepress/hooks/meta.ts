@@ -29,7 +29,7 @@ export function generateMeta(context: TransformContext, hostname: string) {
     ['link', { rel: 'canonical', href: url }],
     ['meta', { property: 'og:url', content: url }],
     ['meta', { name: 'twitter:url', content: url }],
-    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:card', content: 'summary' }],
     ['meta', { property: 'og:title', content: pageData.frontmatter.title }],
     ['meta', { name: 'twitter:title', content: pageData.frontmatter.title }]
   )
@@ -53,45 +53,14 @@ export function generateMeta(context: TransformContext, hostname: string) {
     )
   }
 
-  if (pageData.frontmatter.image) {
-    head.push([
-      'meta',
-      {
-        property: 'og:image',
-        content: `${hostname}/${pageData.frontmatter.image.replace(/^\//, '')}`
-      }
-    ])
-    head.push([
-      'meta',
-      {
-        name: 'twitter:image',
-        content: `${hostname}/${pageData.frontmatter.image.replace(/^\//, '')}`
-      }
-    ])
-  } else {
-    const url = pageData.filePath.replace('index.md', '').replace('.md', '')
-    const imageUrl = `${url}/__og_image__/og.webp`
-      .replaceAll('//', '/')
-      .replace(/^\//, '')
-
-    head.push(
-      ['meta', { property: 'og:image', content: `${hostname}/${imageUrl}` }],
-      ['meta', { property: 'og:image:width', content: '1200' }],
-      ['meta', { property: 'og:image:height', content: '630' }],
-      ['meta', { property: 'og:image:type', content: 'image/png' }],
-      [
-        'meta',
-        { property: 'og:image:alt', content: pageData.frontmatter.title }
-      ],
-      ['meta', { name: 'twitter:image', content: `${hostname}/${imageUrl}` }],
-      ['meta', { name: 'twitter:image:width', content: '1200' }],
-      ['meta', { name: 'twitter:image:height', content: '630' }],
-      [
-        'meta',
-        { name: 'twitter:image:alt', content: pageData.frontmatter.title }
-      ]
-    )
-  }
+  const brandingImage = 'https://h4cknstack.com/branding/hns-name.svg'
+  head.push(
+    ['meta', { property: 'og:image', content: brandingImage }],
+    ['meta', { property: 'og:image:type', content: 'image/png' }],
+    ['meta', { property: 'og:image:alt', content: pageData.frontmatter.title }],
+    ['meta', { name: 'twitter:image', content: brandingImage }],
+    ['meta', { name: 'twitter:image:alt', content: pageData.frontmatter.title }]
+  )
 
   if (pageData.frontmatter.tag) {
     head.push([

@@ -15,7 +15,7 @@ import {
   sidebar,
   socialLinks
 } from './constants'
-import { generateFeed, generateImages, generateMeta } from './hooks'
+import { generateFeed, generateMeta } from './hooks'
 import { defs, emojiRender, movePlugin } from './markdown/emoji'
 import { headersPlugin } from './markdown/headers'
 import { toggleStarredPlugin } from './markdown/toggleStarred'
@@ -43,7 +43,7 @@ export default defineConfig({
     ['meta', { name: 'theme-color', content: '#7bc5e4' }],
     ['meta', { name: 'og:type', content: 'website' }],
     ['meta', { name: 'og:locale', content: 'en' }],
-    ['link', { rel: 'icon', href: '/branding/hns-name.svg', type: 'image/svg+xml' }],
+    ['link', { rel: 'icon', href: 'https://h4cknstack.com/branding/hns-name.svg', type: 'image/svg+xml' }],
     // PWA
     ['link', { rel: 'manifest', href: '/manifest.json' }],
     ['link', { rel: 'icon', href: '/pwa_icon.png', type: 'image/svg+xml' }],
@@ -68,8 +68,7 @@ export default defineConfig({
   ],
   transformHead: async (context) => generateMeta(context, meta.hostname),
   buildEnd: async (context) => {
-    generateImages(context)
-      .then(() => generateFeed(context))
+    generateFeed(context)
       .finally(() => consola.success('Success!'))
   },
   vite: {
@@ -239,7 +238,7 @@ export default defineConfig({
     },
     outline: 'deep',
     logo: {
-      src: '/branding/hns-name.svg',
+      src: 'https://h4cknstack.com/branding/hns-name.svg',
       alt: 'H4ck&Stack'
     },
     nav,
