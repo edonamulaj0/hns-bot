@@ -8,7 +8,7 @@ import { ensureAbsoluteUrl, githubProfileHref } from "@/lib/url";
 type PublicProfileViewProps = {
   data: PublicMemberProfile;
   isOwnProfile?: boolean;
-  manageLinks?: { submissions: string; articles: string };
+  manageLinks?: { submissions: string; articles: string; projects: string };
 };
 
 export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: PublicProfileViewProps) {
@@ -144,6 +144,45 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
                       </article>
                     );
                   })}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <div className="mb-4 flex items-center justify-between gap-2">
+                <h2 className="font-bold text-lg">Other Projects</h2>
+                {isOwnProfile && manageLinks ? (
+                  <Link href={manageLinks.projects} className="btn text-xs py-1.5">
+                    Manage projects
+                  </Link>
+                ) : null}
+              </div>
+              {(data.projects ?? []).length === 0 ? (
+                <div className="empty-state">
+                  <p>No extra projects shared yet.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(data.projects ?? []).map((project) => (
+                    <article key={project.id} className="card p-4 sm:p-5 flex flex-col gap-3">
+                      <h3 className="font-bold text-lg">{project.title}</h3>
+                      {project.content?.trim() ? (
+                        <p className="text-sm text-white/60 line-clamp-4">
+                          {project.content.trim()}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-white/45">No markdown description provided.</p>
+                      )}
+                      <a
+                        href={project.viewUrl ?? project.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn text-xs w-fit mt-auto"
+                      >
+                        Open project →
+                      </a>
+                    </article>
+                  ))}
                 </div>
               )}
             </div>

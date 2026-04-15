@@ -38,7 +38,7 @@ type EditDraft = {
   attachmentUrl: string;
 };
 
-export function SubmissionsClient() {
+export function SubmissionsClient({ backHref = "/profile" }: { backHref?: string }) {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<SubmissionItem[]>([]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -192,8 +192,8 @@ export function SubmissionsClient() {
     <section className="section px-[clamp(1rem,4vw,2rem)]">
       <div className="container max-w-4xl">
         <div className="mb-6">
-          <Link href="/settings" className="btn text-sm mb-3 inline-flex">
-            ← Settings
+          <Link href={backHref} className="btn text-sm mb-3 inline-flex">
+            ← Profile
           </Link>
           <h1 className="text-3xl font-bold">My Submissions</h1>
         </div>

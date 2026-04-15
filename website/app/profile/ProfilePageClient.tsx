@@ -87,7 +87,11 @@ export function ProfilePageClient() {
     <PublicProfileView
       data={data}
       isOwnProfile
-      manageLinks={{ submissions: "/settings/submissions", articles: "/settings" }}
+      manageLinks={{
+        submissions: "/profile/submissions",
+        articles: "/profile/articles",
+        projects: "/profile/projects",
+      }}
     />
   );
 }

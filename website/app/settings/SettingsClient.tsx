@@ -51,6 +51,7 @@ type MeUser = {
   github: string | null;
   linkedin: string | null;
   techStack: unknown;
+  profileAvatarSource?: string | null;
 };
 
 function normalizeTag(v: string) {
@@ -64,6 +65,7 @@ export function SettingsClient() {
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [avatarSource, setAvatarSource] = useState<"github" | "discord">("discord");
   const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveOk, setSaveOk] = useState(false);
@@ -111,6 +113,9 @@ export function SettingsClient() {
         setGithub(data.user.github ?? "");
         setLinkedin(data.user.linkedin ?? "");
         setTags(Array.isArray(data.user.techStack) ? (data.user.techStack as string[]).slice(0, 15) : []);
+        setAvatarSource(
+          data.user.profileAvatarSource?.toLowerCase() === "github" ? "github" : "discord",
+        );
       } finally {
         if (alive) setLoading(false);
       }
@@ -180,6 +185,7 @@ export function SettingsClient() {
         github: github || null,
         linkedin: linkedin || null,
         techStack: tags,
+        profileAvatarSource: avatarSource,
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -334,6 +340,42 @@ export function SettingsClient() {
               />
               <p className="text-xs text-white/45 mt-1">Up to 15 tags, 30 chars each.</p>
 
+              <label className="block text-sm text-white/70 mb-1 mt-5">Profile picture source</label>
+              <div className="rounded border border-[var(--border)] bg-[var(--bg-card)] p-3 space-y-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="avatar-source"
+                    checked={avatarSource === "discord"}
+                    onChange={() => setAvatarSource("discord")}
+                  />
+                  Discord
+                </label>
+                <label
+                  className={`flex items-center gap-2 text-sm ${
+                    !github.trim() ? "text-white/40" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="avatar-source"
+                    checked={avatarSource === "github"}
+                    onChange={() => setAvatarSource("github")}
+                    disabled={!github.trim()}
+                  />
+                  GitHub
+                </label>
+                {!github.trim() && (
+                  <p className="text-xs text-white/45">
+                    Link your GitHub on your profile first.{" "}
+                    <Link href="/profile" className="text-[var(--accent)] hover:underline">
+                      Add link on profile
+                    </Link>
+                    .
+                  </p>
+                )}
+              </div>
+
               <div className="mt-6 flex items-center gap-3">
                 <button
                   type="button"
@@ -353,17 +395,6 @@ export function SettingsClient() {
                 </span>
               </div>
               {error && <p className="mt-2 text-sm text-[var(--danger)]">{error}</p>}
-            </div>
-
-            <div className="card p-5 sm:p-6 mt-6">
-              <h2 className="text-xl font-bold mb-4">My Submissions</h2>
-              <Link
-                href="/settings/submissions"
-                className="btn w-full justify-between"
-                aria-label="Manage my submissions"
-              >
-                <span>Manage my submissions →</span>
-              </Link>
             </div>
 
             <div

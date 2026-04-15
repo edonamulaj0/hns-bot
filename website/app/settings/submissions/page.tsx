@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SubmissionsClient } from "./SubmissionsClient";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "My Submissions | H4ck&Stack",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function SettingsSubmissionsPage() {
-  return <SubmissionsClient />;
+  redirect("/profile/submissions");
 }

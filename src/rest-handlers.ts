@@ -77,6 +77,14 @@ async function readJson<T>(request: Request): Promise<T | null> {
   }
 }
 
+type BlogKind = "ARTICLE" | "PROJECT";
+
+function normalizeBlogKind(raw: string | null | undefined): BlogKind | null {
+  const v = (raw ?? "").trim().toUpperCase();
+  if (v === "ARTICLE" || v === "PROJECT") return v;
+  return null;
+}
+
 function normalizeGithubInput(raw: string | null | undefined): string | null {
   const t = raw?.trim();
   if (!t) return null;
@@ -207,6 +215,35 @@ export async function handleMe(
     }),
   ]);
 
+  const blogs = await prisma.blog.findMany({
+    where: { userId: user.id, kind: "ARTICLE" },
+    orderBy: [{ createdAt: "desc" }],
+    select: {
+      id: true,
+      kind: true,
+      title: true,
+      url: true,
+      content: true,
+      upvotes: true,
+      views: true,
+      createdAt: true,
+    },
+  });
+  const projects = await prisma.blog.findMany({
+    where: { userId: user.id, kind: "PROJECT" },
+    orderBy: [{ createdAt: "desc" }],
+    select: {
+      id: true,
+      kind: true,
+      title: true,
+      url: true,
+      content: true,
+      upvotes: true,
+      views: true,
+      createdAt: true,
+    },
+  });
+
   return jsonResponse(env, request, {
     user: {
       id: user.id,
@@ -232,6 +269,8 @@ export async function handleMe(
       : null,
     submission,
     submissions,
+    blogs,
+    projects,
   });
 }
 
@@ -292,11 +331,17 @@ export async function handleUserPublicProfile(
   }));
 
   const blogRows = await prisma.blog.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, kind: "ARTICLE" },
+    orderBy: [{ createdAt: "desc" }],
+  });
+
+  const projectRows = await prisma.blog.findMany({
+    where: { userId: user.id, kind: "PROJECT" },
     orderBy: [{ createdAt: "desc" }],
   });
 
   const blogs = blogRows.map((b) => ({
+    kind: b.kind,
     id: b.id,
     title: b.title,
     url: b.url,
@@ -305,6 +350,23 @@ export async function handleUserPublicProfile(
     views: b.views,
     createdAt: b.createdAt.toISOString(),
     content: b.content ? b.content.slice(0, 500) : null,
+    user: {
+      discordId: user.discordId,
+      displayName: mergedPublicDisplayName(user.displayName, user.discordUsername),
+      github: user.github,
+    },
+  }));
+
+  const projects = projectRows.map((p) => ({
+    kind: p.kind,
+    id: p.id,
+    title: p.title,
+    url: p.url,
+    viewUrl: `/hns-api/blogs/${p.id}/view`,
+    upvotes: p.upvotes,
+    views: p.views,
+    createdAt: p.createdAt.toISOString(),
+    content: p.content ? p.content.slice(0, 500) : null,
     user: {
       discordId: user.discordId,
       displayName: mergedPublicDisplayName(user.displayName, user.discordUsername),
@@ -334,10 +396,143 @@ export async function handleUserPublicProfile(
       },
       submissions,
       blogs,
+      projects,
     },
     200,
     { "Cache-Control": "public, max-age=60" },
   );
+}
+
+export async function handleBlogPost(
+  prisma: PrismaClient,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const ctx = await authCtx(prisma, request, env);
+  if (!ctx.session) return ctx.membershipError!;
+  const body = await readJson<{
+    kind?: string;
+    title?: string;
+    url?: string;
+    content?: string | null;
+  }>(request);
+  if (!body) return jsonResponse(env, request, { error: "invalid_json" }, 400);
+
+  const kind = normalizeBlogKind(body.kind);
+  if (!kind) return jsonResponse(env, request, { error: "invalid_kind" }, 400);
+  const title = body.title?.trim() ?? "";
+  const url = body.url?.trim() ?? "";
+  if (title.length < 3 || title.length > 120) {
+    return jsonResponse(env, request, { error: "title_length" }, 400);
+  }
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return jsonResponse(env, request, { error: "invalid_url" }, 400);
+  }
+  if (!["https:", "http:"].includes(parsedUrl.protocol)) {
+    return jsonResponse(env, request, { error: "invalid_url_protocol" }, 400);
+  }
+  const content = body.content?.trim() || null;
+  if (content && content.length > 20_000) {
+    return jsonResponse(env, request, { error: "content_too_long" }, 400);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { discordId: ctx.session.discordId },
+    select: { id: true },
+  });
+  if (!user) return jsonResponse(env, request, { error: "user_not_found" }, 404);
+
+  const blog = await prisma.blog.create({
+    data: {
+      userId: user.id,
+      kind,
+      title,
+      url: parsedUrl.toString(),
+      content,
+    },
+  });
+  return jsonResponse(env, request, { ok: true, blog });
+}
+
+export async function handleBlogPatch(
+  prisma: PrismaClient,
+  id: string,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const ctx = await authCtx(prisma, request, env);
+  if (!ctx.session) return ctx.membershipError!;
+  const user = await prisma.user.findUnique({
+    where: { discordId: ctx.session.discordId },
+    select: { id: true },
+  });
+  if (!user) return jsonResponse(env, request, { error: "user_not_found" }, 404);
+  const existing = await prisma.blog.findFirst({ where: { id, userId: user.id } });
+  if (!existing) return jsonResponse(env, request, { error: "not_found" }, 404);
+
+  const body = await readJson<{
+    title?: string;
+    url?: string;
+    content?: string | null;
+  }>(request);
+  if (!body) return jsonResponse(env, request, { error: "invalid_json" }, 400);
+
+  const data: Record<string, unknown> = {};
+  if (body.title !== undefined) {
+    const title = body.title.trim();
+    if (title.length < 3 || title.length > 120) {
+      return jsonResponse(env, request, { error: "title_length" }, 400);
+    }
+    data.title = title;
+  }
+  if (body.url !== undefined) {
+    const raw = body.url.trim();
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(raw);
+    } catch {
+      return jsonResponse(env, request, { error: "invalid_url" }, 400);
+    }
+    if (!["https:", "http:"].includes(parsedUrl.protocol)) {
+      return jsonResponse(env, request, { error: "invalid_url_protocol" }, 400);
+    }
+    data.url = parsedUrl.toString();
+  }
+  if (body.content !== undefined) {
+    const content = body.content?.trim() || null;
+    if (content && content.length > 20_000) {
+      return jsonResponse(env, request, { error: "content_too_long" }, 400);
+    }
+    data.content = content;
+  }
+
+  const blog = await prisma.blog.update({
+    where: { id },
+    data: data as any,
+  });
+  return jsonResponse(env, request, { ok: true, blog });
+}
+
+export async function handleBlogDelete(
+  prisma: PrismaClient,
+  id: string,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const ctx = await authCtx(prisma, request, env);
+  if (!ctx.session) return ctx.membershipError!;
+  const user = await prisma.user.findUnique({
+    where: { discordId: ctx.session.discordId },
+    select: { id: true },
+  });
+  if (!user) return jsonResponse(env, request, { error: "user_not_found" }, 404);
+  const existing = await prisma.blog.findFirst({ where: { id, userId: user.id }, select: { id: true } });
+  if (!existing) return jsonResponse(env, request, { error: "not_found" }, 404);
+  await prisma.blog.delete({ where: { id } });
+  return jsonResponse(env, request, { deleted: true });
 }
 
 export async function handleVotePost(

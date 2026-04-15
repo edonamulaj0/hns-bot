@@ -105,6 +105,7 @@ model Submission {
 model Blog {
   id        String   @id @default(cuid())
   userId    String
+  kind      String   @default("ARTICLE")
   title     String
   url       String
   content   String?

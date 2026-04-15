@@ -1,0 +1,3 @@
+ALTER TABLE "Blog" ADD COLUMN "kind" TEXT NOT NULL DEFAULT 'ARTICLE';
+
+CREATE INDEX "Blog_kind_idx" ON "Blog"("kind");

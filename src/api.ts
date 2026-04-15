@@ -20,6 +20,9 @@ import {
   handleSubmitDelete,
   handleBlogView,
   handleUserPublicProfile,
+  handleBlogPost,
+  handleBlogPatch,
+  handleBlogDelete,
 } from "./rest-handlers";
 
 /** Stable pathname for routing (collapse slashes, trim trailing slash, keep leading slash). */
@@ -104,6 +107,14 @@ export async function handleApiRequest(
       return tagApi(body, method);
     }
 
+    const blogPatchMatch = pathname.match(/^\/api\/blog\/([^/]+)$/);
+    if (blogPatchMatch && method === "PATCH") {
+      return tagApi(await handleBlogPatch(prisma, blogPatchMatch[1]!, request, env), method);
+    }
+    if (blogPatchMatch && method === "DELETE") {
+      return tagApi(await handleBlogDelete(prisma, blogPatchMatch[1]!, request, env), method);
+    }
+
     const userPublicMatch = pathname.match(/^\/api\/users\/(\d{17,20})$/);
     if (userPublicMatch && method === "GET") {
       const body = await handleUserPublicProfile(
@@ -165,6 +176,9 @@ export async function handleApiRequest(
 
     if (pathname === "/api/submit" && method === "POST") {
       return tagApi(await handleSubmitPost(prisma, request, env), method);
+    }
+    if (pathname === "/api/blog" && method === "POST") {
+      return tagApi(await handleBlogPost(prisma, request, env), method);
     }
 
     if (method !== "GET" && method !== "HEAD") {
@@ -440,6 +454,7 @@ async function challengesResponse(
 
 async function blogsResponse(prisma: PrismaClient): Promise<Response> {
   const rows = await prisma.blog.findMany({
+    where: { kind: "ARTICLE" },
     include: {
       user: {
         select: {
@@ -457,6 +472,7 @@ async function blogsResponse(prisma: PrismaClient): Promise<Response> {
   const blogs = rows.map((b) => {
     const u = b.user;
     return {
+      kind: b.kind,
       id: b.id,
       title: b.title,
       url: b.url,

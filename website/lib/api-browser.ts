@@ -94,6 +94,39 @@ export async function deleteSubmit(id: string): Promise<Response> {
   });
 }
 
+export async function postBlog(body: {
+  kind: "ARTICLE" | "PROJECT";
+  title: string;
+  url: string;
+  content?: string | null;
+}): Promise<Response> {
+  return fetch(browserApiUrl("/blog"), {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function patchBlog(
+  id: string,
+  body: { title?: string; url?: string; content?: string | null },
+): Promise<Response> {
+  return fetch(browserApiUrl(`/blog/${encodeURIComponent(id)}`), {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteBlog(id: string): Promise<Response> {
+  return fetch(browserApiUrl(`/blog/${encodeURIComponent(id)}`), {
+    method: "DELETE",
+    credentials: "include",
+  });
+}
+
 export async function fetchVoteQueue(month: string): Promise<Response> {
   return fetch(
     browserApiUrl(`/vote/queue?month=${encodeURIComponent(month)}`),

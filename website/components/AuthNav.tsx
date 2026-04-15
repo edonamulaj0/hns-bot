@@ -62,7 +62,7 @@ export function AuthNav() {
   const label = user.displayName?.trim() || "Account";
 
   return (
-    <div className="relative mt-2 md:mt-0 md:ml-2" ref={wrapRef}>
+    <div className="relative z-[10060] mt-2 md:mt-0 md:ml-2" ref={wrapRef}>
       <button
         type="button"
         className="flex items-center gap-2 rounded border border-[var(--border-bright)] bg-[var(--bg-card)] px-2 py-1.5 text-left text-sm"
@@ -80,7 +80,7 @@ export function AuthNav() {
         <span className="max-w-[8rem] truncate font-medium">{label}</span>
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-[120] mt-1 min-w-[11rem] rounded border border-[var(--border)] bg-[var(--bg)] py-1 shadow-lg">
+        <div className="absolute right-0 top-full z-[10070] mt-1 min-w-[11rem] rounded border border-[var(--border)] bg-[var(--bg)] py-1 shadow-lg">
           <Link
             href="/profile"
             className="block px-3 py-2 text-sm no-underline hover:bg-[var(--bg-raised)]"
@@ -89,7 +89,7 @@ export function AuthNav() {
             My Profile
           </Link>
           <Link
-            href="/settings/submissions"
+            href="/profile/submissions"
             className="block px-3 py-2 text-sm no-underline hover:bg-[var(--bg-raised)]"
             onClick={() => setOpen(false)}
           >

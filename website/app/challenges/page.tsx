@@ -122,6 +122,9 @@ export default function ChallengesPage() {
                 <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
                 <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
               </div>
+              <Link href="/challenges/developers" className="btn btn-primary w-fit mt-4">
+                View challenges →
+              </Link>
             </motion.div>
 
             <motion.div
@@ -161,65 +164,9 @@ export default function ChallengesPage() {
                   </span>
                 ))}
               </div>
-            </motion.div>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* ── Track hubs ───────────────────────────────────────────────────── */}
-      <motion.section
-        className="section"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.6, ease: EASE_OUT }}
-        viewport={{ once: true, amount: 0.15 }}
-      >
-        <div className="container w-full">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-2 lg:mb-3">Browse by track</h2>
-          <p className="text-white/60 mb-6 sm:mb-8 max-w-2xl text-sm sm:text-base">
-            Each month we post three tiers per track (Beginner, Intermediate, Advanced). View briefs, enrollment
-            stats, and links to approved submissions.
-          </p>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <motion.div
-              className="card p-6 sm:p-8 flex flex-col gap-4 min-h-[220px]"
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: EASE_OUT }}
-              viewport={{ once: true, amount: 0.15 }}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">🛠</span>
-                <h3 className="text-2xl sm:text-3xl font-bold">Developer Track</h3>
-              </div>
-              <p className="text-white/60 text-sm sm:text-base leading-relaxed flex-1">
-                Ship apps, libraries, and tools. Monthly briefs with three difficulty tiers — enroll in Discord and
-                submit before the build window closes.
-              </p>
-              <Link href="/challenges/developers" className="btn btn-primary w-fit">
-                View challenges →
-              </Link>
-            </motion.div>
-
-            <motion.div
-              className="card p-6 sm:p-8 flex flex-col gap-4 min-h-[220px] border-[#7c2feb40]"
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.06, ease: EASE_OUT }}
-              viewport={{ once: true, amount: 0.15 }}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">🔒</span>
-                <h3 className="text-2xl sm:text-3xl font-bold">Hacker Track</h3>
-              </div>
-              <p className="text-white/60 text-sm sm:text-base leading-relaxed flex-1">
-                CTF writeups, tooling, vuln research, and red team work — same monthly rhythm as developers, with
-                security-focused briefs each tier.
-              </p>
               <Link
                 href="/challenges/hackers"
-                className="btn w-fit"
+                className="btn w-fit mt-4"
                 style={{
                   borderColor: "#7c2feb66",
                   color: "#ccff00",

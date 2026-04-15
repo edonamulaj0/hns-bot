@@ -250,7 +250,7 @@ export function Navbar() {
                   <div className="flex flex-col gap-1">
                     {(
                       [
-                        { href: "/settings/submissions", label: "My Submissions" },
+                        { href: "/profile/submissions", label: "My Submissions" },
                         { href: `/vote/${voteMonth}`, label: "Vote" },
                       ] as const
                     ).map((item) => {

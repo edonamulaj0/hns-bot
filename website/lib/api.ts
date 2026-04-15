@@ -131,6 +131,7 @@ export interface Member extends MemberSummary {
 
 export interface Blog {
   id: string;
+  kind?: "ARTICLE" | "PROJECT";
   title: string;
   url: string;
   viewUrl?: string;
@@ -219,6 +220,7 @@ export interface PublicMemberProfile {
   user: PublicProfileUser;
   submissions: PublicProfileSubmission[];
   blogs: Blog[];
+  projects?: Blog[];
 }
 
 export interface DiscordWidgetChannel {
