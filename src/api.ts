@@ -340,18 +340,6 @@ async function membersResponse(prisma: PrismaClient): Promise<Response> {
     orderBy: [{ createdAt: "asc" }],
   });
 
-  rawMembers.sort((a, b) => {
-    try {
-      const da = BigInt(a.discordId);
-      const db = BigInt(b.discordId);
-      if (da < db) return -1;
-      if (da > db) return 1;
-      return 0;
-    } catch {
-      return a.discordId.localeCompare(b.discordId);
-    }
-  });
-
   const members = rawMembers.map((m) => {
     const { discordUsername, ...rest } = m;
     return {
@@ -453,26 +441,62 @@ async function challengesResponse(
 }
 
 async function blogsResponse(prisma: PrismaClient): Promise<Response> {
-  const rows = await prisma.blog.findMany({
-    where: { kind: "ARTICLE" },
-    include: {
-      user: {
-        select: {
-          discordId: true,
-          displayName: true,
-          discordUsername: true,
-          github: true,
+  // Backward-compatible query:
+  // Some deployed DBs may not have Blog.kind yet; fallback keeps /api/blogs working.
+  let rows: Array<{
+    id: string;
+    kind?: string | null;
+    title: string;
+    url: string;
+    upvotes: number;
+    views: number;
+    createdAt: Date;
+    content: string | null;
+    user: {
+      discordId: string;
+      displayName: string | null;
+      discordUsername: string | null;
+      github: string | null;
+    };
+  }> = [];
+
+  try {
+    rows = await prisma.blog.findMany({
+      where: { kind: "ARTICLE" } as any,
+      include: {
+        user: {
+          select: {
+            discordId: true,
+            displayName: true,
+            discordUsername: true,
+            github: true,
+          },
         },
       },
-    },
-    orderBy: [{ views: "desc" }, { createdAt: "desc" }],
-    take: 100,
-  });
+      orderBy: [{ views: "desc" }, { createdAt: "desc" }],
+      take: 100,
+    });
+  } catch {
+    rows = await prisma.blog.findMany({
+      include: {
+        user: {
+          select: {
+            discordId: true,
+            displayName: true,
+            discordUsername: true,
+            github: true,
+          },
+        },
+      },
+      orderBy: [{ views: "desc" }, { createdAt: "desc" }],
+      take: 100,
+    });
+  }
 
   const blogs = rows.map((b) => {
     const u = b.user;
     return {
-      kind: b.kind,
+      kind: b.kind ?? "ARTICLE",
       id: b.id,
       title: b.title,
       url: b.url,
