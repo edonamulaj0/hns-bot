@@ -32,7 +32,7 @@ export default defineConfig({
   lang: 'en-US',
   lastUpdated: false,
   cleanUrls: true,
-  appearance: true,
+  appearance: false,
   base: baseUrl,
   srcExclude: ['README.md', 'single-page'],
   ignoreDeadLinks: true,
@@ -43,7 +43,7 @@ export default defineConfig({
     ['meta', { name: 'theme-color', content: '#7bc5e4' }],
     ['meta', { name: 'og:type', content: 'website' }],
     ['meta', { name: 'og:locale', content: 'en' }],
-    ['link', { rel: 'icon', href: 'https://h4cknstack.com/branding/hns-name.svg', type: 'image/svg+xml' }],
+    ['link', { rel: 'icon', href: 'https://h4cknstack.com/icon.svg', type: 'image/svg+xml' }],
     // PWA
     ['link', { rel: 'manifest', href: '/manifest.json' }],
     ['link', { rel: 'icon', href: '/pwa_icon.png', type: 'image/svg+xml' }],
@@ -238,7 +238,7 @@ export default defineConfig({
     },
     outline: 'deep',
     logo: {
-      src: 'https://h4cknstack.com/branding/hns-name.svg',
+      src: 'https://h4cknstack.com/branding/hns-wiki.png',
       alt: 'H4ck&Stack'
     },
     nav,

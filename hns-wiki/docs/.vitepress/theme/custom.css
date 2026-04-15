@@ -1,87 +1,116 @@
 :root {
-  --vp-c-brand-1: #ccff00;
-  --vp-c-brand-2: #bbee00;
-  --vp-c-brand-3: #99cc00;
-  --vp-c-brand-soft: rgba(204, 255, 0, 0.16);
+  --bg: #050505;
+  --bg-card: #7c2feb4d;
+  --bg-raised: #222222;
+  --border: #333333;
+  --border-bright: #444444;
+  --text: #ffffff;
+  --text-dim: #888888;
+  --text-dimmer: #666666;
+  --accent: #ccff00;
+  --accent-dim: #99cc00;
+  --font-display: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
+  --container-max: 1280px;
 
-  --vp-c-bg: #050505;
+  --vp-c-brand-1: var(--accent);
+  --vp-c-brand-2: #bbee00;
+  --vp-c-brand-3: var(--accent-dim);
+  --vp-c-brand-soft: rgba(204, 255, 0, 0.1);
+  --vp-c-bg: var(--bg);
   --vp-c-bg-alt: #0a0a0a;
   --vp-c-bg-soft: #121212;
   --vp-c-bg-mute: #1a1a1a;
-  --vp-c-bg-elv: rgba(20, 20, 20, 0.92);
-  --vp-c-divider: #2b2b2b;
-  --vp-c-divider-light: #3a3a3a;
-  --vp-c-text-1: #ffffff;
-  --vp-c-text-2: #a3a3a3;
-  --vp-c-text-3: #707070;
+  --vp-c-bg-elv: rgba(5, 5, 5, 0.92);
+  --vp-c-divider: var(--border);
+  --vp-c-divider-light: var(--border-bright);
+  --vp-c-text-1: var(--text);
+  --vp-c-text-2: var(--text-dim);
+  --vp-c-text-3: var(--text-dimmer);
 
-  --vp-button-brand-bg: #ccff00;
-  --vp-button-brand-border: #ccff00;
+  --vp-button-brand-bg: var(--accent);
+  --vp-button-brand-border: var(--accent);
   --vp-button-brand-hover-bg: #bbee00;
   --vp-button-brand-hover-border: #bbee00;
-  --vp-button-brand-active-bg: #99cc00;
-  --vp-button-brand-active-border: #99cc00;
-  --vp-button-brand-text: #000000;
-  --vp-button-brand-hover-text: #000000;
-  --vp-button-brand-active-text: #000000;
+  --vp-button-brand-active-bg: var(--accent-dim);
+  --vp-button-brand-active-border: var(--accent-dim);
+  --vp-button-brand-text: #000;
+  --vp-button-brand-hover-text: #000;
+  --vp-button-brand-active-text: #000;
   --vp-button-alt-bg: transparent;
-  --vp-button-alt-border: #444444;
-  --vp-button-alt-hover-bg: rgba(204, 255, 0, 0.08);
-  --vp-button-alt-hover-border: #ccff00;
-  --vp-button-alt-text: #ffffff;
-  --vp-button-alt-hover-text: #ccff00;
+  --vp-button-alt-border: var(--border-bright);
+  --vp-button-alt-hover-bg: transparent;
+  --vp-button-alt-hover-border: var(--accent);
+  --vp-button-alt-text: var(--text);
+  --vp-button-alt-hover-text: var(--accent);
 }
 
-.dark {
-  --vp-c-bg: #050505;
-  --vp-c-bg-alt: #0a0a0a;
-  --vp-c-bg-soft: #121212;
-  --vp-c-bg-mute: #1a1a1a;
-  --vp-c-bg-elv: rgba(15, 15, 15, 0.96);
-  --vp-c-divider: #2b2b2b;
-  --vp-c-divider-light: #3a3a3a;
-  --vp-c-text-1: #ffffff;
-  --vp-c-text-2: #a3a3a3;
-  --vp-c-text-3: #707070;
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-display);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
 .VPNav {
-  border-bottom: 1px solid var(--vp-c-divider) !important;
+  border-bottom: 1px solid var(--border) !important;
+  background: rgba(5, 5, 5, 0.92) !important;
   backdrop-filter: blur(12px);
-  background: rgba(5, 5, 5, 0.9) !important;
 }
 
 .VPNavBar {
-  border-bottom: 1px solid transparent !important;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding-left: clamp(1rem, 4vw, 2.5rem);
+  padding-right: clamp(1rem, 4vw, 2.5rem);
+}
+
+.VPNavBarTitle .title,
+.VPSwitchAppearance,
+.VPNavBarAppearance {
+  display: none !important;
 }
 
 .VPNavBarTitle .logo {
-  height: 30px !important;
+  height: 34px !important;
   width: auto !important;
-  max-width: min(240px, 55vw);
+  max-width: min(260px, 60vw);
   object-fit: contain;
 }
 
-.VPNavBarTitle .title {
-  color: var(--vp-c-brand-1) !important;
-  font-weight: 700;
+.VPNavBarMenuLink {
+  color: var(--text-dim) !important;
+  border: 1px solid transparent;
+  border-radius: 4px;
 }
 
-.VPSidebar,
-.VPDocAside,
-.VPDoc .content,
-.VPFlyout .menu {
-  background: var(--vp-c-bg-elv);
+.VPNavBarMenuLink:hover,
+.VPNavBarMenuLink.active {
+  color: var(--accent) !important;
+  border-color: var(--border-bright);
 }
 
 .VPSidebar {
-  border-right: 1px solid var(--vp-c-divider);
+  background: var(--bg) !important;
+  border-right: 1px solid var(--border);
 }
 
-.VPDoc .content-container,
+.VPContent .container,
+.VPDoc .container {
+  max-width: var(--container-max);
+}
+
 .vp-doc .custom-block,
-.vp-doc div[class*='language-'] {
-  border: 1px solid var(--vp-c-divider);
+.vp-doc div[class*='language-'],
+.VPDocAsideOutline .content {
+  border: 1px solid var(--border);
   border-radius: 4px;
 }
 
@@ -90,13 +119,14 @@
 }
 
 .vp-doc a {
-  color: var(--vp-c-brand-1);
+  color: var(--accent);
 }
 
 .vp-doc a:hover {
-  color: var(--vp-c-brand-2);
+  color: #bbee00;
 }
 
 .VPButton.medium {
   border-radius: 4px;
+  font-family: var(--font-mono);
 }

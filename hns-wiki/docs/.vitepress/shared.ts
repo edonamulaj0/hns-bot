@@ -60,7 +60,7 @@ if (safeEnv('FMHY_BUILD_API') === 'true') {
 }
 
 /** Monorepo root — wiki lives in hns-wiki/docs */
-const HNS_BOT_REPO = 'h4cknstack/hns-bot'
+const HNS_BOT_REPO = 'edonamulaj0/hns-bot'
 
 const formatCommitRef = (commitRef: string) =>
     `<a href="https://github.com/${HNS_BOT_REPO}/commit/${commitRef}">${commitRef.slice(0, 8)}</a>`
@@ -83,27 +83,13 @@ export const socialLinks: DefaultTheme.SocialLink[] = [
 ]
 
 export const nav: DefaultTheme.NavItem[] = [
-    { text: '← H4ck&Stack', link: 'https://h4cknstack.com' },
-    { text: '📖 Beginners Guide', link: '/beginners-guide' },
-    { text: '🌐 Search', link: '/posts/search' },
-    {
-        text: '💡 Contribute',
-        link: `https://github.com/${HNS_BOT_REPO}/issues`
-    }
+    { text: '← H4ck&Stack', link: 'https://h4cknstack.com' }
 ]
 
 export const sidebar: DefaultTheme.Sidebar | DefaultTheme.NavItemWithLink[] = [
     {
-        text: '<span class="i-twemoji:books"></span> Beginners Guide',
-        link: '/beginners-guide'
-    },
-    {
         text: '<span class="i-twemoji:newspaper"></span> Posts',
         link: '/posts'
-    },
-    {
-        text: '<span class="i-twemoji:light-bulb"></span> Contribute',
-        link: `https://github.com/${HNS_BOT_REPO}/issues`
     },
     {
         text: 'Wiki',
