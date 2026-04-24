@@ -1,14 +1,14 @@
 "use client";
 
-import { motion, useInView, type TargetAndTransition } from "framer-motion";
+import { motion, useInView, type Transition, type Variant } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 type AnimateInProps = {
   children: ReactNode;
   className?: string;
-  hidden?: TargetAndTransition;
-  visible?: TargetAndTransition;
-  transition?: TargetAndTransition["transition"];
+  hidden?: Variant;
+  visible?: Variant;
+  transition?: Transition;
   amount?: number;
   once?: boolean;
 };
@@ -37,14 +37,20 @@ export function AnimateIn({
   }, []);
 
   const shouldAnimate = mounted && animateOnScroll;
-  const target = !shouldAnimate || inView ? visible : hidden;
+  const animateState = !shouldAnimate || inView ? "visible" : "hidden";
+  const initialState = shouldAnimate ? "hidden" : "visible";
+  const variants = {
+    hidden,
+    visible,
+  };
 
   return (
     <motion.section
       ref={ref}
       className={className}
-      initial={visible}
-      animate={target}
+      variants={variants}
+      initial={initialState}
+      animate={animateState}
       transition={transition}
     >
       {children}
