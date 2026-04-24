@@ -12,11 +12,18 @@ import {
 } from "@/lib/phase";
 
 function useCountdownTarget(phaseFromApi?: Phase) {
+  const [mounted, setMounted] = useState(false);
   const [tick, setTick] = useState(0);
   useEffect(() => {
+    setMounted(true);
     const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
+
+  if (!mounted) {
+    const phase = phaseFromApi ?? "BUILD";
+    return { phase, msLeft: 0, urgent: false, tick };
+  }
 
   const now = new Date();
   const localPhase = getMonthlyPhase(now);
