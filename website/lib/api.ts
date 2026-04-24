@@ -55,8 +55,8 @@ async function resolveApiFetchUrl(pathAndQuery: string): Promise<string | null> 
   }
 
   try {
-    const { headers } = await import("next/headers");
-    const h = await headers();
+    const mod = await import("next/headers");
+    const h = await mod.headers();
     const host = h.get("x-forwarded-host") ?? h.get("host");
     const rawProto = h.get("x-forwarded-proto");
     const proto = rawProto?.split(",")[0]?.trim() || "https";
