@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import MembersHub from "./MembersHub";
 import { getLeaderboard, getMembers } from "@/lib/api";
 
+export const runtime = "edge";
+
 export const metadata: Metadata = {
   title: "Members | H4ck&Stack",
   description:

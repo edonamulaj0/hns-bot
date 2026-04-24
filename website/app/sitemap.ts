@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { getMembers } from "@/lib/api";
 
+export const runtime = "edge";
+
 function getBaseUrl(): string {
   const raw = process.env.NEXT_PUBLIC_BASE_URL?.trim();
   if (!raw) return "https://h4cknstack.com";
