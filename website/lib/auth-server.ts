@@ -1,5 +1,4 @@
 import { cache } from "react";
-import { headers } from "next/headers";
 import type { SessionUser } from "./auth-shared";
 
 export type { SessionUser };
@@ -19,7 +18,8 @@ function authMeUrl(): string | null {
 async function loadSession(): Promise<SessionUser | null> {
   const meUrl = authMeUrl();
   if (!meUrl) return null;
-  const h = await headers();
+  const mod = await import("next/headers");
+  const h = await mod.headers();
   const cookie = h.get("cookie") ?? "";
   try {
     const res = await fetch(meUrl, {

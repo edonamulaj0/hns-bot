@@ -3,11 +3,8 @@ import type { SessionUser } from "./auth-shared";
 export type { SessionUser };
 
 export function loginUrl(): string {
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}/auth/login`;
-  }
-  const base = process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "") || "";
-  return base ? `${base}/auth/login` : "/auth/login";
+  // Keep SSR and client href identical to avoid hydration mismatch in nav links.
+  return "/auth/login";
 }
 
 export async function getSessionClient(): Promise<SessionUser | null> {
