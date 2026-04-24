@@ -253,13 +253,11 @@ export interface DiscordWidgetResponse {
   members?: DiscordWidgetMember[];
 }
 
-const REVALIDATE = 60; // seconds
-
-function fetchInit(): RequestInit & { next?: { revalidate: number } } {
-  if (typeof window !== "undefined") {
-    return { cache: "no-store" as RequestCache };
-  }
-  return { next: { revalidate: REVALIDATE } };
+function fetchInit(): RequestInit {
+  // `next.revalidate` on Cloudflare Pages edge crashes in next-on-pages' cache
+  // adapter ("Cannot read properties of null (reading 'default')"). Use
+  // `no-store` on both sides; dynamic routes already revalidate per request.
+  return { cache: "no-store" as RequestCache };
 }
 
 export const EMPTY_PORTFOLIO: PortfolioResponse = {
