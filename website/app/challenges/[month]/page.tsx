@@ -50,7 +50,7 @@ export default async function ChallengeMonthPage({
   const allSubs = (data?.published?.[month] ?? []) as Submission[];
   const trackFilter = (sp.track ?? "").toUpperCase();
   let subs = allSubs;
-  if (trackFilter === "DEVELOPER" || trackFilter === "HACKER") {
+  if (trackFilter === "DEVELOPER" || trackFilter === "HACKER" || trackFilter === "DESIGNERS") {
     subs = subs.filter((s) => (s.track ?? "DEVELOPER") === trackFilter);
   }
   const tierFilter = sp.tier?.trim();
@@ -61,7 +61,10 @@ export default async function ChallengeMonthPage({
   const phase = data?.phase;
   const phaseMeta = phase ? (PHASE_META[phase] ?? PHASE_META.BUILD) : null;
   const hasFilters = Boolean(
-    (trackFilter === "DEVELOPER" || trackFilter === "HACKER") || tierFilter,
+    (trackFilter === "DEVELOPER" ||
+      trackFilter === "HACKER" ||
+      trackFilter === "DESIGNERS") ||
+      tierFilter,
   );
 
   return (

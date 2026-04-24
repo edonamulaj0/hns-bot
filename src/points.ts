@@ -60,13 +60,14 @@ function rankPrefix(rank: number): string {
 }
 
 export function formatLeaderboardEmbed(
-  members: Array<{ discordId: string; points: number; rank: number }>,
+  members: Array<{ points: number; rank: number; displayLine: string }>,
   month: string,
 ): object {
   const rows = members
     .slice(0, 10)
     .map((m) => {
-      return `${rankPrefix(m.rank)} <@${m.discordId}> — **${m.points} XP**`;
+      const name = m.displayLine.trim() || "Member";
+      return `${rankPrefix(m.rank)} **${name}** — **${m.points} XP**`;
     })
     .join("\n");
 

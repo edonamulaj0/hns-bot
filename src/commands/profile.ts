@@ -51,7 +51,14 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
     }
 
     const approvedProjects = await prisma.submission.count({
-      where: { userId: row.id, isApproved: true },
+      where: {
+        userId: row.id,
+        OR: [
+          { submissionStatus: "PUBLISHED" },
+          { submissionStatus: "APPROVED" },
+          { AND: [{ submissionStatus: null }, { isApproved: true }] },
+        ],
+      },
     });
 
     const stack = formatTechStackList(row.techStack);

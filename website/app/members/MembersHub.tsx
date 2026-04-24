@@ -42,16 +42,16 @@ const ROLE_TABLE = [
 
 function coerceSort(view: View, s: string): string {
   if (view === "profiles") {
-    if (["discord", "xp", "projects", "recent"].includes(s)) return s;
-    return "discord";
+    if (["xp", "projects", "recent", "name"].includes(s)) return s;
+    return "xp";
   }
   if (view === "projects") {
     if (["votes", "recent"].includes(s)) return s;
     return "votes";
   }
-  if (s === "top") return "votes";
+  if (s === "top") return "top";
   if (s === "new") return "recent";
-  if (["votes", "recent"].includes(s)) return s;
+  if (["top", "recent"].includes(s)) return s;
   return "recent";
 }
 
@@ -164,7 +164,7 @@ export default function MembersHub() {
 
   const setView = (v: View) => {
     const defaults: Record<View, string> = {
-      profiles: "discord",
+      profiles: "xp",
       projects: "votes",
       articles: "recent",
     };
@@ -237,18 +237,12 @@ export default function MembersHub() {
         );
       });
     }
-    if (effectiveSort === "discord")
-      list.sort((a, b) => {
-        try {
-          const da = BigInt(a.discordId);
-          const db = BigInt(b.discordId);
-          if (da < db) return -1;
-          if (da > db) return 1;
-          return 0;
-        } catch {
-          return a.discordId.localeCompare(b.discordId);
-        }
-      });
+    if (effectiveSort === "name")
+      list.sort((a, b) =>
+        (memberDisplayName(a) || "").localeCompare(memberDisplayName(b) || "", undefined, {
+          sensitivity: "base",
+        }),
+      );
     else if (effectiveSort === "xp")
       list.sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
@@ -271,6 +265,7 @@ export default function MembersHub() {
     }
     if (track === "developer") list = list.filter((s) => (s.track ?? "DEVELOPER") === "DEVELOPER");
     if (track === "hacker") list = list.filter((s) => s.track === "HACKER");
+    if (track === "designer") list = list.filter((s) => s.track === "DESIGNERS");
     if (effectiveSort === "votes") list.sort((a, b) => b.votes - a.votes);
     else
       list.sort(
@@ -289,7 +284,7 @@ export default function MembersHub() {
           (b.content ?? "").toLowerCase().includes(qLower),
       );
     }
-    if (effectiveSort === "votes") list.sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
+    if (effectiveSort === "top") list.sort((a, b) => b.upvotes - a.upvotes);
     else list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return list;
   }, [blogs, qLower, effectiveSort, selectedStacks, memberByDiscord]);
@@ -369,7 +364,7 @@ export default function MembersHub() {
                 }
                 value={q}
                 onChange={(e) => patchQuery({ q: e.target.value || null })}
-                className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)]"
+                className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2.5 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] focus:border-[var(--accent)]"
                 style={{ fontFamily: "var(--font-mono)" }}
               />
 
@@ -379,15 +374,15 @@ export default function MembersHub() {
                     Track
                   </p>
                   <div className="flex w-full rounded border border-[var(--border)] overflow-hidden">
-                    {(["all", "developer", "hacker"] as const).map((t) => (
+                    {(["all", "developer", "hacker", "designer"] as const).map((t) => (
                       <button
                         key={t}
                         type="button"
                         onClick={() => patchQuery({ track: t === "all" ? null : t })}
-                        className={`flex-1 px-3 py-2 text-xs font-bold uppercase ${
+                        className={`flex-1 min-h-[44px] px-3 py-2 text-xs font-bold uppercase ${
                           (t === "all" && track === "all") ||
                           track === t ||
-                          (t === "all" && !["developer", "hacker"].includes(track))
+                          (t === "all" && !["developer", "hacker", "designer"].includes(track))
                             ? "bg-[var(--accent)] text-black"
                             : "bg-[var(--bg-card)] text-[var(--text-dim)]"
                         }`}
@@ -472,10 +467,10 @@ export default function MembersHub() {
                   >
                     {view === "profiles" && (
                       <>
-                        <option value="discord">By Discord ID</option>
                         <option value="xp">By XP</option>
-                        <option value="projects">By Projects</option>
-                        <option value="recent">By Recent</option>
+                        <option value="recent">By join date</option>
+                        <option value="name">By name (A–Z)</option>
+                        <option value="projects">By projects shipped</option>
                       </>
                     )}
                     {view === "projects" && (
@@ -486,8 +481,8 @@ export default function MembersHub() {
                     )}
                     {view === "articles" && (
                       <>
-                        <option value="votes">By Views</option>
-                        <option value="recent">By Recent</option>
+                        <option value="recent">New</option>
+                        <option value="top">Top (likes)</option>
                       </>
                     )}
                   </select>
@@ -547,7 +542,14 @@ export default function MembersHub() {
                   >
                     {view === "profiles" && (
                       <>
-                        {filteredProfiles.length === 0 ? (
+                        {members.length === 0 ? (
+                          <div className="empty-state max-w-lg mx-auto text-center">
+                            <p>No members yet — be the first to join.</p>
+                            <Link href="/join" className="btn btn-primary mt-4 inline-flex">
+                              Join the community →
+                            </Link>
+                          </div>
+                        ) : filteredProfiles.length === 0 ? (
                           <div className="empty-state">
                             <p>No members match filters.</p>
                           </div>
@@ -600,8 +602,42 @@ export default function MembersHub() {
                                       <p className="mono text-xs truncate">
                                         {memberDisplayName(m)}
                                       </p>
-                                      <p className="text-[var(--accent)] font-bold text-sm">
-                                        {m.points} XP · #{m.rank || "—"}
+                                      <div className="flex flex-wrap gap-1 mt-1">
+                                        {(m.tracks ?? []).map((t) => (
+                                          <span
+                                            key={t}
+                                            className="tag text-[0.6rem]"
+                                            style={
+                                              t === "DESIGNERS"
+                                                ? {
+                                                    background: "#D85A3022",
+                                                    borderColor: "#D85A3088",
+                                                    color: "#fff",
+                                                  }
+                                                : undefined
+                                            }
+                                          >
+                                            {t === "DESIGNERS"
+                                              ? "Design"
+                                              : t === "HACKER"
+                                                ? "Hacker"
+                                                : "Developer"}
+                                          </span>
+                                        ))}
+                                      </div>
+                                      <p className="text-[var(--accent)] font-bold text-sm mt-1">
+                                        {m.points} XP · #{m.rank || "—"} ·{" "}
+                                        <span className="text-white/50 font-normal">
+                                          {m._count.submissions} projects
+                                        </span>
+                                      </p>
+                                      <p className="mono text-[0.6rem] text-white/40 mt-0.5">
+                                        Joined{" "}
+                                        {new Date(m.createdAt).toLocaleDateString(undefined, {
+                                          year: "numeric",
+                                          month: "short",
+                                          day: "numeric",
+                                        })}
                                       </p>
                                     </div>
                                   </div>

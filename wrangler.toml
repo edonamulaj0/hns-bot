@@ -30,6 +30,8 @@ BLOG_CHANNEL_ID = "1492973065653452860"
 ADMIN_ROLE_ID = "1387701276204208228"
 DEVELOPER_CHALLENGES_CHANNEL_ID = "1492903109691707453"
 HACKER_CHALLENGES_CHANNEL_ID = "1492903075269312593"
+# Optional: dedicated #design-challenges channel; falls back to developer channel if unset.
+# DESIGN_CHALLENGES_CHANNEL_ID = ""
 
 
 # GitHub OAuth (/link-github → private-aware /pulse). Uncomment and set, plus secrets below.

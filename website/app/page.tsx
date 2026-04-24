@@ -18,7 +18,7 @@ import {
 import type { Phase } from "@/lib/phase";
 import { PhaseCountdownLine } from "@/components/PhaseCountdown";
 import { DISCORD_INVITE_URL } from "@/lib/branding";
-import { buildActivityFeed } from "@/lib/activity-feed";
+import { buildActivityFeed, submissionsFromPortfolio } from "@/lib/activity-feed";
 import { ActivityFeedList, SeeAllActivityLink } from "@/components/ActivityTimeline";
 import { memberDisplayName } from "@/lib/member-label";
 
@@ -111,19 +111,21 @@ export default function HomePage() {
   const latestBlogs = blogsData.slice(0, 3);
 
   const activityPreview = useMemo(
-    () => buildActivityFeed(portfolioData, blogsData, 5),
+    () => buildActivityFeed(submissionsFromPortfolio(portfolioData), blogsData, 5),
     [portfolioData, blogsData],
   );
 
   const statsRef = useRef<HTMLDivElement>(null);
   const statsInView = useInView(statsRef, { once: true, amount: 0.15 });
-  const membersCount = useCountUp(totalMembers, statsInView);
-  const submissionsCount = useCountUp(totalSubmissions, statsInView);
+  const showStatNumbers =
+    data !== null && (totalMembers > 0 || totalSubmissions > 0);
+  const membersCount = useCountUp(totalMembers, statsInView && showStatNumbers);
+  const submissionsCount = useCountUp(totalSubmissions, statsInView && showStatNumbers);
   const monthsSinceLaunch = Math.max(
     0,
     (new Date().getUTCFullYear() - 2025) * 12 + new Date().getUTCMonth() - 5,
   );
-  const monthsCount = useCountUp(monthsSinceLaunch, statsInView);
+  const monthsCount = useCountUp(monthsSinceLaunch, statsInView && showStatNumbers);
 
   const heroWords = ["Build.", "Ship.", "Get seen."];
   const latestProjects = Object.entries(portfolioData?.published ?? {})
@@ -235,16 +237,26 @@ export default function HomePage() {
         <div className="container">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             <div className="stat-block">
-              <span className="value">{membersCount}</span>
-              <span className="label">Members</span>
+              <span className="value">
+                {data === null ? "…" : showStatNumbers ? membersCount : "—"}
+              </span>
+              <span className="label">{showStatNumbers ? "Members" : "Members (launching soon)"}</span>
             </div>
             <div className="stat-block">
-              <span className="value">{submissionsCount}</span>
-              <span className="label">Projects shipped</span>
+              <span className="value">
+                {data === null ? "…" : showStatNumbers ? submissionsCount : "—"}
+              </span>
+              <span className="label">
+                {showStatNumbers ? "Projects shipped" : "Projects (launching soon)"}
+              </span>
             </div>
             <div className="stat-block">
-              <span className="value">{monthsCount}</span>
-              <span className="label">Months active</span>
+              <span className="value">
+                {data === null ? "…" : showStatNumbers ? monthsCount : "—"}
+              </span>
+              <span className="label">
+                {showStatNumbers ? "Months active" : "Season (launching soon)"}
+              </span>
             </div>
             <div className="stat-block">
               <div className="value min-h-[2.75rem] flex flex-col justify-center text-left">
@@ -252,9 +264,9 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          {totalMembers === 0 && totalSubmissions === 0 && (
-            <p className="mono mt-3 text-center text-[var(--text-xs)] text-[var(--text-dimmer)]">
-              First challenges drop May 1 · Stats update live
+          {data !== null && !showStatNumbers && (
+            <p className="mono mt-3 text-center text-[var(--text-xs)] text-[var(--text-dimmer)] max-w-lg mx-auto leading-relaxed">
+              Launching soon — live member and project counts appear here as the community ships work.
             </p>
           )}
         </div>

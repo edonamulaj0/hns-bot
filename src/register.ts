@@ -35,7 +35,25 @@ async function main() {
     new Command("profile", "View a member portfolio profile").options(
       new Option("user", "Member to view (optional — defaults to you)", "User"),
     ),
-    new Command("submit", "Open the website to submit your monthly project"),
+    new Command(
+      "submit",
+      "Submit challenge work (Designer via Discord; Developer/Hacker on the website)",
+    ).options(
+      new Option("track", "Track — use Designer to submit from Discord", "String")
+        .required(false)
+        .choices(
+          { name: "Developer (website)", value: "DEVELOPER" },
+          { name: "Hacker (website)", value: "HACKER" },
+          { name: "Designer", value: "DESIGNERS" },
+        ),
+      new Option("title", "Title for Designer submit (5–100 chars)", "String").required(false),
+      new Option("description", "Description for Designer (100–2000 chars)", "String").required(false),
+      new Option(
+        "image_url",
+        "Direct HTTPS image URL — PNG, JPG, or WebP (Designer)",
+        "String",
+      ).required(false),
+    ),
     new Command("pulse", "Preview GitHub activity and estimated month-end pulse XP"),
     new Command(
       "link-github",
@@ -43,6 +61,10 @@ async function main() {
     ),
     new Command("unlink-github", "Remove stored GitHub OAuth from this bot"),
     new Command("leaderboard", "See the top contributors this month"),
+    new Command(
+      "design-brief",
+      "Show this month's Graphic Design challenge briefs (all tiers)",
+    ),
     new Command("help", "List all bot commands and what they do (ephemeral)"),
     new Command("intro", "Post a plain-text welcome in this channel (mods only)"),
     new Command("enroll", "Enroll in a monthly challenge before you submit on the web").options(
@@ -51,6 +73,7 @@ async function main() {
         .choices(
           { name: "Developer", value: "DEVELOPER" },
           { name: "Hacker", value: "HACKER" },
+          { name: "Designer", value: "DESIGNERS" },
         ),
       new Option("tier", "Challenge tier (optional — use with track)", "String")
         .required(false)

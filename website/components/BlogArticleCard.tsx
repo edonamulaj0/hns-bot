@@ -18,10 +18,19 @@ export function articleExcerpt(blog: Blog): string | null {
   return n.length < c.length ? `${n}…` : n;
 }
 
-export function BlogArticleCard({ blog }: { blog: Blog }) {
+export function BlogArticleCard({
+  blog,
+  liked = false,
+  onLikeToggle,
+}: {
+  blog: Blog;
+  liked?: boolean;
+  onLikeToggle?: (blogId: string) => void;
+}) {
   const badge = articleBadge(blog);
   const excerpt = articleExcerpt(blog);
   const uploaded = Boolean(blog.content?.trim());
+  const canLike = blog.kind === "ARTICLE" && typeof onLikeToggle === "function";
   return (
     <article className="card p-4 sm:p-5 flex flex-col h-full">
       <div className="flex flex-wrap gap-2 mb-2">
@@ -38,12 +47,26 @@ export function BlogArticleCard({ blog }: { blog: Blog }) {
         <span className="mono text-[0.65rem] text-white/50">
           {memberDisplayName(blog.user)}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {blog.createdAt && (
             <span className="mono text-[0.6rem] text-white/35">{formatFeedTime(blog.createdAt)}</span>
           )}
           <span className="mono text-[0.65rem] text-white/45">👁 {blog.views ?? 0}</span>
-          <span className="mono text-[0.65rem] text-[var(--accent)]">▲ {blog.upvotes}</span>
+          {canLike ? (
+            <button
+              type="button"
+              onClick={() => onLikeToggle!(blog.id)}
+              className={`mono text-[0.65rem] rounded border px-2 py-1 min-h-[44px] sm:min-h-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] ${
+                liked
+                  ? "border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10"
+                  : "border-[var(--border)] text-white/60 hover:text-white/90"
+              }`}
+            >
+              ▲ {blog.upvotes}
+            </button>
+          ) : (
+            <span className="mono text-[0.65rem] text-[var(--accent)]">▲ {blog.upvotes}</span>
+          )}
         </div>
       </div>
       <a

@@ -63,7 +63,7 @@ export function VoteBanner({ monthKey }: { monthKey?: string }) {
             color: "var(--text-dim)",
           }}
         >
-          Closes day 25 · 4 votes per member (2 per track)
+          Closes day 25 · 4 votes per member (up to 2 per track: Dev / Hacker / Design)
         </span>
       </div>
       <Link

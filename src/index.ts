@@ -17,6 +17,7 @@ import { registerHelp } from "./commands/help";
 import { registerIntro } from "./commands/intro";
 import { registerCron } from "./commands/cron";
 import { registerEnroll } from "./commands/enroll";
+import { registerDesignBrief } from "./commands/design-brief";
 import { registerDeleteAccount } from "./commands/delete-account";
 import { registerAdminHealth } from "./commands/admin-health";
 import { registerAdminTestClaude } from "./commands/admin-test-claude";
@@ -34,6 +35,7 @@ import { processDiscordEnrollment, type EnrollmentDeferCtx } from "./commands/en
 import { getDiscordUserId } from "./commands/helpers";
 import { MessageFlags } from "discord-api-types/v10";
 import { ensureRolesExist } from "./role-manager";
+import { ensureDesignRolesExist } from "./design-track-roles";
 
 let app = new DiscordHono<HonoWorkerEnv>();
 let startupRolesInit = false;
@@ -48,6 +50,7 @@ app = registerHelp(app);
 app = registerIntro(app);
 app = registerCron(app);
 app = registerEnroll(app);
+app = registerDesignBrief(app);
 app = registerDeleteAccount(app);
 app = registerAdminHealth(app);
 app = registerAdminTestClaude(app);
@@ -66,11 +69,11 @@ app = app.component("", async (c) => {
     });
   }
   if (!customId.startsWith("enroll:")) {
-    return c.res("Unknown component.");
+    return c.flags("EPHEMERAL").res("Unknown component.");
   }
   const challengeId = customId.slice("enroll:".length);
   if (!challengeId) {
-    return c.res("Invalid enroll action.");
+    return c.flags("EPHEMERAL").res("Invalid enroll action.");
   }
   return c.flags("EPHEMERAL").resDefer(async (ctx) => {
     const discordId = getDiscordUserId(ctx.interaction);
@@ -128,7 +131,11 @@ export default {
   fetch: async (request: Request, env: WorkerBindings, executionCtx?: ExecutionContext) => {
     if (!startupRolesInit) {
       try {
-        await ensureRolesExist(getPrisma(env.DB), env.DISCORD_GUILD_ID, env.DISCORD_TOKEN);
+        const prisma = getPrisma(env.DB);
+        await ensureRolesExist(prisma, env.DISCORD_GUILD_ID, env.DISCORD_TOKEN);
+        await ensureDesignRolesExist(prisma, env.DISCORD_GUILD_ID, env.DISCORD_TOKEN).catch(
+          (e) => console.error("design roles init:", e),
+        );
         startupRolesInit = true;
       } catch (e) {
         console.error("role init error:", e);

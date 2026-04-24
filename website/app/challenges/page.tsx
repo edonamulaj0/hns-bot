@@ -68,7 +68,7 @@ export default function ChallengesPage() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Two challenge tracks. Three difficulty levels. One global community.
+            Three challenge tracks. Three difficulty levels. One global community.
             Build what you want, submit on the site or in Discord, and compete for recognition.
           </motion.p>
           {phase === "VOTE" && currentMonth && (
@@ -98,8 +98,8 @@ export default function ChallengesPage() {
         viewport={{ once: true, amount: 0.15 }}
       >
         <div className="container w-full">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Two Tracks</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Three Tracks</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <motion.div
               className="card w-full p-5 sm:p-7"
               initial={{ opacity: 0, y: 20 }}
@@ -175,6 +175,77 @@ export default function ChallengesPage() {
                 View challenges →
               </Link>
             </motion.div>
+
+            <motion.div
+              className="card w-full p-5 sm:p-7"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: EASE_OUT }}
+              viewport={{ once: true, amount: 0.15 }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="shrink-0 text-[#D85A30]"
+                  aria-hidden
+                >
+                  <path
+                    d="M4 20c5.5-1.5 11-6 14-12l2.5-4.5 2.2 2.2L18 8c-6 2-11.5 6.5-14 12"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M17 4l3 3M6 19l2-1"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <h3 className="text-xl sm:text-2xl font-bold">Graphic Design Challenge</h3>
+              </div>
+              <p className="text-white/60 text-sm sm:text-base mb-4 leading-relaxed">
+                Design posters, brand kits, UI mockups, or motion graphics. Submit a PNG, JPG, or WebP image export —
+                show your visual thinking, not just your tools.
+              </p>
+              <div className="flex w-full flex-wrap gap-2">
+                <span className="tag tag-accent whitespace-normal break-words leading-snug">Days 1–21: Build</span>
+                <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
+                <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
+                <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {["Poster Design", "Brand Identity", "UI Mockup", "Motion Graphic"].map((t) => (
+                  <span
+                    key={t}
+                    className="tag text-[0.65rem]"
+                    style={{
+                      background: "#D85A301a",
+                      borderColor: "#D85A304d",
+                      color: "#fff",
+                    }}
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+              <Link
+                href="/challenges/designers"
+                className="btn w-fit mt-4"
+                style={{
+                  borderColor: "#D85A3088",
+                  color: "#fff",
+                  background: "#D85A3014",
+                }}
+              >
+                View challenges →
+              </Link>
+            </motion.div>
           </div>
         </div>
       </motion.section>
@@ -237,25 +308,42 @@ export default function ChallengesPage() {
                               ? memberDisplayName(sub.user)
                               : "—"}
                           </span>
-                          <div className="flex gap-2 mt-auto pt-2">
-                            <a
-                              href={sub.repoUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="btn text-[0.65rem] py-1 px-2"
-                            >
-                              Repo
-                            </a>
-                            {sub.demoUrl && (
+                          <div className="flex flex-wrap gap-2 mt-auto pt-2">
+                            {sub.track === "DESIGNERS" && sub.attachmentUrl ? (
+                              <a
+                                href={sub.attachmentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn text-[0.65rem] py-1 px-2"
+                              >
+                                Image
+                              </a>
+                            ) : (
+                              <a
+                                href={sub.repoUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn text-[0.65rem] py-1 px-2"
+                              >
+                                Repo
+                              </a>
+                            )}
+                            {sub.demoUrl && !String(sub.demoUrl).startsWith("data:") && (
                               <a
                                 href={sub.demoUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="btn btn-primary text-[0.65rem] py-1 px-2"
                               >
-                                Demo
+                                Demo / writeup
                               </a>
                             )}
+                            <Link
+                              href={`/submissions/${sub.id}`}
+                              className="btn text-[0.65rem] py-1 px-2 border-white/20"
+                            >
+                              Detail
+                            </Link>
                           </div>
                         </article>
                       ))}
@@ -299,11 +387,15 @@ export default function ChallengesPage() {
               },
               {
                 cmd: "/submit",
-                desc: "Opens a link to the submission page, or use Submit on the site when signed in.",
+                desc: "Submit your build: Developer (GitHub repo), Hacker (writeup / link), or Designer (direct image URL). You can also use Submit on the site when signed in.",
+              },
+              {
+                cmd: "/design-brief",
+                desc: "Posts the current month’s Graphic Design challenge tiers (Beginner, Intermediate, Advanced) in-channel.",
               },
               {
                 cmd: "Vote (site)",
-                desc: `During the vote window (days 22–25 UTC), cast up to 4 votes (2 per track) at /vote/${currentMonth || voteMonth}.`,
+                desc: `During the vote window (days 22–25 UTC), cast up to 4 votes (max 2 per track: Developer, Hacker, Design) at /vote/${currentMonth || voteMonth}.`,
               },
               {
                 cmd: "/pulse",

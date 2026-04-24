@@ -82,7 +82,7 @@ export default function RootLayout({
                 href={BUILDER_SITE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mono dim text-white/50 hover:text-[var(--accent)] no-underline"
+                className="mono text-[0.65rem] text-white/25 hover:text-white/45 no-underline"
               >
                 Built by Cyphera
               </a>

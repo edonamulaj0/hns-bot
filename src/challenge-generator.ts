@@ -2,6 +2,7 @@ import type { PrismaClient } from "@prisma/client/edge";
 import { sendChannelMessage } from "./discord-api";
 import type { WorkerBindings } from "./worker-env";
 import { monthKey } from "./time";
+import { trackLabel } from "./tracks";
 
 type GenChallenge = {
   track: string;
@@ -74,10 +75,43 @@ const FALLBACK: GenChallenge[] = [
     resources: "- OWASP Testing Guide\n- CVE database",
     deliverables: "- Memo PDF/markdown\n- Timeline\n- Tooling/scripts if any",
   },
+  {
+    track: "DESIGNERS",
+    tier: "Beginner",
+    title: "Event poster (print or social)",
+    description:
+      "## Goal\nDesign a **poster** for a fictional tech event or cause.\n\n## Requirements\n- Clear hierarchy (headline, date, CTA)\n- 3–5 color palette\n- Readable at a glance",
+    resources: "- Google Fonts\n- Coolors palette generator",
+    deliverables:
+      "- **PNG, JPG, or WebP** export (min 1080px long edge)\n- 1 paragraph on audience + intent",
+  },
+  {
+    track: "DESIGNERS",
+    tier: "Intermediate",
+    title: "Mini brand kit",
+    description:
+      "## Goal\nCreate a **logo + color/type rules + one mock social post** for a product you invent.\n\n## Requirements\n- Logo works on dark and light\n- Show the system applied once",
+    resources: "- Penpot / Figma community files",
+    deliverables:
+      "- **PNG, JPG, or WebP** board export\n- Short rationale (150–300 words)",
+  },
+  {
+    track: "DESIGNERS",
+    tier: "Advanced",
+    title: "UI flow + motion storyboard",
+    description:
+      "## Goal\n**High-fidelity UI** for a 3+ screen flow plus a **6–12 frame motion storyboard** (static frames OK).\n\n## Requirements\n- Empty/loading/error states\n- Annotated motion intent",
+    resources: "- Material motion\n- WCAG contrast guidance",
+    deliverables:
+      "- **PNG, JPG, or WebP** export (single board or one combined image)\n- Case study (300–600 words)",
+  },
 ];
 
-function trackLabel(track: string): string {
-  return track === "HACKER" ? "Hacker" : "Developer";
+function normalizeChallengeTrack(raw: string): "DEVELOPER" | "HACKER" | "DESIGNERS" {
+  const u = raw.toUpperCase();
+  if (u === "HACKER") return "HACKER";
+  if (u === "DESIGNERS" || u === "DESIGNER" || u === "DESIGN" || u === "GRAPHIC") return "DESIGNERS";
+  return "DEVELOPER";
 }
 
 function parseClaudeJson(text: string): GenChallenge[] | null {
@@ -86,7 +120,7 @@ function parseClaudeJson(text: string): GenChallenge[] | null {
   if (fence) t = fence[1]!.trim();
   try {
     const arr = JSON.parse(t) as unknown;
-    if (!Array.isArray(arr) || arr.length !== 6) return null;
+    if (!Array.isArray(arr) || (arr.length !== 9 && arr.length !== 6)) return null;
     const out: GenChallenge[] = [];
     for (const row of arr) {
       if (!row || typeof row !== "object") return null;
@@ -102,7 +136,7 @@ function parseClaudeJson(text: string): GenChallenge[] | null {
         return null;
       }
       out.push({
-        track: r.track,
+        track: normalizeChallengeTrack(String(r.track)),
         tier: r.tier,
         title: r.title,
         description: r.description,
@@ -143,10 +177,10 @@ async function callClaude(
     recentTitles.length > 0 ? recentTitles.join("; ") : "(none yet)";
   const user = `Current month: ${month}
 Do not repeat recent topics: ${recent}
-Respond ONLY with a JSON array of 6 objects. No markdown fences.
-Each object: track (DEVELOPER|HACKER), tier (Beginner|Intermediate|Advanced), title, description (markdown string), resources (markdown bullets), deliverables (markdown bullets).`;
+Respond ONLY with a JSON array of 9 objects. No markdown fences.
+Each object: track (DEVELOPER|HACKER|DESIGNERS), tier (Beginner|Intermediate|Advanced), title, description (markdown string), resources (markdown bullets), deliverables (markdown bullets).`;
 
-  const system = `You are the challenge designer for H4ck&Stack. Generate 6 unique monthly challenges: 3 Developer (shipped software) and 3 Hacker (security research, tools, CTF, vuln writeups, red team methodology). Each completable solo in 21 days. No paid APIs required.`;
+  const system = `You are the challenge designer for H4ck&Stack. Generate 9 unique monthly challenges: 3 Developer (shipped software), 3 Hacker (security research, tools, CTF, vuln writeups, red team methodology), and 3 Graphic Design (posters, brand kits, UI mockups, motion storyboards — deliverables must require a PNG/JPG/WebP image export, not a GitHub repo). Each completable solo in 21 days. No paid APIs required.`;
 
   const maxAttempts = 5;
   let lastError: string | null = null;
@@ -253,7 +287,7 @@ export async function postChallengesToDiscord(
   const base = c.env.BASE_URL?.replace(/\/$/, "") || "https://h4cknstack.com";
 
   for (const ch of list) {
-    const track = ch.track === "HACKER" ? "HACKER" : "DEVELOPER";
+    const track = normalizeChallengeTrack(ch.track);
     const challenge = await prisma.challenge.upsert({
       where: {
         month_track_tier: { month, track, tier: ch.tier },
@@ -280,7 +314,10 @@ export async function postChallengesToDiscord(
     const channelId =
       track === "HACKER"
         ? c.env.HACKER_CHALLENGES_CHANNEL_ID?.trim()
-        : c.env.DEVELOPER_CHALLENGES_CHANNEL_ID?.trim();
+        : track === "DESIGNERS"
+          ? c.env.DESIGN_CHALLENGES_CHANNEL_ID?.trim() ||
+            c.env.DEVELOPER_CHALLENGES_CHANNEL_ID?.trim()
+          : c.env.DEVELOPER_CHALLENGES_CHANNEL_ID?.trim();
 
     if (!channelId) {
       console.error("Missing challenge channel for", track);
@@ -292,7 +329,8 @@ export async function postChallengesToDiscord(
         {
           title: `📌 ${ch.title}`,
           description: ch.description.slice(0, 4096),
-          color: track === "HACKER" ? 0xed4245 : 0x5865f2,
+          color:
+            track === "HACKER" ? 0xed4245 : track === "DESIGNERS" ? 0xd85a30 : 0x5865f2,
           fields: [
             { name: "Track", value: trackLabel(track), inline: true },
             { name: "Tier", value: ch.tier, inline: true },
@@ -331,7 +369,7 @@ export async function postChallengesToDiscord(
     }
   }
 
-  const announce = `📅 **${month}** challenges are live! Enroll with the button on each post or on **${base}/challenges/developers** / **${base}/challenges/hackers**. Build window: **days 1–21**.`;
+  const announce = `📅 **${month}** challenges are live! Enroll with the button on each post or on **${base}/challenges/developers** / **${base}/challenges/hackers** / **${base}/challenges/designers**. Build window: **days 1–21**.`;
 
   const devCh = c.env.DEVELOPER_CHALLENGES_CHANNEL_ID?.trim();
   const hackCh = c.env.HACKER_CHALLENGES_CHANNEL_ID?.trim();

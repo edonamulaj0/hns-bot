@@ -11,6 +11,14 @@ export function monthKey(date = new Date()): string {
   return `${year}-${month}`;
 }
 
+/** UTC calendar date (YYYY-MM-DD) of the 1st of the next calendar month — next build window start. */
+export function nextUtcMonthFirstDateString(date = new Date()): string {
+  const y = date.getUTCFullYear();
+  const m = date.getUTCMonth();
+  const next = new Date(Date.UTC(m === 11 ? y + 1 : y, m === 11 ? 0 : m + 1, 1));
+  return next.toISOString().slice(0, 10);
+}
+
 /** Linear scale from “so far this UTC month” to full month length (for pulse projections). */
 export function monthEndLinearScale(date = new Date()): number {
   const y = date.getUTCFullYear();

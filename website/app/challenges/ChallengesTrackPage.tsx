@@ -15,7 +15,7 @@ function stripMarkdownSimple(s: string): string {
 }
 
 type Props = {
-  track: "DEVELOPER" | "HACKER";
+  track: "DEVELOPER" | "HACKER" | "DESIGNERS";
   heading: string;
   description: string;
   otherLabel: string;

@@ -144,7 +144,7 @@ export function Navbar() {
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded border border-[var(--border-bright)] text-[var(--text)] md:hidden"
+          className="inline-flex min-h-[44px] min-w-[44px] h-11 w-11 items-center justify-center rounded border border-[var(--border-bright)] text-[var(--text)] md:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           aria-expanded={open}
           aria-controls="nav-panel"
           aria-label={open ? "Close menu" : "Open menu"}

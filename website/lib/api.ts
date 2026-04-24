@@ -119,6 +119,8 @@ export interface MemberSummary {
 
 export interface Member extends MemberSummary {
   createdAt: string;
+  /** Distinct challenge tracks from enrollments (e.g. DEVELOPER, HACKER, DESIGNERS). */
+  tracks?: string[];
   _count: { submissions: number; blogs: number };
   submissions: Array<{
     id: string;
@@ -296,24 +298,30 @@ export async function fetchMembersHubBundle(): Promise<{
         );
       }
     }
-    const responses = await Promise.all(
-      urls.map((url) => fetch(url!, init)),
-    );
-    for (let i = 0; i < responses.length; i++) {
-      if (!responses[i].ok) {
-        throw new Error(
-          `API request failed (${paths[i]}): HTTP ${responses[i].status}`,
-        );
+    const settled = await Promise.allSettled(urls.map((url) => fetch(url!, init)));
+    const parse = async (idx: number, fallback: unknown) => {
+      const s = settled[idx];
+      if (s.status !== "fulfilled" || !s.value.ok) return fallback;
+      try {
+        return await s.value.json();
+      } catch {
+        return fallback;
       }
+    };
+    const members = (await parse(0, EMPTY_MEMBERS)) as MembersResponse;
+    const leaderboard = (await parse(1, EMPTY_LEADERBOARD)) as LeaderboardResponse;
+    const portfolio = (await parse(2, EMPTY_PORTFOLIO)) as PortfolioResponse;
+    const blogs = (await parse(3, EMPTY_BLOGS)) as BlogsResponse;
+    const anyOk = settled.some((s) => s.status === "fulfilled" && s.value.ok);
+    if (!anyOk) {
+      const firstErr = settled.find((s) => s.status === "fulfilled" && !s.value.ok) as
+        | PromiseFulfilledResult<Response>
+        | undefined;
+      const status = firstErr?.value.status ?? "network";
+      throw new Error(
+        `Could not load members hub (best status: HTTP ${status}). Check NEXT_PUBLIC_API_URL or /hns-api rewrites.`,
+      );
     }
-    const [members, leaderboard, portfolio, blogs] = await Promise.all(
-      responses.map((r) => r.json()),
-    ) as [
-      MembersResponse,
-      LeaderboardResponse,
-      PortfolioResponse,
-      BlogsResponse,
-    ];
     return { members, leaderboard, portfolio, blogs };
   } catch (e) {
     if (e instanceof Error && e.name === "AbortError") {
@@ -405,7 +413,7 @@ export async function getDiscordWidget(): Promise<DiscordWidgetResponse | null> 
 }
 
 export async function getChallenges(
-  track: "DEVELOPER" | "HACKER",
+  track: "DEVELOPER" | "HACKER" | "DESIGNERS",
   month?: string,
 ): Promise<ChallengesResponse> {
   const qs = new URLSearchParams({ track });

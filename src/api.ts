@@ -23,6 +23,15 @@ import {
   handleBlogPost,
   handleBlogPatch,
   handleBlogDelete,
+  handleAdminSubmissionsList,
+  handleAdminSubmissionPatch,
+  handleSubmissionsListGet,
+  handleActivitySubmissionsFeed,
+  handleVotesResultsGet,
+  handleBlogLikePost,
+  handleBlogLikesMineGet,
+  handleDesignImageUpload,
+  handleR2MediaGet,
 } from "./rest-handlers";
 
 /** Stable pathname for routing (collapse slashes, trim trailing slash, keep leading slash). */
@@ -93,6 +102,63 @@ export async function handleApiRequest(
     if (subMatch && method === "GET") {
       const body = await handleSubmissionGet(prisma, subMatch[1]!, env, request);
       return tagApi(body, method);
+    }
+
+    const subPlural = pathname.match(/^\/api\/submissions\/([^/]+)$/);
+    if (subPlural && method === "GET") {
+      const body = await handleSubmissionGet(prisma, subPlural[1]!, env, request);
+      return tagApi(body, method);
+    }
+    if (subPlural && method === "PATCH") {
+      return tagApi(await handleSubmitPatch(prisma, subPlural[1]!, request, env), method);
+    }
+
+    if (pathname === "/api/submissions" && method === "GET") {
+      return tagApi(await handleSubmissionsListGet(prisma, request, env), method);
+    }
+    if (pathname === "/api/submissions" && method === "POST") {
+      return tagApi(await handleSubmitPost(prisma, request, env), method);
+    }
+
+    if (pathname === "/api/admin/submissions" && method === "GET") {
+      return tagApi(await handleAdminSubmissionsList(prisma, request, env), method);
+    }
+    const adminSubId = pathname.match(/^\/api\/admin\/submissions\/([^/]+)$/);
+    if (adminSubId && method === "PATCH") {
+      return tagApi(await handleAdminSubmissionPatch(prisma, adminSubId[1]!, request, env), method);
+    }
+
+    if (pathname === "/api/activity/submissions" && method === "GET") {
+      return tagApi(await handleActivitySubmissionsFeed(prisma, request, env), method);
+    }
+
+    if (pathname === "/api/votes/results" && method === "GET") {
+      return tagApi(await handleVotesResultsGet(prisma, request, env), method);
+    }
+
+    const blogLikeMatch = pathname.match(/^\/api\/blogs\/([^/]+)\/like$/);
+    if (blogLikeMatch && method === "POST") {
+      return tagApi(await handleBlogLikePost(prisma, blogLikeMatch[1]!, request, env), method);
+    }
+
+    if (pathname === "/api/blogs/likes/mine" && method === "GET") {
+      return tagApi(await handleBlogLikesMineGet(prisma, request, env), method);
+    }
+
+    if (pathname === "/api/upload/design-image" && method === "POST") {
+      return tagApi(await handleDesignImageUpload(prisma, request, env), method);
+    }
+
+    const r2Media = pathname.match(/^\/api\/media\/r2\/(.+)$/);
+    if (r2Media && method === "GET") {
+      return tagApi(await handleR2MediaGet(prisma, r2Media[1]!, env), method);
+    }
+
+    if (pathname === "/api/votes" && method === "POST") {
+      return tagApi(await handleVotePost(prisma, request, env), method);
+    }
+    if (pathname === "/api/votes" && method === "GET") {
+      return tagApi(await handleVoteStatus(prisma, request, env), method);
     }
 
     const redirMatch = pathname.match(/^\/api\/redirect\/([^/]+)$/);
@@ -204,9 +270,9 @@ export async function handleApiRequest(
         const url = new URL(request.url);
         const track = url.searchParams.get("track");
         const monthQ = url.searchParams.get("month");
-        if (track !== "DEVELOPER" && track !== "HACKER") {
+        if (track !== "DEVELOPER" && track !== "HACKER" && track !== "DESIGNERS") {
           body = corsJson(
-            { error: "Invalid or missing track (use DEVELOPER or HACKER)" },
+            { error: "Invalid or missing track (use DEVELOPER, HACKER, or DESIGNERS)" },
             400,
           );
           break;
@@ -254,7 +320,10 @@ async function portfolioResponse(
 ): Promise<Response> {
   const rows = await prisma.submission.findMany({
     where: {
-      revealed: true,
+      OR: [
+        { submissionStatus: "PUBLISHED" },
+        { AND: [{ submissionStatus: null }, { revealed: true }] },
+      ],
       month:
         phase === "PUBLISH" || phase === "POST_PUBLISH"
           ? { lte: currentMonth }
@@ -329,6 +398,9 @@ async function membersResponse(prisma: PrismaClient): Promise<Response> {
       points: true,
       rank: true,
       createdAt: true,
+      enrollments: {
+        select: { challenge: { select: { track: true } } },
+      },
       _count: { select: { submissions: true, blogs: true } },
       submissions: {
         where: { isApproved: true },
@@ -341,9 +413,11 @@ async function membersResponse(prisma: PrismaClient): Promise<Response> {
   });
 
   const members = rawMembers.map((m) => {
-    const { discordUsername, ...rest } = m;
+    const { discordUsername, enrollments, ...rest } = m;
+    const tracks = [...new Set((enrollments ?? []).map((e) => e.challenge.track))];
     return {
       ...rest,
+      tracks,
       displayName: mergedPublicDisplayName(rest.displayName, discordUsername),
     };
   });

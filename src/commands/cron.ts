@@ -3,6 +3,9 @@ import { getPrisma } from "../db";
 import { getMonthlyPhase, monthKey } from "../time";
 import { generateAndPostChallenges } from "../challenge-generator";
 import { syncAllRoles } from "../role-manager";
+import { assignDesignWinnerRole } from "../design-track-roles";
+import { TRACK_DESIGNERS } from "../tracks";
+import { syncLegacyApprovalFields } from "../submission-lifecycle";
 import {
   notifyChallengesLive,
   notifyDeadlineWarning,
@@ -48,10 +51,31 @@ export function registerCron(app: any) {
 
       if (day === 29 && phase === "PUBLISH") {
         if (config.lastPublishMonth !== currentMonth) {
+          const publishData = { ...syncLegacyApprovalFields("PUBLISHED"), isLocked: true };
           await prisma.submission.updateMany({
             where: { month: currentMonth },
-            data: { revealed: true, isLocked: true },
+            data: publishData as any,
           });
+
+          const designTop = await prisma.submission.findMany({
+            where: { month: currentMonth, track: TRACK_DESIGNERS },
+            orderBy: [{ votes: "desc" }],
+            take: 5,
+            select: { votes: true, user: { select: { discordId: true } } },
+          });
+          const maxV = designTop[0]?.votes ?? -1;
+          if (maxV > 0) {
+            for (const row of designTop) {
+              if (row.votes !== maxV) break;
+              await assignDesignWinnerRole(
+                prisma,
+                row.user.discordId,
+                c.env.DISCORD_GUILD_ID,
+                c.env.DISCORD_TOKEN,
+              ).catch(() => {});
+            }
+          }
+
           await notifyResultsPublished(c, c.env);
           await setConfig(prisma, config.id, { lastPublishMonth: currentMonth });
         }

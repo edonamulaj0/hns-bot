@@ -1,4 +1,4 @@
-import type { D1Database } from "@cloudflare/workers-types";
+import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
 
 /**
  * Cloudflare Worker `env` — keep in sync with `wrangler.toml`:
@@ -11,6 +11,8 @@ import type { D1Database } from "@cloudflare/workers-types";
 export type WorkerBindings = {
   /** D1 database — `[[d1_databases]]` binding `DB`. */
   DB: D1Database;
+  /** Optional R2 bucket for design image uploads (`POST /api/upload/design-image`). */
+  SUBMISSIONS_BUCKET?: R2Bucket;
   /** Public website origin (no trailing slash), e.g. https://h4cknstack.com — used in Discord + cron copy. */
   BASE_URL?: string;
   /** Same secret as auth Worker; verifies `hns_session` and decrypts stored Discord tokens. Secret. */
@@ -26,8 +28,12 @@ export type WorkerBindings = {
   BLOG_CHANNEL_ID: string;
   /** Snowflake of the admin Discord role (slash-command gating, e.g. `/admin-health`). */
   ADMIN_ROLE_ID: string;
+  /** Comma-separated Discord user IDs allowed for `/admin/submissions` and submission approve/reject API. */
+  ADMIN_DISCORD_IDS?: string;
   DEVELOPER_CHALLENGES_CHANNEL_ID: string;
   HACKER_CHALLENGES_CHANNEL_ID: string;
+  /** Optional — if unset, design briefs post to DEVELOPER_CHALLENGES_CHANNEL_ID. */
+  DESIGN_CHALLENGES_CHANNEL_ID?: string;
   /** Optional secret — higher GitHub API rate limits / Search API for `/pulse`. */
   GITHUB_TOKEN?: string;
   GITHUB_OAUTH_CLIENT_ID?: string;

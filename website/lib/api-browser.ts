@@ -127,6 +127,12 @@ export async function deleteBlog(id: string): Promise<Response> {
   });
 }
 
+export async function fetchSubmission(id: string): Promise<Response> {
+  return fetch(browserApiUrl(`/submission/${encodeURIComponent(id)}`), {
+    cache: "no-store",
+  });
+}
+
 export async function fetchVoteQueue(month: string): Promise<Response> {
   return fetch(
     browserApiUrl(`/vote/queue?month=${encodeURIComponent(month)}`),
@@ -141,11 +147,67 @@ export async function fetchVoteStatus(month: string): Promise<Response> {
   );
 }
 
-export async function postVote(submissionId: string): Promise<Response> {
+export async function postVote(submissionId: string, month: string): Promise<Response> {
   return fetch(browserApiUrl("/vote"), {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ submissionId }),
+    body: JSON.stringify({ submissionId, month }),
+  });
+}
+
+export async function fetchActivitySubmissions(
+  limit: number,
+  offset: number,
+): Promise<Response> {
+  const qs = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  return fetch(browserApiUrl(`/activity/submissions?${qs}`), {
+    cache: "no-store",
+  });
+}
+
+export async function postBlogLike(blogId: string): Promise<Response> {
+  return fetch(browserApiUrl(`/blogs/${encodeURIComponent(blogId)}/like`), {
+    method: "POST",
+    credentials: "include",
+  });
+}
+
+export async function fetchMyBlogLikes(): Promise<Response> {
+  return fetch(browserApiUrl("/blogs/likes/mine"), {
+    credentials: "include",
+    cache: "no-store",
+  });
+}
+
+export async function fetchAdminSubmissions(): Promise<Response> {
+  return fetch(browserApiUrl("/admin/submissions"), {
+    credentials: "include",
+    cache: "no-store",
+  });
+}
+
+export async function patchAdminSubmission(
+  id: string,
+  body: { action: "approve" | "reject" },
+): Promise<Response> {
+  return fetch(browserApiUrl(`/admin/submissions/${encodeURIComponent(id)}`), {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function postDesignImageUpload(file: File): Promise<Response> {
+  const fd = new FormData();
+  fd.set("file", file);
+  return fetch(browserApiUrl("/upload/design-image"), {
+    method: "POST",
+    credentials: "include",
+    body: fd,
   });
 }

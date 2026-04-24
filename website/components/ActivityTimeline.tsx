@@ -15,6 +15,22 @@ export function ActivityFeedRow({
   const time = formatFeedTime(item.at);
 
   if (item.type === "submission") {
+    const tr = item.track ?? "DEVELOPER";
+    const badge =
+      tr === "HACKER" ? "Hacker" : tr === "DESIGNERS" ? "Design" : "Developer";
+    const thumb =
+      item.attachmentUrl && tr === "DESIGNERS" ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={item.attachmentUrl}
+          alt=""
+          width={72}
+          height={72}
+          className="shrink-0 rounded object-cover border border-[var(--border)] bg-black/30"
+        />
+      ) : (
+        <span className="text-lg shrink-0 w-[72px] text-center leading-none pt-0.5">🚀</span>
+      );
     return (
       <div
         className={`flex gap-3 ${compact ? "py-2" : "py-3"} pl-5 border-b border-[var(--border)] last:border-0`}
@@ -25,12 +41,16 @@ export function ActivityFeedRow({
             aria-hidden
           />
         </div>
-        <span className="text-lg shrink-0 w-6 text-center leading-none pt-0.5">🚀</span>
+        {thumb}
         <div className="min-w-0 flex-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <p className={`text-sm text-white/80 ${compact ? "line-clamp-2" : ""}`}>
+            <span className="mono text-[0.6rem] text-[var(--accent)] mr-1">{badge}</span>
             {memberDisplayName(item)} shipped {item.title} — {item.tier} · {item.month}
           </p>
           <span className="mono text-[0.65rem] text-white/40">{time}</span>
+          <Link href={`/submissions/${item.id}`} className="btn text-[0.65rem] py-1 px-2 shrink-0">
+            View →
+          </Link>
         </div>
       </div>
     );

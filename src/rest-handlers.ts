@@ -1,11 +1,23 @@
 import type { PrismaClient } from "@prisma/client/edge";
 import type { WorkerBindings } from "./worker-env";
 import { mergedPublicDisplayName, validatePublicDisplayName } from "./display-name";
-import { getMonthlyPhase, monthKey } from "./time";
+import { getMonthlyPhase, monthKey, nextUtcMonthFirstDateString } from "./time";
 import { getSessionFromRequest } from "./session-verify";
 import { requireGuildMembership } from "./membership";
 import { castVote } from "./vote-service";
 import { awardPoints, XP } from "./points";
+import {
+  TRACK_DESIGNERS,
+  TRACK_HACKER,
+  DELIVERABLE_IMAGE_EXPORT,
+  normalizeTrackParam,
+} from "./tracks";
+import {
+  syncLegacyApprovalFields,
+  effectiveSubmissionStatus,
+  isPublishedArchive,
+} from "./submission-lifecycle";
+import { syncDesignEnrollmentRoles } from "./design-track-roles";
 
 const MONTH_RE = /^\d{4}-\d{2}$/;
 
@@ -209,6 +221,7 @@ export async function handleMe(
         attachmentUrl: true,
         votes: true,
         isApproved: true,
+        submissionStatus: true,
         isLocked: true,
         createdAt: true,
       },
@@ -309,7 +322,10 @@ export async function handleUserPublicProfile(
   const submissionRows = await prisma.submission.findMany({
     where: {
       userId: user.id,
-      revealed: true,
+      OR: [
+        { submissionStatus: "PUBLISHED" },
+        { AND: [{ submissionStatus: null }, { revealed: true }] },
+      ],
       month: monthFilter,
     },
     orderBy: [{ month: "desc" }, { votes: "desc" }, { createdAt: "desc" }],
@@ -548,23 +564,33 @@ export async function handleVotePost(
   const ctx = await authCtx(prisma, request, env);
   if (!ctx.session) return ctx.membershipError!;
 
-  const body = await readJson<{ submissionId?: string }>(request);
+  const body = await readJson<{ submissionId?: string; month?: string }>(request);
   const submissionId = body?.submissionId?.trim();
   if (!submissionId) {
     return jsonResponse(env, request, { error: "missing_submissionId" }, 400);
   }
 
-  const result = await castVote(prisma, ctx.session.discordId, submissionId, env);
+  const result = await castVote(
+    prisma,
+    ctx.session.discordId,
+    submissionId,
+    body?.month?.trim() ?? null,
+    env,
+  );
   if (!result.ok) {
     return jsonResponse(env, request, { error: "vote_failed", message: result.message }, 400);
   }
 
-  const remaining = await voteRemaining(prisma, ctx.session.discordId, monthKey());
+  const voteMonth =
+    body?.month && MONTH_RE.test(body.month.trim()) ? body.month.trim() : monthKey();
+  const remaining = await voteRemaining(prisma, ctx.session.discordId, voteMonth);
   return jsonResponse(env, request, {
     votes: result.votes,
+    toggledOff: result.toggledOff ?? false,
     votesRemaining: remaining.totalRemaining,
     developerVotesRemaining: remaining.devRem,
     hackerVotesRemaining: remaining.hackRem,
+    designerVotesRemaining: remaining.designRem,
   });
 }
 
@@ -588,10 +614,17 @@ async function voteRemaining(
       submission: { month: subMonth, track: "HACKER" },
     },
   });
+  const design = await prisma.vote.count({
+    where: {
+      voterDiscordId,
+      submission: { month: subMonth, track: TRACK_DESIGNERS },
+    },
+  });
   return {
     totalRemaining: Math.max(0, 4 - total),
     devRem: Math.max(0, 2 - dev),
     hackRem: Math.max(0, 2 - hack),
+    designRem: Math.max(0, 2 - design),
   };
 }
 
@@ -629,14 +662,22 @@ export async function handleVoteStatus(
       submission: { month, track: "HACKER" },
     },
   });
+  const design = await prisma.vote.count({
+    where: {
+      voterDiscordId: ctx.session.discordId,
+      submission: { month, track: TRACK_DESIGNERS },
+    },
+  });
 
   return jsonResponse(env, request, {
     month,
     totalVotes: total,
     developerVotes: dev,
     hackerVotes: hack,
+    designerVotes: design,
     developerVotesRemaining: Math.max(0, 2 - dev),
     hackerVotesRemaining: Math.max(0, 2 - hack),
+    designerVotesRemaining: Math.max(0, 2 - design),
     totalVotesRemaining: Math.max(0, 4 - total),
     voted: voted.map((v) => v.submissionId),
   });
@@ -658,40 +699,51 @@ export async function handleVoteQueue(
 
   const phase = getMonthlyPhase();
   const subs = await prisma.submission.findMany({
-    where: { month, isApproved: true },
+    where: {
+      month,
+      OR: [
+        { submissionStatus: "APPROVED" },
+        { AND: [{ submissionStatus: null }, { isApproved: true }] },
+      ],
+    },
     include: {
       user: {
         select: {
           discordId: true,
           displayName: true,
           discordUsername: true,
+          avatarHash: true,
         },
       },
     },
     orderBy: [{ track: "asc" }, { tier: "asc" }, { votes: "desc" }],
   });
 
-  const submissions = subs.map((s) => ({
-    id: s.id,
-    title: s.title,
-    description: s.description,
-    tier: s.tier,
-    track: s.track,
-    votes: s.votes,
-    redirectSlug: s.redirectSlug,
-    revealed: s.revealed,
-    repoUrl: s.revealed ? s.repoUrl : null,
-    demoUrl: s.revealed ? s.demoUrl : null,
-    author: s.revealed
-      ? {
-          discordId: s.user.discordId,
-          displayName: mergedPublicDisplayName(
-            s.user.displayName,
-            s.user.discordUsername,
-          ),
-        }
-      : null,
-  }));
+  const showFull = phase === "VOTE" || phase === "REVIEW" || phase === "PUBLISH";
+  const submissions = subs.map((s) => {
+    const author = {
+      discordId: s.user.discordId,
+      displayName: mergedPublicDisplayName(s.user.displayName, s.user.discordUsername),
+      avatarHash: s.user.avatarHash,
+    };
+    return {
+      id: s.id,
+      title: s.title,
+      description: s.description,
+      tier: s.tier,
+      track: s.track,
+      challengeType: s.challengeType,
+      votes: s.votes,
+      redirectSlug: s.redirectSlug,
+      revealed: s.revealed,
+      repoUrl: showFull || s.revealed ? s.repoUrl : null,
+      demoUrl: showFull || s.revealed ? s.demoUrl : null,
+      attachmentUrl: showFull || s.revealed ? s.attachmentUrl : null,
+      deliverableType: s.deliverableType,
+      imageMeta: s.imageMeta,
+      author: showFull || s.revealed ? author : null,
+    };
+  });
 
   return jsonResponse(env, request, { phase, month, submissions });
 }
@@ -710,6 +762,7 @@ export async function handleSubmissionGet(
           discordId: true,
           displayName: true,
           discordUsername: true,
+          avatarHash: true,
         },
       },
     },
@@ -718,17 +771,17 @@ export async function handleSubmissionGet(
     return jsonResponse(env, request, { error: "not_found" }, 404);
   }
 
-  if (!s.revealed) {
+  const session = await getSessionFromRequest(request, env.SESSION_SECRET);
+  const viewerDiscord = session?.discordId ?? null;
+  const st = effectiveSubmissionStatus(s);
+  const isOwner = Boolean(viewerDiscord && s.user.discordId === viewerDiscord);
+  const showPublic = isPublishedArchive(st) || st === "APPROVED";
+  const showOwner = isOwner && (st === "PENDING" || st === "APPROVED" || st === "REJECTED");
+  if (!showPublic && !showOwner) {
     return jsonResponse(env, request, {
-      id: s.id,
-      title: s.title,
-      description: s.description,
-      tier: s.tier,
-      track: s.track,
-      votes: s.votes,
-      redirectSlug: s.redirectSlug,
-      revealed: false,
-    });
+      error: "not_found",
+      message: "This submission is not public yet.",
+    }, 404);
   }
 
   return jsonResponse(env, request, {
@@ -737,15 +790,23 @@ export async function handleSubmissionGet(
     description: s.description,
     tier: s.tier,
     track: s.track,
+    challengeType: s.challengeType,
     votes: s.votes,
     redirectSlug: s.redirectSlug,
-    revealed: true,
+    submissionStatus: st,
     repoUrl: s.repoUrl,
     demoUrl: s.demoUrl,
+    attachmentUrl: s.attachmentUrl,
+    deliverableType: s.deliverableType,
+    imageMeta: s.imageMeta,
+    month: s.month,
+    createdAt: s.createdAt.toISOString(),
+    updatedAt: s.updatedAt.toISOString(),
     userId: s.userId,
     user: {
       discordId: s.user.discordId,
       displayName: mergedPublicDisplayName(s.user.displayName, s.user.discordUsername),
+      avatarHash: s.user.avatarHash,
     },
   });
 }
@@ -782,7 +843,15 @@ export async function handleEnrollPost(
 ): Promise<Response> {
   const phase = getMonthlyPhase();
   if (phase !== "BUILD") {
-    return jsonResponse(env, request, { error: "enrollment_closed" }, 400);
+    return jsonResponse(
+      env,
+      request,
+      {
+        error: "enrollment_closed",
+        message: `The next build window opens ${nextUtcMonthFirstDateString()} (UTC, day 1).`,
+      },
+      400,
+    );
   }
 
   const ctx = await authCtx(prisma, request, env);
@@ -813,6 +882,15 @@ export async function handleEnrollPost(
     create: { userId: user.id, challengeId },
     update: {},
   });
+
+  await syncDesignEnrollmentRoles(
+    prisma,
+    ctx.session.discordId,
+    challenge.track,
+    challenge.tier,
+    env.DISCORD_GUILD_ID,
+    env.DISCORD_TOKEN,
+  ).catch(() => {});
 
   return jsonResponse(env, request, { ok: true, challenge });
 }
@@ -1008,6 +1086,37 @@ export async function handleBlogView(
   return Response.redirect(blog.url, 302);
 }
 
+const IMAGE_EXT_RE = /\.(png|jpg|jpeg|webp)(\?|#|$)/i;
+
+export async function imageUrlLooksValid(url: string): Promise<boolean> {
+  const t = url.trim();
+  if (!t) return false;
+  try {
+    const u = new URL(t);
+    if (!["http:", "https:"].includes(u.protocol)) return false;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12_000);
+    const res = await fetch(u.toString(), {
+      method: "HEAD",
+      redirect: "follow",
+      signal: ctrl.signal,
+      headers: { "User-Agent": "H4cknStack/1.0" },
+    });
+    clearTimeout(timer);
+    const ct = res.headers.get("content-type")?.toLowerCase() ?? "";
+    if (ct.startsWith("image/")) return true;
+    if (IMAGE_EXT_RE.test(u.pathname)) return res.ok || res.status === 403 || res.status === 405;
+    return false;
+  } catch {
+    try {
+      const u = new URL(t);
+      return IMAGE_EXT_RE.test(u.pathname);
+    } catch {
+      return false;
+    }
+  }
+}
+
 export async function handleSubmitPost(
   prisma: PrismaClient,
   request: Request,
@@ -1015,7 +1124,15 @@ export async function handleSubmitPost(
 ): Promise<Response> {
   const phase = getMonthlyPhase();
   if (phase !== "BUILD") {
-    return jsonResponse(env, request, { error: "submissions_closed" }, 400);
+    return jsonResponse(
+      env,
+      request,
+      {
+        error: "submissions_closed",
+        message: `The build window for this month is closed. The next one opens ${nextUtcMonthFirstDateString()} (UTC, day 1).`,
+      },
+      400,
+    );
   }
 
   const ctx = await authCtx(prisma, request, env);
@@ -1027,25 +1144,21 @@ export async function handleSubmitPost(
     repoUrl?: string;
     demoUrl?: string | null;
     attachmentUrl?: string | null;
+    challengeType?: string;
+    writeupBody?: string | null;
   }>(request);
-  if (!body?.title?.trim() || !body.description?.trim() || !body.repoUrl?.trim()) {
+  if (!body?.title?.trim() || !body.description?.trim()) {
     return jsonResponse(env, request, { error: "missing_fields" }, 400);
   }
 
   const title = body.title.trim();
   const description = body.description.trim();
-  const repoUrl = body.repoUrl.trim();
 
   if (title.length < 5 || title.length > 100) {
     return jsonResponse(env, request, { error: "title_length" }, 400);
   }
   if (description.length < 100 || description.length > 2000) {
     return jsonResponse(env, request, { error: "description_length" }, 400);
-  }
-
-  const repoOk = await validateRepoReachable(repoUrl);
-  if (!repoOk) {
-    return jsonResponse(env, request, { error: "repo_unreachable" }, 400);
   }
 
   const user = await prisma.user.findUnique({
@@ -1072,20 +1185,84 @@ export async function handleSubmitPost(
     return jsonResponse(env, request, { error: "already_submitted", id: existing.id }, 409);
   }
 
-  if (ch.track === "HACKER") {
-    const hasAtt = Boolean(body.attachmentUrl?.trim());
-    const hasDemo = Boolean(body.demoUrl?.trim());
-    if (!hasAtt && !hasDemo) {
+  const slug = await uniqueRedirectSlug(prisma);
+  const pending = syncLegacyApprovalFields("PENDING");
+
+  let repoUrl = (body.repoUrl ?? "").trim();
+  let demoUrl = body.demoUrl?.trim() || null;
+  let attachmentUrl = body.attachmentUrl?.trim() || null;
+  let challengeType: string | null = null;
+  let deliverableType: string | null = null;
+
+  if (ch.track === TRACK_DESIGNERS) {
+    deliverableType = DELIVERABLE_IMAGE_EXPORT;
+    repoUrl = "https://h4cknstack.com/challenges/designers";
+    if (!attachmentUrl) {
       return jsonResponse(
         env,
         request,
-        { error: "hacker_requires_attachment_or_demo" },
+        { error: "design_requires_image", message: "Provide a direct PNG, JPG, or WebP image URL." },
         400,
       );
     }
+    const imgOk = await imageUrlLooksValid(attachmentUrl);
+    if (!imgOk) {
+      return jsonResponse(
+        env,
+        request,
+        {
+          error: "invalid_image_url",
+          message: "Image URL must respond with an image content-type or use a .png/.jpg/.webp path.",
+        },
+        400,
+      );
+    }
+  } else if (ch.track === TRACK_HACKER) {
+    const ct = (body.challengeType ?? "").trim().toUpperCase();
+    if (!["CTF_WRITEUP", "TOOL_BUILD", "VULN_RESEARCH", "REDTEAM"].includes(ct)) {
+      return jsonResponse(env, request, { error: "invalid_challenge_type" }, 400);
+    }
+    challengeType = ct;
+    const writeup = (body.writeupBody ?? "").trim();
+    if (!attachmentUrl && !demoUrl && !writeup) {
+      return jsonResponse(
+        env,
+        request,
+        { error: "hacker_requires_writeup_or_link", message: "Add a writeup URL, demo URL, or paste writeup text." },
+        400,
+      );
+    }
+    if (writeup && writeup.length >= 50) {
+      demoUrl = `data:text/markdown;charset=utf-8,${encodeURIComponent(writeup.slice(0, 8000))}`;
+    }
+    if (!attachmentUrl && !demoUrl) {
+      return jsonResponse(env, request, { error: "hacker_requires_writeup_or_link" }, 400);
+    }
+    if (!repoUrl) {
+      repoUrl = "https://h4cknstack.com/challenges/hackers";
+    }
+  } else {
+    if (!repoUrl) {
+      return jsonResponse(env, request, { error: "missing_repo" }, 400);
+    }
+    try {
+      const gh = new URL(repoUrl);
+      if (gh.hostname.toLowerCase() !== "github.com") {
+        return jsonResponse(
+          env,
+          request,
+          { error: "repo_must_be_github", message: "Developer submissions require a github.com repository URL." },
+          400,
+        );
+      }
+    } catch {
+      return jsonResponse(env, request, { error: "invalid_repo_url" }, 400);
+    }
+    const repoOk = await validateRepoReachable(repoUrl);
+    if (!repoOk) {
+      return jsonResponse(env, request, { error: "repo_unreachable" }, 400);
+    }
   }
-
-  const slug = await uniqueRedirectSlug(prisma);
 
   const sub = await prisma.submission.create({
     data: {
@@ -1096,28 +1273,16 @@ export async function handleSubmitPost(
       title,
       description,
       repoUrl,
-      demoUrl: body.demoUrl?.trim() || null,
-      attachmentUrl: body.attachmentUrl?.trim() || null,
+      demoUrl,
+      attachmentUrl,
+      challengeType,
+      deliverableType,
       challengeId: ch.id,
-      isApproved: true,
-      revealed: false,
+      ...pending,
       isLocked: false,
       redirectSlug: slug,
     },
   });
-
-  await awardPoints(prisma, user.id, XP.SUBMISSION_APPROVED, env);
-
-  if (sub.challengeId) {
-    await awardPoints(prisma, user.id, XP.ENROLLMENT_BONUS, env);
-  }
-
-  const approvedCount = await prisma.submission.count({
-    where: { userId: user.id, isApproved: true },
-  });
-  if (approvedCount === 1) {
-    await awardPoints(prisma, user.id, XP.FIRST_SUBMISSION, env);
-  }
 
   return jsonResponse(env, request, { ok: true, submission: sub });
 }
@@ -1128,6 +1293,11 @@ export async function handleSubmitPatch(
   request: Request,
   env: WorkerBindings,
 ): Promise<Response> {
+  const phase = getMonthlyPhase();
+  if (phase !== "BUILD") {
+    return jsonResponse(env, request, { error: "submissions_closed" }, 400);
+  }
+
   const ctx = await authCtx(prisma, request, env);
   if (!ctx.session) return ctx.membershipError!;
 
@@ -1140,12 +1310,17 @@ export async function handleSubmitPatch(
 
   const sub = await prisma.submission.findFirst({
     where: { id, userId: user.id },
+    include: { challenge: true },
   });
   if (!sub) {
     return jsonResponse(env, request, { error: "not_found" }, 404);
   }
   if (sub.isLocked) {
     return jsonResponse(env, request, { error: "locked" }, 403);
+  }
+  const st = effectiveSubmissionStatus(sub);
+  if (st !== "PENDING" && st !== "REJECTED") {
+    return jsonResponse(env, request, { error: "cannot_edit_after_review" }, 403);
   }
 
   const body = await readJson<{
@@ -1154,11 +1329,14 @@ export async function handleSubmitPatch(
     repoUrl?: string;
     demoUrl?: string | null;
     attachmentUrl?: string | null;
+    challengeType?: string;
+    writeupBody?: string | null;
   }>(request);
   if (!body) {
     return jsonResponse(env, request, { error: "invalid_json" }, 400);
   }
 
+  const track = sub.challenge?.track ?? sub.track;
   const data: Record<string, unknown> = {};
   if (body.title !== undefined) {
     const t = body.title.trim();
@@ -1174,14 +1352,59 @@ export async function handleSubmitPatch(
     }
     data.description = d;
   }
-  if (body.repoUrl !== undefined) {
-    const r = body.repoUrl.trim();
-    const ok = await validateRepoReachable(r);
-    if (!ok) return jsonResponse(env, request, { error: "repo_unreachable" }, 400);
-    data.repoUrl = r;
-  }
   if (body.demoUrl !== undefined) data.demoUrl = body.demoUrl?.trim() || null;
   if (body.attachmentUrl !== undefined) data.attachmentUrl = body.attachmentUrl?.trim() || null;
+
+  if (track === TRACK_DESIGNERS) {
+    const att =
+      (body.attachmentUrl !== undefined ? (body.attachmentUrl ?? "").trim() : sub.attachmentUrl) ||
+      "";
+    if (!att) {
+      return jsonResponse(env, request, { error: "design_requires_image" }, 400);
+    }
+    if (body.attachmentUrl !== undefined) {
+      const imgOk = await imageUrlLooksValid(att);
+      if (!imgOk) {
+        return jsonResponse(env, request, { error: "invalid_image_url" }, 400);
+      }
+    }
+  } else if (track !== TRACK_HACKER) {
+    if (body.repoUrl !== undefined) {
+      const r = body.repoUrl.trim();
+      try {
+        const gh = new URL(r);
+        if (gh.hostname.toLowerCase() !== "github.com") {
+          return jsonResponse(env, request, { error: "repo_must_be_github" }, 400);
+        }
+      } catch {
+        return jsonResponse(env, request, { error: "invalid_repo_url" }, 400);
+      }
+      const ok = await validateRepoReachable(r);
+      if (!ok) return jsonResponse(env, request, { error: "repo_unreachable" }, 400);
+      data.repoUrl = r;
+    }
+  }
+
+  if (track === TRACK_HACKER) {
+    if (body.challengeType !== undefined) {
+      const ct = body.challengeType.trim().toUpperCase();
+      if (!["CTF_WRITEUP", "TOOL_BUILD", "VULN_RESEARCH", "REDTEAM"].includes(ct)) {
+        return jsonResponse(env, request, { error: "invalid_challenge_type" }, 400);
+      }
+      data.challengeType = ct;
+    }
+    if (body.writeupBody !== undefined) {
+      const writeup = (body.writeupBody ?? "").trim();
+      if (writeup.length >= 50) {
+        data.demoUrl = `data:text/markdown;charset=utf-8,${encodeURIComponent(writeup.slice(0, 8000))}`;
+      }
+    }
+  }
+
+  if (st === "REJECTED") {
+    data.submissionStatus = "PENDING";
+    Object.assign(data, syncLegacyApprovalFields("PENDING"));
+  }
 
   const updated = await prisma.submission.update({
     where: { id },
@@ -1210,7 +1433,13 @@ export async function handleSubmitDelete(
 
   const sub = await prisma.submission.findFirst({
     where: { id, userId: user.id },
-    select: { id: true, isApproved: true, challengeId: true },
+    select: {
+      id: true,
+      isApproved: true,
+      revealed: true,
+      submissionStatus: true,
+      challengeId: true,
+    },
   });
   if (!sub) {
     return jsonResponse(env, request, { error: "not_found" }, 404);
@@ -1218,9 +1447,10 @@ export async function handleSubmitDelete(
 
   await prisma.submission.delete({ where: { id: sub.id } });
 
+  const st = effectiveSubmissionStatus(sub);
+  const hadApprovalXp = st === "APPROVED" || st === "PUBLISHED";
   const deduction =
-    (sub.isApproved ? XP.SUBMISSION_APPROVED : 0) +
-    (sub.challengeId ? XP.ENROLLMENT_BONUS : 0);
+    (hadApprovalXp ? XP.SUBMISSION_APPROVED : 0) + (sub.challengeId && hadApprovalXp ? XP.ENROLLMENT_BONUS : 0);
   if (deduction > 0) {
     await awardPoints(prisma, user.id, -deduction, env);
   }
@@ -1231,4 +1461,459 @@ export async function handleSubmitDelete(
   });
 
   return jsonResponse(env, request, { deleted: true, newXp: updatedUser?.points ?? 0 });
+}
+
+function parseAdminDiscordIds(env: WorkerBindings): Set<string> {
+  const raw = (env.ADMIN_DISCORD_IDS ?? "").trim();
+  return new Set(
+    raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => /^\d{17,20}$/.test(s)),
+  );
+}
+
+async function requireAdmin(
+  prisma: PrismaClient,
+  request: Request,
+  env: WorkerBindings,
+): Promise<
+  | { session: { discordId: string }; error: null }
+  | { session: null; error: Response }
+> {
+  const ctx = await authCtx(prisma, request, env);
+  if (!ctx.session) return { session: null, error: ctx.membershipError! };
+  if (!parseAdminDiscordIds(env).has(ctx.session.discordId)) {
+    return {
+      session: null,
+      error: jsonResponse(env, request, { error: "Admin access required." }, 403),
+    };
+  }
+  return { session: ctx.session, error: null };
+}
+
+/** GET — pending submissions for admin queue */
+export async function handleAdminSubmissionsList(
+  prisma: PrismaClient,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const adm = await requireAdmin(prisma, request, env);
+  if (!adm.session) return adm.error!;
+
+  const rows = await prisma.submission.findMany({
+    where: {
+      OR: [
+        { submissionStatus: "PENDING" },
+        {
+          AND: [{ submissionStatus: null }, { isApproved: false }, { revealed: false }],
+        },
+      ],
+    },
+    orderBy: [{ createdAt: "asc" }],
+    take: 200,
+    include: {
+      user: {
+        select: {
+          discordId: true,
+          displayName: true,
+          discordUsername: true,
+        },
+      },
+      challenge: { select: { track: true, tier: true, month: true, title: true } },
+    },
+  });
+
+  const list = rows.map((s) => ({
+    id: s.id,
+    title: s.title,
+    description: s.description,
+    track: s.track,
+    tier: s.tier,
+    month: s.month,
+    submissionStatus: effectiveSubmissionStatus(s),
+    attachmentUrl: s.attachmentUrl,
+    repoUrl: s.repoUrl,
+    demoUrl: s.demoUrl,
+    deliverableType: s.deliverableType,
+    createdAt: s.createdAt.toISOString(),
+    author: mergedPublicDisplayName(s.user.displayName, s.user.discordUsername),
+    authorDiscordId: s.user.discordId,
+  }));
+
+  return jsonResponse(env, request, { submissions: list });
+}
+
+/** PATCH — approve or reject (admin only) */
+export async function handleAdminSubmissionPatch(
+  prisma: PrismaClient,
+  id: string,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const adm = await requireAdmin(prisma, request, env);
+  if (!adm.session) return adm.error!;
+
+  const body = await readJson<{ action?: string }>(request);
+  const action = (body?.action ?? "").trim().toLowerCase();
+  if (action !== "approve" && action !== "reject") {
+    return jsonResponse(env, request, { error: 'Use action "approve" or "reject".' }, 400);
+  }
+
+  const sub = await prisma.submission.findUnique({
+    where: { id },
+    include: { user: true },
+  });
+  if (!sub) return jsonResponse(env, request, { error: "not_found" }, 404);
+
+  const st = effectiveSubmissionStatus(sub);
+  if (action === "approve") {
+    if (st === "PUBLISHED") {
+      return jsonResponse(env, request, { error: "already_published" }, 400);
+    }
+    const next = syncLegacyApprovalFields("APPROVED");
+    await prisma.submission.update({ where: { id }, data: next as any });
+
+    await awardPoints(prisma, sub.userId, XP.SUBMISSION_APPROVED, env);
+
+    const priorApproved = await prisma.submission.count({
+      where: {
+        userId: sub.userId,
+        OR: [{ submissionStatus: "APPROVED" }, { submissionStatus: "PUBLISHED" }],
+        NOT: { id },
+      },
+    });
+    if (priorApproved === 0) {
+      await awardPoints(prisma, sub.userId, XP.FIRST_SUBMISSION, env);
+    }
+
+    const enrolledThisMonth = await prisma.enrollment.findFirst({
+      where: { userId: sub.userId, challenge: { month: sub.month } },
+    });
+    if (enrolledThisMonth) {
+      const alreadyBonus = await prisma.submission.count({
+        where: {
+          userId: sub.userId,
+          month: sub.month,
+          OR: [{ submissionStatus: "APPROVED" }, { submissionStatus: "PUBLISHED" }],
+          NOT: { id },
+        },
+      });
+      if (alreadyBonus === 0) {
+        await awardPoints(prisma, sub.userId, XP.ENROLLMENT_BONUS, env);
+      }
+    }
+
+    return jsonResponse(env, request, { ok: true, submissionStatus: "APPROVED" });
+  }
+
+  await prisma.submission.update({
+    where: { id },
+    data: syncLegacyApprovalFields("REJECTED") as any,
+  });
+  return jsonResponse(env, request, { ok: true, submissionStatus: "REJECTED" });
+}
+
+/** GET — published submissions for archive / public lists */
+export async function handleSubmissionsListGet(
+  prisma: PrismaClient,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const url = new URL(request.url);
+  const month = url.searchParams.get("month");
+  const trackParam = normalizeTrackParam(url.searchParams.get("track"));
+  if (month && !MONTH_RE.test(month)) {
+    return jsonResponse(env, request, { error: "invalid_month" }, 400);
+  }
+
+  const where: Record<string, unknown> = {
+    OR: [
+      { submissionStatus: "PUBLISHED" },
+      { AND: [{ submissionStatus: null }, { revealed: true }] },
+    ],
+  };
+  if (month) where.month = month;
+  if (trackParam) where.track = trackParam;
+
+  const rows = await prisma.submission.findMany({
+    where: where as any,
+    orderBy: [{ month: "desc" }, { votes: "desc" }],
+    take: 100,
+    include: {
+      user: {
+        select: {
+          discordId: true,
+          displayName: true,
+          discordUsername: true,
+          avatarHash: true,
+        },
+      },
+    },
+  });
+
+  const submissions = rows.map((s) => ({
+    id: s.id,
+    title: s.title,
+    description: s.description,
+    tier: s.tier,
+    track: s.track,
+    votes: s.votes,
+    month: s.month,
+    repoUrl: s.repoUrl,
+    demoUrl: s.demoUrl,
+    attachmentUrl: s.attachmentUrl,
+    challengeType: s.challengeType,
+    deliverableType: s.deliverableType,
+    imageMeta: s.imageMeta,
+    createdAt: s.createdAt.toISOString(),
+    user: {
+      discordId: s.user.discordId,
+      displayName: mergedPublicDisplayName(s.user.displayName, s.user.discordUsername),
+      avatarHash: s.user.avatarHash,
+    },
+  }));
+
+  return jsonResponse(env, request, { submissions });
+}
+
+/** GET — paginated approved+published submissions for activity */
+export async function handleActivitySubmissionsFeed(
+  prisma: PrismaClient,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const url = new URL(request.url);
+  const limit = Math.min(50, Math.max(1, parseInt(url.searchParams.get("limit") || "20", 10) || 20));
+  const offset = Math.min(2000, Math.max(0, parseInt(url.searchParams.get("offset") || "0", 10) || 0));
+
+  const where = {
+    NOT: { submissionStatus: "REJECTED" },
+    OR: [
+      { submissionStatus: "APPROVED" },
+      { submissionStatus: "PUBLISHED" },
+      { AND: [{ submissionStatus: null }, { isApproved: true }] },
+    ],
+  };
+
+  const [rows, total] = await Promise.all([
+    prisma.submission.findMany({
+      where: where as any,
+      orderBy: [{ createdAt: "desc" }],
+      skip: offset,
+      take: limit,
+      include: {
+        user: {
+          select: {
+            discordId: true,
+            displayName: true,
+            discordUsername: true,
+            avatarHash: true,
+          },
+        },
+      },
+    }),
+    prisma.submission.count({ where: where as any }),
+  ]);
+
+  const submissions = rows.map((s) => ({
+    id: s.id,
+    title: s.title,
+    description: s.description,
+    tier: s.tier,
+    track: s.track,
+    votes: s.votes,
+    month: s.month,
+    attachmentUrl: s.attachmentUrl,
+    challengeType: s.challengeType,
+    createdAt: s.createdAt.toISOString(),
+    user: {
+      discordId: s.user.discordId,
+      displayName: mergedPublicDisplayName(s.user.displayName, s.user.discordUsername),
+      avatarHash: s.user.avatarHash,
+    },
+  }));
+
+  return jsonResponse(env, request, { submissions, total, limit, offset });
+}
+
+/** GET — vote tallies grouped by track */
+export async function handleVotesResultsGet(
+  prisma: PrismaClient,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const url = new URL(request.url);
+  const month = url.searchParams.get("month") ?? monthKey();
+  if (!MONTH_RE.test(month)) {
+    return jsonResponse(env, request, { error: "invalid_month" }, 400);
+  }
+
+  const rows = await prisma.submission.findMany({
+    where: {
+      month,
+      OR: [
+        { submissionStatus: "PUBLISHED" },
+        { submissionStatus: "APPROVED" },
+        { AND: [{ submissionStatus: null }, { isApproved: true }] },
+      ],
+    },
+    select: {
+      id: true,
+      title: true,
+      track: true,
+      tier: true,
+      votes: true,
+    },
+    orderBy: [{ track: "asc" }, { votes: "desc" }],
+  });
+
+  const byTrack: Record<string, typeof rows> = {};
+  for (const r of rows) {
+    const t = r.track || "DEVELOPER";
+    if (!byTrack[t]) byTrack[t] = [];
+    byTrack[t]!.push(r);
+  }
+
+  return jsonResponse(env, request, { month, results: byTrack });
+}
+
+/** POST — toggle like on article */
+export async function handleBlogLikePost(
+  prisma: PrismaClient,
+  blogId: string,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const ctx = await authCtx(prisma, request, env);
+  if (!ctx.session) return ctx.membershipError!;
+
+  const user = await prisma.user.findUnique({
+    where: { discordId: ctx.session.discordId },
+    select: { id: true },
+  });
+  if (!user) return jsonResponse(env, request, { error: "user_not_found" }, 404);
+
+  const blog = await prisma.blog.findFirst({
+    where: { id: blogId, kind: "ARTICLE" },
+    select: { id: true, upvotes: true },
+  });
+  if (!blog) return jsonResponse(env, request, { error: "not_found" }, 404);
+
+  const existing = await prisma.blogLike.findUnique({
+    where: { blogId_userId: { blogId, userId: user.id } },
+  });
+
+  if (existing) {
+    await prisma.blogLike.delete({ where: { blogId_userId: { blogId, userId: user.id } } });
+    await prisma.blog.update({
+      where: { id: blogId },
+      data: { upvotes: { decrement: 1 } },
+    });
+    const b = await prisma.blog.findUnique({ where: { id: blogId }, select: { upvotes: true } });
+    return jsonResponse(env, request, { liked: false, upvotes: b?.upvotes ?? 0 });
+  }
+
+  await prisma.blogLike.create({ data: { blogId, userId: user.id } });
+  await prisma.blog.update({
+    where: { id: blogId },
+    data: { upvotes: { increment: 1 } },
+  });
+  const b = await prisma.blog.findUnique({ where: { id: blogId }, select: { upvotes: true } });
+  return jsonResponse(env, request, { liked: true, upvotes: b?.upvotes ?? 0 });
+}
+
+/** GET — whether current user liked each blog (for hydration) */
+export async function handleBlogLikesMineGet(
+  prisma: PrismaClient,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const ctx = await authCtx(prisma, request, env);
+  if (!ctx.session) return ctx.membershipError!;
+
+  const user = await prisma.user.findUnique({
+    where: { discordId: ctx.session.discordId },
+    select: { id: true },
+  });
+  if (!user) return jsonResponse(env, request, { error: "user_not_found" }, 404);
+
+  const likes = await prisma.blogLike.findMany({
+    where: { userId: user.id },
+    select: { blogId: true },
+  });
+
+  return jsonResponse(env, request, { likedBlogIds: likes.map((l) => l.blogId) });
+}
+
+/** POST multipart — design image to R2 (optional binding) */
+export async function handleDesignImageUpload(
+  prisma: PrismaClient,
+  request: Request,
+  env: WorkerBindings,
+): Promise<Response> {
+  const bucket = env.SUBMISSIONS_BUCKET;
+  if (!bucket) {
+    return jsonResponse(
+      env,
+      request,
+      {
+        error: "upload_not_configured",
+        message: "Configure SUBMISSIONS_BUCKET (R2) on the Worker to enable image uploads.",
+      },
+      501,
+    );
+  }
+
+  const ctx = await authCtx(prisma, request, env);
+  if (!ctx.session) return ctx.membershipError!;
+
+  const ct = request.headers.get("content-type") ?? "";
+  if (!ct.includes("multipart/form-data")) {
+    return jsonResponse(env, request, { error: "expected_multipart" }, 400);
+  }
+
+  const form = await request.formData();
+  const file = form.get("file");
+  if (!(file instanceof File)) {
+    return jsonResponse(env, request, { error: "missing_file" }, 400);
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return jsonResponse(env, request, { error: "file_too_large", message: "Max 10MB." }, 400);
+  }
+  const mime = (file.type || "").toLowerCase();
+  if (!["image/png", "image/jpeg", "image/webp"].includes(mime)) {
+    return jsonResponse(env, request, { error: "invalid_image_type" }, 400);
+  }
+
+  const ext = mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : "jpg";
+  const key = `design/${ctx.session.discordId}/${crypto.randomUUID()}.${ext}`;
+  const buf = await file.arrayBuffer();
+  await bucket.put(key, buf, {
+    httpMetadata: { contentType: mime },
+  });
+
+  const base = env.BASE_URL?.replace(/\/$/, "") || env.WORKER_PUBLIC_URL?.replace(/\/$/, "") || "";
+  const url = `${base}/api/media/r2/${encodeURIComponent(key)}`;
+  return jsonResponse(env, request, { url });
+}
+
+/** GET — stream public R2 object (design uploads) */
+export async function handleR2MediaGet(
+  _prisma: PrismaClient,
+  keyEncoded: string,
+  env: WorkerBindings,
+): Promise<Response> {
+  const bucket = env.SUBMISSIONS_BUCKET;
+  if (!bucket) return new Response("Not found", { status: 404 });
+  const key = decodeURIComponent(keyEncoded);
+  if (!key.startsWith("design/")) return new Response("Not found", { status: 404 });
+  const obj = await bucket.get(key);
+  if (!obj) return new Response("Not found", { status: 404 });
+  const headers = new Headers();
+  const ct = obj.httpMetadata?.contentType ?? "application/octet-stream";
+  headers.set("Content-Type", ct);
+  headers.set("Cache-Control", "public, max-age=31536000, immutable");
+  const body = await obj.arrayBuffer();
+  return new Response(body, { headers });
 }

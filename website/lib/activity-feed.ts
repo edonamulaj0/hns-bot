@@ -1,5 +1,41 @@
 import type { Blog, PortfolioResponse, Submission } from "./api";
 
+/** Row from GET /api/activity/submissions */
+export type ActivityApiSubmission = {
+  id: string;
+  title: string;
+  tier: string;
+  month: string;
+  track?: string | null;
+  createdAt: string;
+  user: { discordId: string; displayName?: string | null };
+  attachmentUrl?: string | null;
+};
+
+/** Flatten portfolio published map into rows for the activity merger (e.g. home preview). */
+export function submissionsFromPortfolio(
+  portfolio: PortfolioResponse | null,
+): ActivityApiSubmission[] {
+  if (!portfolio?.published) return [];
+  const items: ActivityApiSubmission[] = [];
+  for (const subs of Object.values(portfolio.published)) {
+    for (const s of subs as Submission[]) {
+      items.push({
+        id: s.id,
+        title: s.title,
+        tier: s.tier,
+        month: s.month,
+        track: s.track,
+        createdAt: s.createdAt ?? `${s.month}-15T12:00:00.000Z`,
+        user: { discordId: s.user.discordId, displayName: s.user.displayName },
+        attachmentUrl: s.attachmentUrl ?? null,
+      });
+    }
+  }
+  items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return items;
+}
+
 export type ActivityFeedItem =
   | {
       type: "submission";
@@ -8,8 +44,10 @@ export type ActivityFeedItem =
       title: string;
       tier: string;
       month: string;
+      track?: string;
       discordId: string;
       displayName?: string | null;
+      attachmentUrl?: string | null;
     }
   | {
       type: "blog";
@@ -22,32 +60,27 @@ export type ActivityFeedItem =
     };
 
 /**
- * Merge approved submissions and blogs by date. Uses `createdAt` when present.
- * TODO: add XP milestone events when /api/activity exists.
+ * Merge paginated activity submissions and blogs by date (`createdAt`).
  */
 export function mergeActivityFeedItems(
-  portfolio: PortfolioResponse | null,
+  submissions: ActivityApiSubmission[],
   blogs: Blog[],
 ): ActivityFeedItem[] {
   const items: ActivityFeedItem[] = [];
-  const published = portfolio?.published ?? {};
 
-  for (const subs of Object.values(published)) {
-    for (const s of subs as Submission[]) {
-      const at =
-        s.createdAt ??
-        `${s.month}-15T12:00:00.000Z`;
-      items.push({
-        type: "submission",
-        id: s.id,
-        at,
-        title: s.title,
-        tier: s.tier,
-        month: s.month,
-        discordId: s.user.discordId,
-        displayName: s.user.displayName,
-      });
-    }
+  for (const s of submissions) {
+    items.push({
+      type: "submission",
+      id: s.id,
+      at: s.createdAt,
+      title: s.title,
+      tier: s.tier,
+      month: s.month,
+      track: s.track ?? undefined,
+      discordId: s.user.discordId,
+      displayName: s.user.displayName,
+      attachmentUrl: s.attachmentUrl ?? null,
+    });
   }
 
   for (const b of blogs) {
@@ -67,9 +100,9 @@ export function mergeActivityFeedItems(
 }
 
 export function buildActivityFeed(
-  portfolio: PortfolioResponse | null,
+  submissions: ActivityApiSubmission[],
   blogs: Blog[],
   limit: number,
 ): ActivityFeedItem[] {
-  return mergeActivityFeedItems(portfolio, blogs).slice(0, limit);
+  return mergeActivityFeedItems(submissions, blogs).slice(0, limit);
 }

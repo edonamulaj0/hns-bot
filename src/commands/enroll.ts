@@ -3,14 +3,12 @@ import { MessageFlags } from "discord-api-types/v10";
 import type { DiscordHono } from "discord-hono";
 import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
-import { getMonthlyPhase, monthKey } from "../time";
+import { getMonthlyPhase, monthKey, nextUtcMonthFirstDateString } from "../time";
 import { getDiscordUserId } from "./helpers";
 import { sendDirectMessage } from "../discord-api";
 import type { PrismaClient } from "@prisma/client/edge";
-
-function trackLabel(track: string): string {
-  return track === "HACKER" ? "Hacker" : "Developer";
-}
+import { trackLabel } from "../tracks";
+import { syncDesignEnrollmentRoles } from "../design-track-roles";
 
 function webBase(env: { BASE_URL?: string }): string {
   return env.BASE_URL?.replace(/\/$/, "") || "https://h4cknstack.com";
@@ -52,7 +50,7 @@ export async function processDiscordEnrollment(
   const m = monthKey();
   if (phase !== "BUILD") {
     await ctx.followup({
-      content: `Enrollment is closed for **${m}**. The build window has ended.`,
+      content: `Enrollment is closed. The next build window opens **${nextUtcMonthFirstDateString()}** (UTC, day 1).`,
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -82,6 +80,15 @@ export async function processDiscordEnrollment(
     create: { userId: prof.userId, challengeId },
     update: {},
   });
+
+  await syncDesignEnrollmentRoles(
+    prisma,
+    discordId,
+    challenge.track,
+    challenge.tier,
+    ctx.env.DISCORD_GUILD_ID,
+    ctx.env.DISCORD_TOKEN,
+  ).catch(() => {});
 
   const brief =
     challenge.description.length > 300
@@ -126,7 +133,7 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
       const m = monthKey();
       if (phase !== "BUILD") {
         return c.flags("EPHEMERAL").res(
-          `Enrollment is closed for **${m}**. The build window has ended.`,
+          `Enrollment is closed. The next build window opens **${nextUtcMonthFirstDateString()}** (UTC, day 1).`,
         );
       }
 
@@ -167,6 +174,15 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
           create: { userId: prof.userId, challengeId: picked.id },
           update: {},
         });
+
+        await syncDesignEnrollmentRoles(
+          prisma,
+          discordId,
+          picked.track,
+          picked.tier,
+          c.env.DISCORD_GUILD_ID,
+          c.env.DISCORD_TOKEN,
+        ).catch(() => {});
 
         const brief =
           picked.description.length > 300

@@ -189,13 +189,26 @@ export async function notifyResultsPublished(
   const genericCh = singleGenericPreviewChannel(env, opts);
   if (genericCh) {
     const tiers = ["Beginner", "Intermediate", "Advanced"];
-    const tracks: ("DEVELOPER" | "HACKER")[] = ["DEVELOPER", "HACKER"];
+    const tracks: ("DEVELOPER" | "HACKER" | "DESIGNERS")[] = [
+      "DEVELOPER",
+      "HACKER",
+      "DESIGNERS",
+    ];
     const fields: Array<{ name: string; value: string; inline: boolean }> = [];
     for (const track of tracks) {
-      const label = track === "HACKER" ? "Hacker" : "Developer";
+      const label =
+        track === "HACKER" ? "Hacker" : track === "DESIGNERS" ? "Designer" : "Developer";
       for (const tier of tiers) {
         const top = await prisma.submission.findFirst({
-          where: { month, track, tier, isApproved: true },
+          where: {
+            month,
+            track,
+            tier,
+            OR: [
+              { submissionStatus: "APPROVED" },
+              { AND: [{ submissionStatus: null }, { isApproved: true }] },
+            ],
+          },
           include: {
             user: { select: { displayName: true, discordUsername: true } },
           },
@@ -227,13 +240,25 @@ export async function notifyResultsPublished(
   }
 
   for (const chId of channels) {
-    const track: "DEVELOPER" | "HACKER" =
-      env.HACKER_CHALLENGES_CHANNEL_ID?.trim() === chId ? "HACKER" : "DEVELOPER";
+    const track: "DEVELOPER" | "HACKER" | "DESIGNERS" =
+      env.HACKER_CHALLENGES_CHANNEL_ID?.trim() === chId
+        ? "HACKER"
+        : env.DESIGN_CHALLENGES_CHANNEL_ID?.trim() === chId
+          ? "DESIGNERS"
+          : "DEVELOPER";
     const tiers = ["Beginner", "Intermediate", "Advanced"];
     const fields: Array<{ name: string; value: string; inline: boolean }> = [];
     for (const tier of tiers) {
       const top = await prisma.submission.findFirst({
-        where: { month, track, tier, isApproved: true },
+        where: {
+          month,
+          track,
+          tier,
+          OR: [
+            { submissionStatus: "APPROVED" },
+            { AND: [{ submissionStatus: null }, { isApproved: true }] },
+          ],
+        },
         include: {
           user: { select: { displayName: true, discordUsername: true } },
         },
@@ -306,7 +331,8 @@ export async function buildAdminTestNotifyPayload(
       description:
         "This month's challenges are out. Enroll to claim your spot and get the full brief sent to your DMs.\n\nAll submissions go through the website — head to **h4cknstack.com/challenges** to read the briefs and enroll.",
       fields: byTrack.map((r) => {
-        const tr = r.track === "HACKER" ? "Hacker" : "Developer";
+        const tr =
+          r.track === "HACKER" ? "Hacker" : r.track === "DESIGNERS" ? "Designer" : "Developer";
         return {
           name: `${tr} · ${r.tier}`,
           value: `**${r.title}**\n${firstN(r.description, 100)}`,
@@ -318,7 +344,7 @@ export async function buildAdminTestNotifyPayload(
     return {
       embeds: [embed],
       content:
-        "h4cknstack.com/challenges/developers\nh4cknstack.com/challenges/hackers",
+        "h4cknstack.com/challenges/developers\nh4cknstack.com/challenges/hackers\nh4cknstack.com/challenges/designers",
     };
   }
 
@@ -344,7 +370,7 @@ export async function buildAdminTestNotifyPayload(
       title: "🗳️ Submissions are closed — voting is open!",
       color: 0x5865f2,
       description:
-        "The build window has ended. All submitted projects are now live for community voting.\n\nYou have **4 votes this month** — 2 for Developer submissions and 2 for Hacker submissions. Voting closes on day 25.",
+        "The build window has ended. All submitted projects are now live for community voting.\n\nYou have **4 votes this month** — up to **2 per track** (Developer, Hacker, Design). Voting closes on day 25.",
       fields: [
         { name: "Vote now", value: `h4cknstack.com/vote/${month}`, inline: false },
         { name: "Voting closes", value: `Day 25 — ${closes}`, inline: false },
@@ -357,13 +383,26 @@ export async function buildAdminTestNotifyPayload(
 
   if (type === "results-published") {
     const tiers = ["Beginner", "Intermediate", "Advanced"];
-    const tracks: ("DEVELOPER" | "HACKER")[] = ["DEVELOPER", "HACKER"];
+    const tracks: ("DEVELOPER" | "HACKER" | "DESIGNERS")[] = [
+      "DEVELOPER",
+      "HACKER",
+      "DESIGNERS",
+    ];
     const fields: Array<{ name: string; value: string; inline: boolean }> = [];
     for (const track of tracks) {
-      const label = track === "HACKER" ? "Hacker" : "Developer";
+      const label =
+        track === "HACKER" ? "Hacker" : track === "DESIGNERS" ? "Designer" : "Developer";
       for (const tier of tiers) {
         const top = await prisma.submission.findFirst({
-          where: { month, track, tier, isApproved: true },
+          where: {
+            month,
+            track,
+            tier,
+            OR: [
+              { submissionStatus: "APPROVED" },
+              { AND: [{ submissionStatus: null }, { isApproved: true }] },
+            ],
+          },
           include: {
             user: { select: { displayName: true, discordUsername: true } },
           },
