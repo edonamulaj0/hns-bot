@@ -7,7 +7,7 @@ import { getMonthlyPhase, monthKey, nextUtcMonthFirstDateString } from "../time"
 import { getDiscordUserId } from "./helpers";
 import { sendDirectMessage } from "../discord-api";
 import type { PrismaClient } from "@prisma/client/edge";
-import { trackLabel } from "../tracks";
+import { normalizeTrackParam, trackLabel } from "../tracks";
 import { syncDesignEnrollmentRoles } from "../design-track-roles";
 
 function webBase(env: { BASE_URL?: string }): string {
@@ -153,7 +153,7 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
         );
       }
 
-      const selectedTrack = ((c.var as { track?: string }).track ?? "").toUpperCase();
+      const selectedTrack = normalizeTrackParam((c.var as { track?: string }).track ?? "");
       const selectedTier = ((c.var as { tier?: string }).tier ?? "").trim();
       if (selectedTrack && selectedTier) {
         const picked = challenges.find(

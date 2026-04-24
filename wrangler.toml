@@ -16,6 +16,12 @@ binding = "DB"
 database_name = "hns-bot-db"
 database_id = "4b4b1a3d-44bf-42c7-9522-e0a50c6b4f52"
 
+# Create with: wrangler r2 bucket create hns-submissions
+# Leave binding present even if bucket not yet created — endpoint returns 501 gracefully.
+[[r2_buckets]]
+binding = "SUBMISSIONS_BUCKET"
+bucket_name = "hns-submissions"
+
 [vars]
 # Public site (Discord + cron links). No trailing slash.
 BASE_URL = "https://h4cknstack.com"
@@ -31,7 +37,7 @@ ADMIN_ROLE_ID = "1387701276204208228"
 DEVELOPER_CHALLENGES_CHANNEL_ID = "1492903109691707453"
 HACKER_CHALLENGES_CHANNEL_ID = "1492903075269312593"
 # Optional: dedicated #design-challenges channel; falls back to developer channel if unset.
-# DESIGN_CHALLENGES_CHANNEL_ID = ""
+DESIGN_CHALLENGES_CHANNEL_ID = "1494759179469193420"
 
 
 # GitHub OAuth (/link-github → private-aware /pulse). Uncomment and set, plus secrets below.

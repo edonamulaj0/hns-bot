@@ -3,7 +3,7 @@ import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
 import { getMonthlyPhase, monthKey } from "../time";
 import { getDiscordUserId } from "./helpers";
-import { DELIVERABLE_IMAGE_EXPORT, trackLabel } from "../tracks";
+import { DELIVERABLE_IMAGE_EXPORT, normalizeTrackParam, trackLabel } from "../tracks";
 import { syncLegacyApprovalFields } from "../submission-lifecycle";
 import { imageUrlLooksValid } from "../rest-handlers";
 import type { PrismaClient } from "@prisma/client/edge";
@@ -43,7 +43,7 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
       description?: string;
       image_url?: string;
     };
-    const track = (vars.track ?? "").trim().toUpperCase();
+    const track = normalizeTrackParam((vars.track ?? "").trim());
     const title = (vars.title ?? "").trim();
     const description = (vars.description ?? "").trim();
     const imageUrl = (vars.image_url ?? "").trim();

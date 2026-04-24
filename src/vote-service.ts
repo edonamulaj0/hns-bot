@@ -17,7 +17,7 @@ function trackKey(track: string): "DEVELOPER" | "HACKER" | "DESIGNERS" {
 }
 
 /**
- * Record or remove a vote with monthly caps: 4 total per voter per submission month, max 2 per track.
+ * Record or remove a vote with monthly caps: 3 total per voter per submission month, max 1 per track.
  * Same submission again toggles the vote off (idempotent).
  */
 export async function castVote(
@@ -81,19 +81,21 @@ export async function castVote(
     },
   });
 
-  if (totalVotesThisMonth >= 4) {
+  // Cap: 3 total per month (max 1 per track across DEVELOPER, HACKER, DESIGNERS).
+  // A member uses all 3 by voting on one submission in each track.
+  if (totalVotesThisMonth >= 3) {
     return {
       ok: false,
-      message: `You've used all 4 of your votes for ${subMonth}. Votes reset next month.`,
+      message: `You've used all 3 of your votes for ${subMonth}. Votes reset next month.`,
     };
   }
 
-  if (trackVotesThisMonth >= 2) {
+  if (trackVotesThisMonth >= 1) {
     const others = [TRACK_DEVELOPER, TRACK_HACKER, TRACK_DESIGNERS].filter((t) => t !== tk);
     const labels = others.map((t) => trackLabel(t)).join(", ");
     return {
       ok: false,
-      message: `You've already voted on 2 ${trackLabel(tk)} submissions this month. You can still vote on ${labels} work.`,
+      message: `You've already voted on a ${trackLabel(tk)} submission this month. You can still vote on ${labels} work.`,
     };
   }
 

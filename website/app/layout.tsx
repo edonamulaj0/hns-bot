@@ -4,9 +4,8 @@ import "./globals.css";
 import { BRAND_NAME, BUILDER_SITE_URL, WIKI_URL } from "@/lib/branding";
 import { Navbar } from "@/components/navbar";
 import { ChallengesSubNav } from "@/components/ChallengesSubNav";
-import { SplashScreen } from "@/components/SplashScreen";
-import { AmbientBackground } from "@/components/AmbientBackground";
 import { CookieConsent } from "@/components/CookieConsent";
+import { ClientOverlays } from "@/components/ClientOverlays";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -51,9 +50,11 @@ export default function RootLayout({
       lang="en"
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
     >
+      <head>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      </head>
       <body>
-        <SplashScreen />
-        <AmbientBackground />
+        <ClientOverlays />
         <Navbar />
         <ChallengesSubNav />
         <main>{children}</main>

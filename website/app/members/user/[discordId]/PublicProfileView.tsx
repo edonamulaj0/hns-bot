@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { PublicMemberProfile } from "@/lib/api";
 import { formatTechStack, userProfileAvatarUrl } from "@/lib/api";
 import { BlogArticleCard } from "@/components/BlogArticleCard";
@@ -10,6 +11,9 @@ type PublicProfileViewProps = {
   isOwnProfile?: boolean;
   manageLinks?: { submissions: string; articles: string; projects: string };
 };
+
+const AVATAR_BLUR_DATA_URL =
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2Ij48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg==";
 
 export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: PublicProfileViewProps) {
   const u = data.user;
@@ -37,13 +41,16 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
 
         <div className="grid gap-10 lg:grid-cols-[minmax(0,280px)_1fr]">
           <aside className="h-fit space-y-4 rounded border border-[var(--border)] bg-[var(--bg-card)] p-5 lg:sticky lg:top-24">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={avatar}
               alt=""
-              width={160}
-              height={160}
+              width={256}
+              height={256}
+              quality={80}
+              placeholder="blur"
+              blurDataURL={AVATAR_BLUR_DATA_URL}
               className="rounded-xl border border-[var(--border)] mx-auto lg:mx-0"
+              style={{ width: 160, height: 160 }}
             />
             <div className="text-center lg:text-left">
               <h1 className="font-bold text-xl">{memberDisplayName(u)}</h1>
@@ -109,12 +116,17 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {data.submissions.map((s) => {
-                    const dev = (s.track ?? "DEVELOPER") === "DEVELOPER";
+                    const trackLabel =
+                      (s.track ?? "DEVELOPER") === "HACKER"
+                        ? "Hacker"
+                        : (s.track ?? "DEVELOPER") === "DESIGNERS"
+                          ? "Design"
+                          : "Developer";
                     return (
                       <article key={s.id} className="card p-4 sm:p-5 flex flex-col">
                         <div className="flex flex-wrap gap-2 mb-2">
                           <span className="tag tag-accent text-xs">{s.tier}</span>
-                          <span className="tag text-xs">{dev ? "Developer" : "Hacker"}</span>
+                          <span className="tag text-xs">{trackLabel}</span>
                           <span className="mono text-[0.65rem] text-white/45 ml-auto">
                             {s.month} · ▲ {s.votes}
                           </span>

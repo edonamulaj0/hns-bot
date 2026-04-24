@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import type { DiscordWidgetResponse } from "@/lib/api";
 import { DISCORD_INVITE_URL } from "@/lib/branding";
 
@@ -174,13 +175,13 @@ export function DiscordWidget({ className = "" }: { className?: string }) {
                         }}
                         aria-hidden
                       />
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       {m.avatar_url ? (
-                        <img
+                        <Image
                           src={m.avatar_url}
                           alt=""
                           width={22}
                           height={22}
+                          quality={80}
                           className="rounded-full shrink-0"
                         />
                       ) : null}

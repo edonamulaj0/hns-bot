@@ -200,8 +200,8 @@ export function SubmissionsClient({ backHref = "/profile" }: { backHref?: string
 
         {loading && (
           <div className="space-y-3">
-            <div className="skeleton h-36 rounded" />
-            <div className="skeleton h-36 rounded" />
+            <div className="skeleton h-36 rounded" aria-hidden="true" />
+            <div className="skeleton h-36 rounded" aria-hidden="true" />
           </div>
         )}
 

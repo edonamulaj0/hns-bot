@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
   getSessionClient,
@@ -20,6 +21,9 @@ function avatarUrl(u: SessionUser): string {
     64,
   );
 }
+
+const AVATAR_BLUR_DATA_URL =
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjMWExYTFhIi8+PC9zdmc+";
 
 export function AuthNav() {
   const [user, setUser] = useState<SessionUser | null | undefined>(undefined);
@@ -67,12 +71,14 @@ export function AuthNav() {
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={avatarUrl(user)}
           alt=""
           width={28}
           height={28}
+          quality={80}
+          placeholder="blur"
+          blurDataURL={AVATAR_BLUR_DATA_URL}
           className="rounded-full"
         />
         <span className="max-w-[8rem] truncate font-medium">{label}</span>

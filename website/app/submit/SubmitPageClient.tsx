@@ -25,6 +25,7 @@ type MePayload = {
     repoUrl: string;
     demoUrl: string | null;
     attachmentUrl: string | null;
+    imageMeta?: string | null;
     challengeType?: string | null;
     track?: string | null;
     isLocked: boolean;
@@ -67,6 +68,7 @@ export function SubmitPageClient() {
   const [repoUrl, setRepoUrl] = useState("");
   const [demoUrl, setDemoUrl] = useState("");
   const [attachmentUrl, setAttachmentUrl] = useState("");
+  const [imageMetaJson, setImageMetaJson] = useState<string | null>(null);
   const [challengeType, setChallengeType] = useState<string>("CTF_WRITEUP");
   const [writeupBody, setWriteupBody] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -103,6 +105,7 @@ export function SubmitPageClient() {
       );
       setDemoUrl(data.submission.demoUrl?.startsWith("data:") ? "" : (data.submission.demoUrl ?? ""));
       setAttachmentUrl(data.submission.attachmentUrl ?? "");
+      setImageMetaJson(data.submission.imageMeta ?? null);
       if (data.submission.challengeType) setChallengeType(data.submission.challengeType);
     }
   }, []);
@@ -158,12 +161,20 @@ export function SubmitPageClient() {
     setUploading(true);
     try {
       const res = await postDesignImageUpload(file);
-      const j = (await res.json().catch(() => ({}))) as { url?: string; message?: string; error?: string };
+      const j = (await res.json().catch(() => ({}))) as {
+        url?: string;
+        imageMeta?: string;
+        message?: string;
+        error?: string;
+      };
       if (!res.ok) {
         setErr(j.message ?? j.error ?? "Upload failed");
         return;
       }
-      if (j.url) setAttachmentUrl(j.url);
+      if (j.url) {
+        setAttachmentUrl(j.url);
+        setImageMetaJson(j.imageMeta ?? null);
+      }
     } finally {
       setUploading(false);
     }
@@ -189,6 +200,7 @@ export function SubmitPageClient() {
       repoUrl: "",
       demoUrl: null,
       attachmentUrl: attachmentUrl.trim() || null,
+      imageMeta: imageMetaJson,
     };
   };
 
@@ -468,7 +480,10 @@ export function SubmitPageClient() {
             className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             value={attachmentUrl}
             disabled={locked}
-            onChange={(e) => setAttachmentUrl(e.target.value)}
+            onChange={(e) => {
+              setAttachmentUrl(e.target.value);
+              setImageMetaJson(null);
+            }}
             placeholder="https://…"
           />
           {fieldErrors.image && <p className="text-xs text-[var(--danger)]">{fieldErrors.image}</p>}

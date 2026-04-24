@@ -43,11 +43,12 @@ function firstN(text: string, n: number): string {
   return `${t.slice(0, n)}${t.length > n ? "…" : ""}`;
 }
 
-function targetChannels(env: WorkerBindings, opts?: NotifyOpts): string[] {
+export function targetChannels(env: WorkerBindings, opts?: NotifyOpts): string[] {
   if (opts?.channelsOverride?.length) return opts.channelsOverride;
   const out = [
     env.DEVELOPER_CHALLENGES_CHANNEL_ID?.trim() || "",
     env.HACKER_CHALLENGES_CHANNEL_ID?.trim() || "",
+    env.DESIGN_CHALLENGES_CHANNEL_ID?.trim() || "",
   ].filter(Boolean);
   return [...new Set(out)];
 }
@@ -92,16 +93,26 @@ export async function notifyChallengesLive(
     return;
   }
 
-  const rowsFor = (track: "DEVELOPER" | "HACKER") =>
-    byTrack.filter((r) => (r.track === "HACKER" ? "HACKER" : "DEVELOPER") === track);
+  const rowsFor = (t: "DEVELOPER" | "HACKER" | "DESIGNERS") =>
+    byTrack.filter((r) =>
+      t === "HACKER"
+        ? r.track === "HACKER"
+        : t === "DESIGNERS"
+          ? r.track === "DESIGNERS"
+          : r.track === "DEVELOPER",
+    );
 
   for (const chId of channels) {
-    const isDev = !env.HACKER_CHALLENGES_CHANNEL_ID || chId !== env.HACKER_CHALLENGES_CHANNEL_ID.trim();
-    const track: "DEVELOPER" | "HACKER" = isDev ? "DEVELOPER" : "HACKER";
+    const track: "DEVELOPER" | "HACKER" | "DESIGNERS" =
+      chId === env.HACKER_CHALLENGES_CHANNEL_ID?.trim()
+        ? "HACKER"
+        : chId === env.DESIGN_CHALLENGES_CHANNEL_ID?.trim()
+          ? "DESIGNERS"
+          : "DEVELOPER";
     const rows = rowsFor(track);
     const embed = {
       title: `📅 ${month} challenges are live!`,
-      color: 0xccff00,
+      color: track === "HACKER" ? 0xed4245 : track === "DESIGNERS" ? 0xd85a30 : 0x5865f2,
       description:
         "This month's challenges are out. Enroll to claim your spot and get the full brief sent to your DMs.\n\nAll submissions go through the website — head to **h4cknstack.com/challenges** to read the briefs and enroll.",
       fields: rows.map((r) => ({
@@ -112,10 +123,14 @@ export async function notifyChallengesLive(
       footer: { text: "Use /enroll to sign up · Submissions open until day 21" },
     };
     await sendChannelMessage(env.DISCORD_TOKEN, chId, { embeds: [embed] });
-    await sendChannelMessage(env.DISCORD_TOKEN, chId, {
-      content: track === "HACKER"
+    const link =
+      track === "HACKER"
         ? "h4cknstack.com/challenges/hackers"
-        : "h4cknstack.com/challenges/developers",
+        : track === "DESIGNERS"
+          ? "h4cknstack.com/challenges/designers"
+          : "h4cknstack.com/challenges/developers";
+    await sendChannelMessage(env.DISCORD_TOKEN, chId, {
+      content: link,
     });
   }
 }
@@ -156,7 +171,7 @@ export async function notifySubmissionsClosed(
     title: "🗳️ Submissions are closed — voting is open!",
     color: 0x5865f2,
     description:
-      "The build window has ended. All submitted projects are now live for community voting.\n\nYou have **4 votes this month** — 2 for Developer submissions and 2 for Hacker submissions. Voting closes on day 25.",
+      "The build window has ended. All submitted projects are now live for community voting.\n\nYou have **3 votes this month** — up to **1 per track** (Developer, Hacker, and Graphic Design). Voting closes on day 25.",
     fields: [
       { name: "Vote now", value: `h4cknstack.com/vote/${month}`, inline: false },
       { name: "Voting closes", value: `Day 25 — ${closes}`, inline: false },
@@ -370,7 +385,7 @@ export async function buildAdminTestNotifyPayload(
       title: "🗳️ Submissions are closed — voting is open!",
       color: 0x5865f2,
       description:
-        "The build window has ended. All submitted projects are now live for community voting.\n\nYou have **4 votes this month** — up to **2 per track** (Developer, Hacker, Design). Voting closes on day 25.",
+        "The build window has ended. All submitted projects are now live for community voting.\n\nYou have **3 votes this month** — up to **1 per track** (Developer, Hacker, and Graphic Design). Voting closes on day 25.",
       fields: [
         { name: "Vote now", value: `h4cknstack.com/vote/${month}`, inline: false },
         { name: "Voting closes", value: `Day 25 — ${closes}`, inline: false },

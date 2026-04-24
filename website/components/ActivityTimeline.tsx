@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { ActivityFeedItem } from "@/lib/activity-feed";
 import { formatFeedTime } from "@/lib/relative-time";
 import { memberDisplayName } from "@/lib/member-label";
@@ -20,12 +21,12 @@ export function ActivityFeedRow({
       tr === "HACKER" ? "Hacker" : tr === "DESIGNERS" ? "Design" : "Developer";
     const thumb =
       item.attachmentUrl && tr === "DESIGNERS" ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={item.attachmentUrl}
           alt=""
           width={72}
           height={72}
+          quality={80}
           className="shrink-0 rounded object-cover border border-[var(--border)] bg-black/30"
         />
       ) : (

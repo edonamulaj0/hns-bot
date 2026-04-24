@@ -35,6 +35,7 @@ export function VoteBanner({ monthKey }: { monthKey?: string }) {
         marginBottom: "var(--space-lg)",
       }}
     >
+      {/* Vote cap: 3 total, max 1 per track. Update here if src/vote-service.ts changes. */}
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
         <span
           style={{
@@ -63,7 +64,7 @@ export function VoteBanner({ monthKey }: { monthKey?: string }) {
             color: "var(--text-dim)",
           }}
         >
-          Closes day 25 · 4 votes per member (up to 2 per track: Dev / Hacker / Design)
+          Closes day 25 · 3 votes per member (up to 1 per track: Dev / Hacker / Design)
         </span>
       </div>
       <Link

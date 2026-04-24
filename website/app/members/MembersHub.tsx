@@ -3,9 +3,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  fetchMembersHubBundle,
+  getBlogs,
+  getPortfolio,
   formatTechStack,
   userProfileAvatarUrl,
   type Member,
@@ -55,7 +57,15 @@ function coerceSort(view: View, s: string): string {
   return "recent";
 }
 
-export default function MembersHub() {
+type MembersHubProps = {
+  initialMembers: Member[];
+  initialLeaderboard: MemberSummary[];
+};
+
+export default function MembersHub({
+  initialMembers,
+  initialLeaderboard,
+}: MembersHubProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawView = searchParams.get("view");
@@ -74,11 +84,11 @@ export default function MembersHub() {
   const track = (searchParams.get("track") ?? "all").toLowerCase();
   const sort = (searchParams.get("sort") ?? "").toLowerCase();
 
-  const [members, setMembers] = useState<Member[]>([]);
-  const [leaderboard, setLeaderboard] = useState<MemberSummary[]>([]);
+  const members = initialMembers;
+  const [leaderboard] = useState<MemberSummary[]>(initialLeaderboard);
   const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null);
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab] = useState<"leaderboard" | "xp">("leaderboard");
   const [showAllStacks, setShowAllStacks] = useState(false);
@@ -121,30 +131,28 @@ export default function MembersHub() {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadMembersHub() {
-      setLoading(true);
+    async function loadDynamicMembersData() {
       setError(null);
       try {
-        const bundle = await fetchMembersHubBundle();
+        const [portfolioRes, blogsRes] = await Promise.all([
+          getPortfolio(),
+          getBlogs(),
+        ]);
         if (cancelled) return;
-        setMembers(bundle.members.members);
-        setLeaderboard(bundle.leaderboard.leaderboard);
-        setPortfolio(bundle.portfolio);
-        setBlogs(bundle.blogs.blogs);
+        setPortfolio(portfolioRes);
+        setBlogs(blogsRes.blogs);
       } catch (e) {
         if (!cancelled) {
           const msg =
             e instanceof Error
               ? e.message
-              : "Could not load member data. Check NEXT_PUBLIC_API_URL in Cloudflare Pages settings.";
+              : "Could not load portfolio/article data. Check NEXT_PUBLIC_API_URL in Cloudflare Pages settings.";
           setError(msg);
         }
-      } finally {
-        if (!cancelled) setLoading(false);
       }
     }
 
-    loadMembersHub();
+    void loadDynamicMembersData();
     return () => {
       cancelled = true;
     };
@@ -317,7 +325,7 @@ export default function MembersHub() {
     <>
       <motion.section
         className="page-header min-h-[min(28dvh,280px)] flex flex-col justify-center"
-        initial={{ opacity: 0, y: -12 }}
+        initial={{ opacity: 1, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: EASE_OUT }}
       >
@@ -496,16 +504,16 @@ export default function MembersHub() {
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="card p-4 sm:p-5">
                   <div className="mb-3 flex items-start gap-3">
-                    <div className="skeleton h-10 w-10 rounded-full shrink-0" />
+                    <div className="skeleton h-10 w-10 rounded-full shrink-0" aria-hidden="true" />
                     <div className="min-w-0 flex-1 space-y-2">
-                      <div className="skeleton h-3 w-2/3" />
-                      <div className="skeleton h-3 w-1/2" />
+                      <div className="skeleton h-3 w-2/3" aria-hidden="true" />
+                      <div className="skeleton h-3 w-1/2" aria-hidden="true" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <div className="skeleton h-2.5 w-full" />
-                    <div className="skeleton h-2.5 w-5/6" />
-                    <div className="skeleton h-2.5 w-2/3" />
+                    <div className="skeleton h-2.5 w-full" aria-hidden="true" />
+                    <div className="skeleton h-2.5 w-5/6" aria-hidden="true" />
+                    <div className="skeleton h-2.5 w-2/3" aria-hidden="true" />
                   </div>
                 </div>
               ))}
@@ -590,13 +598,13 @@ export default function MembersHub() {
                                   }}
                                 >
                                   <div className="flex items-start gap-3 mb-3">
-                                    <img
+                                    <Image
                                       src={avatar}
                                       alt=""
                                       width={40}
                                       height={40}
+                                      quality={80}
                                       className="rounded-full shrink-0 bg-[var(--border)]"
-                                      loading="lazy"
                                     />
                                     <div className="min-w-0">
                                       <p className="mono text-xs truncate">
@@ -702,7 +710,12 @@ export default function MembersHub() {
                         >
                           {filteredProjects.map((s) => {
                             const stack = formatTechStack(s.user.techStack);
-                            const dev = (s.track ?? "DEVELOPER") === "DEVELOPER";
+                            const trackBadge =
+                              (s.track ?? "DEVELOPER") === "HACKER"
+                                ? "Hacker"
+                                : (s.track ?? "DEVELOPER") === "DESIGNERS"
+                                  ? "Design"
+                                  : "Developer";
                             return (
                               <motion.article
                                 key={s.id}
@@ -712,7 +725,7 @@ export default function MembersHub() {
                                 <div className="flex flex-wrap gap-2 mb-2">
                                   <span className="tag tag-accent text-xs">{s.tier}</span>
                                   <span className="tag text-xs">
-                                    {dev ? "Developer" : "Hacker"}
+                                    {trackBadge}
                                   </span>
                                   <span className="mono text-[0.65rem] text-white/45 ml-auto">
                                     {s.month} · ▲ {s.votes}

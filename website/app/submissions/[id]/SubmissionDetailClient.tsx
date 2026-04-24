@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { fetchSubmission } from "@/lib/api-browser";
 
@@ -108,12 +109,15 @@ export function SubmissionDetailClient({ id }: { id: string }) {
       <p className="text-sm text-white/75 whitespace-pre-wrap">{data.description}</p>
       {data.track === "DESIGNERS" && data.attachmentUrl && (
         <div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={data.attachmentUrl}
-            alt=""
-            className="w-full max-h-[480px] rounded border border-[var(--border)] object-contain bg-black/30"
-          />
+          <div className="relative aspect-[16/10] w-full overflow-hidden rounded border border-[var(--border)] bg-black/30">
+            <Image
+              src={data.attachmentUrl}
+              alt=""
+              fill
+              sizes="(max-width:768px) 100vw, 50vw"
+              className="object-contain"
+            />
+          </div>
           {imageMetaParsed && (imageMetaParsed.width || imageMetaParsed.mime) && (
             <p className="mono text-xs text-white/45 mt-2">
               {imageMetaParsed.width && imageMetaParsed.height

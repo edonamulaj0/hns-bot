@@ -55,9 +55,9 @@ export function VoteMonthClient({ month }: { month: string }) {
   const [phase, setPhase] = useState<Phase | null>(null);
   const [subs, setSubs] = useState<QSub[]>([]);
   const [voted, setVoted] = useState<Set<string>>(new Set());
-  const [devRem, setDevRem] = useState(2);
-  const [hackRem, setHackRem] = useState(2);
-  const [designRem, setDesignRem] = useState(2);
+  const [devRem, setDevRem] = useState(1);
+  const [hackRem, setHackRem] = useState(1);
+  const [designRem, setDesignRem] = useState(1);
   const [auth, setAuth] = useState<boolean | undefined>(undefined);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -100,10 +100,11 @@ export function VoteMonthClient({ month }: { month: string }) {
           hackerVotesRemaining: number;
           designerVotesRemaining?: number;
         };
+        // DESIGNERS vote wiring is complete: rest-handlers returns designerVotesRemaining and we map it into designRem.
         setVoted(new Set(s.voted));
         setDevRem(s.developerVotesRemaining);
         setHackRem(s.hackerVotesRemaining);
-        setDesignRem(s.designerVotesRemaining ?? 2);
+        setDesignRem(s.designerVotesRemaining ?? 1);
       }
     } catch (e) {
       setLoadErr(e instanceof Error ? e.message : "Could not load vote page.");
@@ -277,11 +278,13 @@ export function VoteMonthClient({ month }: { month: string }) {
                         <p className="text-xs text-white/45 line-clamp-3">{s.description}</p>
                         {s.track === "DESIGNERS" && s.attachmentUrl && (
                           <div className="mt-1 space-y-1">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={s.attachmentUrl}
                               alt=""
                               className="w-full max-h-48 rounded border border-[var(--border)] object-contain bg-black/40"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                              }}
                             />
                             {meta && (meta.width || meta.height || meta.mime) && (
                               <p className="mono text-[0.6rem] text-white/40">

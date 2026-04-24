@@ -621,10 +621,10 @@ async function voteRemaining(
     },
   });
   return {
-    totalRemaining: Math.max(0, 4 - total),
-    devRem: Math.max(0, 2 - dev),
-    hackRem: Math.max(0, 2 - hack),
-    designRem: Math.max(0, 2 - design),
+    totalRemaining: Math.max(0, 3 - total),
+    devRem: Math.max(0, 1 - dev),
+    hackRem: Math.max(0, 1 - hack),
+    designRem: Math.max(0, 1 - design),
   };
 }
 
@@ -669,16 +669,17 @@ export async function handleVoteStatus(
     },
   });
 
+  // All three track remainders are returned; clients display whichever are relevant.
   return jsonResponse(env, request, {
     month,
     totalVotes: total,
     developerVotes: dev,
     hackerVotes: hack,
     designerVotes: design,
-    developerVotesRemaining: Math.max(0, 2 - dev),
-    hackerVotesRemaining: Math.max(0, 2 - hack),
-    designerVotesRemaining: Math.max(0, 2 - design),
-    totalVotesRemaining: Math.max(0, 4 - total),
+    developerVotesRemaining: Math.max(0, 1 - dev),
+    hackerVotesRemaining: Math.max(0, 1 - hack),
+    designerVotesRemaining: Math.max(0, 1 - design),
+    totalVotesRemaining: Math.max(0, 3 - total),
     voted: voted.map((v) => v.submissionId),
   });
 }
@@ -1117,6 +1118,29 @@ export async function imageUrlLooksValid(url: string): Promise<boolean> {
   }
 }
 
+async function fetchImageMeta(
+  url: string,
+): Promise<{ width?: number; height?: number; mime?: string } | null> {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(url, {
+      method: "HEAD",
+      redirect: "follow",
+      signal: ctrl.signal,
+      headers: { "User-Agent": "H4cknStack/1.0" },
+    });
+    clearTimeout(t);
+    const ct = res.headers.get("content-type")?.toLowerCase().split(";")[0]?.trim() ?? "";
+    const cl = res.headers.get("content-length");
+    void cl;
+    const mime = ct.startsWith("image/") ? ct : undefined;
+    return mime ? { mime } : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function handleSubmitPost(
   prisma: PrismaClient,
   request: Request,
@@ -1144,6 +1168,7 @@ export async function handleSubmitPost(
     repoUrl?: string;
     demoUrl?: string | null;
     attachmentUrl?: string | null;
+    imageMeta?: string | null;
     challengeType?: string;
     writeupBody?: string | null;
   }>(request);
@@ -1193,6 +1218,7 @@ export async function handleSubmitPost(
   let attachmentUrl = body.attachmentUrl?.trim() || null;
   let challengeType: string | null = null;
   let deliverableType: string | null = null;
+  let imageMeta: string | null = null;
 
   if (ch.track === TRACK_DESIGNERS) {
     deliverableType = DELIVERABLE_IMAGE_EXPORT;
@@ -1216,6 +1242,13 @@ export async function handleSubmitPost(
         },
         400,
       );
+    }
+    const bodyImageMeta = body.imageMeta?.trim() || null;
+    if (bodyImageMeta) {
+      imageMeta = bodyImageMeta;
+    } else {
+      const meta = await fetchImageMeta(attachmentUrl);
+      if (meta) imageMeta = JSON.stringify(meta);
     }
   } else if (ch.track === TRACK_HACKER) {
     const ct = (body.challengeType ?? "").trim().toUpperCase();
@@ -1277,6 +1310,7 @@ export async function handleSubmitPost(
       attachmentUrl,
       challengeType,
       deliverableType,
+      imageMeta,
       challengeId: ch.id,
       ...pending,
       isLocked: false,
@@ -1367,6 +1401,8 @@ export async function handleSubmitPatch(
       if (!imgOk) {
         return jsonResponse(env, request, { error: "invalid_image_url" }, 400);
       }
+      const meta = await fetchImageMeta(att);
+      data.imageMeta = meta ? JSON.stringify(meta) : null;
     }
   } else if (track !== TRACK_HACKER) {
     if (body.repoUrl !== undefined) {
@@ -1895,7 +1931,10 @@ export async function handleDesignImageUpload(
 
   const base = env.BASE_URL?.replace(/\/$/, "") || env.WORKER_PUBLIC_URL?.replace(/\/$/, "") || "";
   const url = `${base}/api/media/r2/${encodeURIComponent(key)}`;
-  return jsonResponse(env, request, { url });
+  return jsonResponse(env, request, {
+    url,
+    imageMeta: JSON.stringify({ mime }),
+  });
 }
 
 /** GET — stream public R2 object (design uploads) */

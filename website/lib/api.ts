@@ -119,6 +119,7 @@ export interface MemberSummary {
 
 export interface Member extends MemberSummary {
   createdAt: string;
+  profileCompletedAt?: string | null;
   /** Distinct challenge tracks from enrollments (e.g. DEVELOPER, HACKER, DESIGNERS). */
   tracks?: string[];
   _count: { submissions: number; blogs: number };

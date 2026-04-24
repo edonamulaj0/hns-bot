@@ -50,9 +50,9 @@ export function ProfilePageClient() {
     return (
       <section className="section px-[clamp(1rem,4vw,2rem)]">
         <div className="container max-w-5xl space-y-4">
-          <div className="skeleton h-8 w-40 rounded" />
-          <div className="skeleton h-40 w-full rounded" />
-          <div className="skeleton h-40 w-full rounded" />
+          <div className="skeleton h-8 w-40 rounded" aria-hidden="true" />
+          <div className="skeleton h-40 w-full rounded" aria-hidden="true" />
+          <div className="skeleton h-40 w-full rounded" aria-hidden="true" />
         </div>
       </section>
     );

@@ -151,6 +151,21 @@ export default async function JoinPage({
                         page.
                       </p>
                     </div>
+                    <div className="card p-4 sm:p-5">
+                      <p className="text-xl mb-2">🎨</p>
+                      <h3 className="font-bold text-[var(--accent)] mb-2">Graphic Design Track</h3>
+                      <p className="text-sm text-white/60 leading-relaxed">
+                        Same monthly calendar as developers — days 1–21 to create, days 22–25 to vote.
+                        Submit posters, brand kits, UI mockups, or motion storyboards as a PNG, JPG,
+                        or WebP image export. Use <code className="mono text-[var(--accent)]">/enroll</code>{" "}
+                        in Discord to pick your tier, then submit your image on the site from{" "}
+                        <strong className="text-white/80">Submit</strong> or the{" "}
+                        <Link href="/challenges/designers" className="text-[var(--accent)] hover:underline font-medium">
+                          Challenges
+                        </Link>{" "}
+                        page.
+                      </p>
+                    </div>
                   </div>
                 ),
               },
@@ -160,7 +175,8 @@ export default async function JoinPage({
                   <p className="text-white/65 text-sm sm:text-base leading-relaxed">
                     Sign in on the site and go to <strong className="text-white/85">Submit</strong> via your avatar menu.
                     Fill in your repo link, optional demo URL, and optional writeup or attachment. You can edit your
-                    submission any time before day 21.
+                    submission any time before day 21. Designers upload a PNG, JPG, or WebP image directly from the
+                    submit page — no GitHub repo needed.
                   </p>
                 ),
               },
@@ -172,8 +188,8 @@ export default async function JoinPage({
                     <Link href="/challenges" className="text-[var(--accent)] hover:underline font-medium">
                       Challenges
                     </Link>{" "}
-                    page, or open <strong className="text-white/85">Vote</strong> from your avatar menu. You have 4 votes per
-                    month (2 per track). Votes on your project earn you XP.
+                    page, or open <strong className="text-white/85">Vote</strong> from your avatar menu. You have 3 votes per
+                    month (1 per track). Votes on your project earn you XP.
                   </p>
                 ),
               },

@@ -24,20 +24,36 @@ const FAQ: { q: string; a: ReactNode }[] = [
     a: "Anyone who wants to build or break things responsibly. We welcome students, hobbyists, and professionals. You need a Discord account to sign in and participate; there is no gatekeeping beyond following server rules and treating others with respect.",
   },
   {
-    q: "What's the difference between the Developer and Hacker tracks?",
+    q: "What are the different challenge tracks?",
     a: (
       <>
-        Both tracks use the <strong className="text-white/85">same monthly calendar</strong>: roughly days 1–21 to build
-        and submit, days 22–25 to vote (UTC). The developer track is for shipping a software project in any stack. The
-        hacker track is for security outcomes—writeups, tooling, research, and similar work. Enroll for the hacker track
-        with <code className="mono text-[var(--accent)]">/enroll</code> in Discord, then complete your submission on the
-        site. Both earn XP and can appear in the portfolio when approved.
+        H4ck&Stack has three tracks, all sharing the same UTC monthly calendar
+        (days 1–21 build, days 22–25 vote):
+        <br />
+        <br />
+        Developer — ship a software project in any stack. Submit via the site.
+        <br />
+        <br />
+        Hacker — security outcomes: CTF writeups, tooling, vuln research, red team work.
+        Enroll with <code className="mono text-[var(--accent)]">/enroll</code> in Discord, submit on the site.
+        <br />
+        <br />
+        Graphic Design — posters, brand kits, UI mockups, or motion storyboards.
+        Submit a PNG, JPG, or WebP image export — no GitHub repo. Enroll with{" "}
+        <code className="mono text-[var(--accent)]">/enroll</code> or from the{" "}
+        <Link href="/challenges" className="text-[var(--accent)] hover:underline">
+          Challenges
+        </Link>{" "}
+        page, then upload your image on the site.
+        <br />
+        <br />
+        All three earn XP and appear in the portfolio when approved.
       </>
     ),
   },
   {
     q: "Can I use any tech stack or programming language?",
-    a: "Yes for the developer track. Use whatever languages, frameworks, or platforms fit your project. We care that you ship something real and document it clearly — not which logo is on the readme.",
+    a: "Yes for the Developer track — use whatever languages, frameworks, or platforms fit your project. The Graphic Design track also has no tool restrictions: Figma, Penpot, Photoshop, Illustrator, Canva, and similar tools are all fine. We care that you ship something real and document it clearly — not which tool logo is on it.",
   },
   {
     q: "How are projects judged?",

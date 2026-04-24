@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthNav } from "@/components/AuthNav";
 import { getSessionClient, loginUrl, type SessionUser } from "@/lib/auth-client";
 import { userProfileAvatarUrl } from "@/lib/api";
@@ -10,6 +11,8 @@ import { BRAND_LOGO_PNG, BRAND_LOGO_SVG, BRAND_NAME } from "@/lib/branding";
 import { getMonthKey } from "@/lib/month";
 
 const VISITED_KEY = "hns_has_visited";
+const AVATAR_BLUR_DATA_URL =
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjMWExYTFhIi8+PC9zdmc+";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -63,12 +66,12 @@ function NavBrand() {
   }
   const src = step === "png" ? BRAND_LOGO_PNG : BRAND_LOGO_SVG;
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       src={src}
       alt={BRAND_NAME}
       width={220}
       height={40}
+      priority
       className="h-8 w-auto max-h-9 max-w-[min(220px,58vw)] object-contain object-left"
       onError={() => setStep((s) => (s === "png" ? "svg" : "text"))}
     />
@@ -82,7 +85,6 @@ export function Navbar() {
   /** null = before hydration; false = first visit; true = returning visitor */
   const [hasVisitedBefore, setHasVisitedBefore] = useState<boolean | null>(null);
   const voteMonth = getMonthKey();
-  const lockedScrollY = useRef(0);
 
   useEffect(() => {
     const prev = localStorage.getItem(VISITED_KEY);
@@ -100,35 +102,24 @@ export function Navbar() {
 
   useEffect(() => {
     if (open) {
-      lockedScrollY.current = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${lockedScrollY.current}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
-      document.body.style.overflow = "hidden";
-      document.body.style.touchAction = "none";
+      document.documentElement.style.setProperty("--scroll-y", `${window.scrollY}px`);
+      document.body.style.cssText =
+        "position:fixed;top:calc(-1 * var(--scroll-y));width:100%;overflow:hidden";
     } else {
-      const restoreY = lockedScrollY.current;
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-      document.body.style.overflow = "";
-      document.body.style.touchAction = "";
-      if (restoreY > 0) window.scrollTo(0, restoreY);
+      const restoreY = parseInt(
+        document.documentElement.style.getPropertyValue("--scroll-y") || "0",
+        10,
+      );
+      document.body.style.cssText = "";
+      window.scrollTo(0, restoreY);
     }
     return () => {
-      const restoreY = lockedScrollY.current;
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-      document.body.style.overflow = "";
-      document.body.style.touchAction = "";
-      if (restoreY > 0) window.scrollTo(0, restoreY);
+      const restoreY = parseInt(
+        document.documentElement.style.getPropertyValue("--scroll-y") || "0",
+        10,
+      );
+      document.body.style.cssText = "";
+      window.scrollTo(0, restoreY);
     };
   }, [open]);
 
@@ -211,12 +202,14 @@ export function Navbar() {
                       onClick={() => setOpen(false)}
                       className="flex min-w-0 flex-1 items-center gap-3 no-underline text-[var(--text)]"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={sessionAvatarUrl(session)}
                         alt=""
                         width={40}
                         height={40}
+                        quality={80}
+                        placeholder="blur"
+                        blurDataURL={AVATAR_BLUR_DATA_URL}
                         className="shrink-0 rounded-full"
                       />
                       <span className="truncate text-left text-[clamp(1rem,4vw,1.1rem)] font-medium">

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { fetchAdminSubmissions, patchAdminSubmission } from "@/lib/api-browser";
 
 type Row = {
@@ -98,7 +99,13 @@ export function AdminSubmissionsClient() {
             <li key={s.id} className="card p-4 sm:p-6 flex flex-col lg:flex-row gap-4">
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  <span className="tag text-xs">{s.track}</span>
+                  <span className="tag text-xs">
+                    {s.track === "DESIGNER" || s.track === "DESIGNERS"
+                      ? "Designer"
+                      : s.track === "HACKER"
+                        ? "Hacker"
+                        : "Developer"}
+                  </span>
                   <span className="tag text-xs">{s.tier}</span>
                   <span className="mono text-xs text-white/40">{s.month}</span>
                 </div>
@@ -118,12 +125,18 @@ export function AdminSubmissionsClient() {
               </div>
               {s.track === "DESIGNERS" && s.attachmentUrl && (
                 <div className="shrink-0 w-full lg:w-64">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={s.attachmentUrl}
-                    alt=""
-                    className="w-full max-h-48 rounded border border-[var(--border)] object-contain bg-black/30"
-                  />
+                  <div className="relative aspect-[16/10] w-full overflow-hidden rounded border border-[var(--border)] bg-black/30">
+                    <Image
+                      src={s.attachmentUrl}
+                      alt=""
+                      fill
+                      sizes="(max-width:768px) 100vw, 50vw"
+                      className="object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  </div>
                 </div>
               )}
             </li>

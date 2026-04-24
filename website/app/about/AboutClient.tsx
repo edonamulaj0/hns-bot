@@ -5,6 +5,7 @@ import type { AboutStatsPayload } from "@/lib/about-stats";
 import { BUILDER_SITE_URL, DISCORD_INVITE_URL, WIKI_URL } from "@/lib/branding";
 import { OpenStatsPanel } from "@/components/about/OpenStatsPanel";
 import { AboutFaq } from "@/components/about/AboutFaq";
+import { AnimateIn } from "@/components/AnimateIn";
 
 export default function AboutClient({ openStats }: { openStats: AboutStatsPayload }) {
   const containerVariants = {
@@ -28,7 +29,7 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
     <>
       <motion.section
         className="section-sm page-header min-h-hero-sm flex flex-col justify-center"
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 1, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
@@ -42,12 +43,11 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
         </div>
       </motion.section>
 
-      <motion.section
+      <AnimateIn
         className="section"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        hidden={{ opacity: 0 }}
+        visible={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
       >
         <div className="container">
           <div className="max-w-[800px] mx-auto">
@@ -92,14 +92,13 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
             </motion.div>
           </div>
         </div>
-      </motion.section>
+      </AnimateIn>
 
-      <motion.section
+      <AnimateIn
         className="section bg-[var(--bg-card)] border-t border-[var(--border)]"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        hidden={{ opacity: 0 }}
+        visible={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
       >
         <div className="container">
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">How we got started</h2>
@@ -137,14 +136,13 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
             </div>
           </div>
         </div>
-      </motion.section>
+      </AnimateIn>
 
-      <motion.section
+      <AnimateIn
         className="section"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        hidden={{ opacity: 0 }}
+        visible={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
       >
         <div className="container">
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">Get Involved</h2>
@@ -159,6 +157,16 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
               <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">👨‍💻 Join as Developer</h3>
               <p className="text-white/60 text-xs sm:text-sm">
                 Participate in challenges, build projects, and grow with the community.
+              </p>
+            </motion.div>
+
+            <motion.div className="card p-4 sm:p-6 text-center" variants={itemVariants}>
+              <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">
+                🎨 Join as Designer
+              </h3>
+              <p className="text-white/60 text-xs sm:text-sm">
+                Submit posters, brand kits, UI mockups, and motion storyboards.
+                Image exports only — no code required.
               </p>
             </motion.div>
 
@@ -203,16 +211,15 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
             </a>
           </div>
         </div>
-      </motion.section>
+      </AnimateIn>
 
       <OpenStatsPanel data={openStats} />
 
-      <motion.section
+      <AnimateIn
         className="section border-t border-[var(--border)]"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        hidden={{ opacity: 0 }}
+        visible={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
       >
         <div className="container max-w-lg mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3">Community</h2>
@@ -221,16 +228,15 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
             entirely and still belong.
           </p>
         </div>
-      </motion.section>
+      </AnimateIn>
 
       <AboutFaq />
 
-      <motion.section
+      <AnimateIn
         className="section bg-[var(--bg-card)] border-t border-[var(--border)] text-center"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        hidden={{ opacity: 0 }}
+        visible={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
       >
         <div className="container">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">
@@ -249,7 +255,7 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
             global tech ecosystem.
           </p>
         </div>
-      </motion.section>
+      </AnimateIn>
     </>
   );
 }

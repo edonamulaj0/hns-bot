@@ -246,11 +246,11 @@ export function SettingsClient() {
 
         {loading ? (
           <div className="space-y-3">
-            <div className="skeleton h-10 w-full rounded" />
-            <div className="skeleton h-28 w-full rounded" />
-            <div className="skeleton h-10 w-full rounded" />
-            <div className="skeleton h-10 w-full rounded" />
-            <div className="skeleton h-10 w-40 rounded" />
+            <div className="skeleton h-10 w-full rounded" aria-hidden="true" />
+            <div className="skeleton h-28 w-full rounded" aria-hidden="true" />
+            <div className="skeleton h-10 w-full rounded" aria-hidden="true" />
+            <div className="skeleton h-10 w-full rounded" aria-hidden="true" />
+            <div className="skeleton h-10 w-40 rounded" aria-hidden="true" />
           </div>
         ) : (
           <>

@@ -7,6 +7,7 @@ import { getPortfolio, PHASE_META, type PortfolioResponse } from "@/lib/api";
 import { memberDisplayName } from "@/lib/member-label";
 import { PhaseCountdown } from "@/components/PhaseCountdown";
 import { VoteBanner } from "@/components/VoteBanner";
+import { AnimateIn } from "@/components/AnimateIn";
 import type { Phase } from "@/lib/phase";
 import { getMonthKey } from "@/lib/month";
 
@@ -33,7 +34,7 @@ export default function ChallengesPage() {
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <motion.section
         className="section-sm page-header min-h-[min(42dvh,420px)] flex flex-col justify-center"
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 1, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: EASE_OUT }}
       >
@@ -90,12 +91,12 @@ export default function ChallengesPage() {
       </motion.section>
 
       {/* ── Track Explanation ─────────────────────────────────────────────── */}
-      <motion.section
+      <AnimateIn
         className="section border-t border-[var(--border)]"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        hidden={{ opacity: 0 }}
+        visible={{ opacity: 1 }}
         transition={{ duration: 0.6, ease: EASE_OUT }}
-        viewport={{ once: true, amount: 0.15 }}
+        amount={0.15}
       >
         <div className="container w-full">
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Three Tracks</h2>
@@ -248,15 +249,15 @@ export default function ChallengesPage() {
             </motion.div>
           </div>
         </div>
-      </motion.section>
+      </AnimateIn>
 
       {/* ── Monthly Archive ──────────────────────────────────────────────── */}
-      <motion.section
+      <AnimateIn
         className="section border-t border-[var(--border)]"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        hidden={{ opacity: 0 }}
+        visible={{ opacity: 1 }}
         transition={{ duration: 0.6, ease: EASE_OUT }}
-        viewport={{ once: true, amount: 0.15 }}
+        amount={0.15}
       >
         <div className="container w-full">
           <h2 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-8">Monthly Archive</h2>
@@ -358,15 +359,15 @@ export default function ChallengesPage() {
             </div>
           )}
         </div>
-      </motion.section>
+      </AnimateIn>
 
       {/* ── Discord Commands Reference ───────────────────────────────────── */}
-      <motion.section
+      <AnimateIn
         className="section border-t border-[var(--border)] text-center"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        hidden={{ opacity: 0 }}
+        visible={{ opacity: 1 }}
         transition={{ duration: 0.6, ease: EASE_OUT }}
-        viewport={{ once: true, amount: 0.15 }}
+        amount={0.15}
       >
         <div className="container w-full max-w-3xl">
           <p className="mono mb-3 text-[0.7rem] uppercase tracking-wider text-[var(--accent)]">
@@ -395,7 +396,7 @@ export default function ChallengesPage() {
               },
               {
                 cmd: "Vote (site)",
-                desc: `During the vote window (days 22–25 UTC), cast up to 4 votes (max 2 per track: Developer, Hacker, Design) at /vote/${currentMonth || voteMonth}.`,
+                desc: `During the vote window (days 22–25 UTC), cast up to 3 votes (max 1 per track: Developer, Hacker, Design) at /vote/${currentMonth || voteMonth}.`,
               },
               {
                 cmd: "/pulse",
@@ -416,15 +417,15 @@ export default function ChallengesPage() {
             ))}
           </ul>
         </div>
-      </motion.section>
+      </AnimateIn>
 
       {/* ── CTA ──────────────────────────────────────────────────────────── */}
-      <motion.section
+      <AnimateIn
         className="section flex min-h-[min(50dvh,560px)] items-center text-center border-t border-[var(--border)] bg-[var(--bg-card)]"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        hidden={{ opacity: 0 }}
+        visible={{ opacity: 1 }}
         transition={{ duration: 0.6, ease: EASE_OUT }}
-        viewport={{ once: true, amount: 0.15 }}
+        amount={0.15}
       >
         <div className="container max-w-2xl">
           <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">
@@ -440,7 +441,7 @@ export default function ChallengesPage() {
             Join Us →
           </Link>
         </div>
-      </motion.section>
+      </AnimateIn>
     </>
   );
 }

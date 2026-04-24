@@ -21,6 +21,13 @@ function workerBaseUrl(): string | null {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "avatars.githubusercontent.com" },
+      { protocol: "https", hostname: "cdn.discordapp.com" },
+    ],
+    formats: ["image/avif", "image/webp"],
+  },
   // Do not set outputFileTracingRoot to the repo parent here — @cloudflare/next-on-pages
   // runs `vercel build` and a parent root causes a doubled `website/website/.next` path (ENOENT).
   // /auth/* is proxied by middleware.ts (runtime env) so Pages works even if the auth URL was
@@ -32,6 +39,28 @@ const nextConfig: NextConfig = {
       {
         source: "/hns-api/:path*",
         destination: `${worker}/api/:path*`,
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: "/branding/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/fonts/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
       },
     ];
   },
