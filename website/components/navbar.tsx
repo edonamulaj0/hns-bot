@@ -69,10 +69,10 @@ function NavBrand() {
     <Image
       src={src}
       alt={BRAND_NAME}
-      width={220}
-      height={40}
+      width={280}
+      height={52}
       priority
-      className="h-8 w-auto max-h-9 max-w-[min(220px,58vw)] object-contain object-left"
+      className="h-11 w-auto max-h-[3rem] max-w-[min(280px,72vw)] object-contain object-left sm:h-12 sm:max-h-[3.25rem]"
       onError={() => setStep((s) => (s === "png" ? "svg" : "text"))}
     />
   );
@@ -130,7 +130,7 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-[100] border-b border-[var(--border)] bg-[var(--bg)]">
-      <div className="container flex min-h-[3.5rem] w-full items-center justify-between gap-3 py-2">
+      <div className="container flex min-h-[3.75rem] w-full items-center justify-between gap-3 py-2 sm:min-h-[4rem]">
         <Link
           href="/"
           className="flex items-center no-underline shrink-0 min-w-0"
@@ -166,11 +166,11 @@ export function Navbar() {
 
         <div
           id="nav-panel"
-          className={`fixed left-0 right-0 top-[3.5rem] z-[99] h-[calc(100dvh-3.5rem)] border-t border-[var(--border)] bg-[var(--bg)] md:static md:inset-auto md:top-auto md:z-auto md:h-auto md:max-h-none md:flex md:flex-row md:items-center md:gap-1 md:overflow-visible md:border-t-0 md:bg-transparent md:p-0 ${
+          className={`fixed left-0 right-0 top-[3.75rem] z-[99] h-[calc(100dvh-3.75rem)] border-t border-[var(--border)] bg-[var(--bg)] md:static md:inset-auto md:top-auto md:z-auto md:h-auto md:max-h-none md:flex md:flex-row md:items-center md:gap-1 md:overflow-visible md:border-t-0 md:bg-transparent md:p-0 sm:top-[4rem] sm:h-[calc(100dvh-4rem)] ${
             open ? "flex" : "hidden md:flex"
           }`}
         >
-          <div className="flex h-[calc(100dvh-3.5rem)] w-full flex-col justify-between overflow-y-auto px-[clamp(1rem,4vw,2rem)] py-[clamp(1.5rem,5vh,2.5rem)] md:h-auto md:w-auto md:flex-row md:items-center md:gap-1 md:overflow-visible md:p-0">
+          <div className="flex h-[calc(100dvh-3.75rem)] w-full flex-col justify-between overflow-y-auto px-[clamp(1rem,4vw,2rem)] py-[clamp(1.5rem,5vh,2.5rem)] sm:h-[calc(100dvh-4rem)] md:h-auto md:w-auto md:flex-row md:items-center md:gap-1 md:overflow-visible md:p-0">
             <div className="flex flex-col gap-1 md:flex-row md:items-center">
               {NAV_LINKS.map((link) => {
                 const active = linkActive(pathname, link.href);

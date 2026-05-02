@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, useId } from 'vue'
 
 const props = defineProps<{
   show: boolean
@@ -8,6 +8,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['close'])
 const dontShowAgain = ref(false)
+const dontShowId = useId()
 
 const close = () => {
   emit('close')
@@ -53,13 +54,13 @@ const openLink = () => {
         </p>
         
         <div class="flex items-center gap-2 mb-4">
-          <input 
-            type="checkbox" 
-            id="dont-show" 
+          <input
+            :id="dontShowId"
             v-model="dontShowAgain"
+            type="checkbox"
             class="rounded border border-div bg-bg-alt text-primary focus:ring-primary"
           >
-          <label for="dont-show" class="text-sm text-text-1 select-none">Don't show again</label>
+          <label :for="dontShowId" class="text-sm text-text-1 select-none">Don't show again</label>
         </div>
 
         <div class="flex justify-end gap-3">

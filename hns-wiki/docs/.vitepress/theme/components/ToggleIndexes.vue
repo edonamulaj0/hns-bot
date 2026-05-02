@@ -2,6 +2,10 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Switch from './Switch.vue'
 
+defineProps<{
+  switchId: string
+}>()
+
 const isDisabled = ref(false)
 const isOn = ref(false)
 
@@ -55,9 +59,13 @@ const toggleIndexes = (value: boolean) => {
 </script>
 
 <template>
-  <Switch v-model="isOn" 
+  <Switch
+    :id="switchId"
+    v-model="isOn"
     :disabled="isDisabled"
-    :class="{ disabled: isDisabled }"@update:modelValue="toggleIndexes" />
+    :class="{ disabled: isDisabled }"
+    @update:modelValue="toggleIndexes"
+  />
 </template>
 
 <style>

@@ -2,6 +2,11 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Switch from './Switch.vue'
 
+defineProps<{
+  /** Same id as `<InputField id="…">` label `for`. */
+  switchId: string
+}>()
+
 const isDisabled = ref(false)
 const isOn = ref(false)
 
@@ -39,6 +44,7 @@ const toggleStarred = (value: boolean) => {
 
 <template>
   <Switch
+    :id="switchId"
     v-model="isOn"
     :disabled="isDisabled"
     :class="{ disabled: isDisabled }"

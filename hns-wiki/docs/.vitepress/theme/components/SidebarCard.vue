@@ -22,12 +22,12 @@ import ToggleIndexes from './ToggleIndexes.vue'
     </div>
     <InputField id="toggle-starred" label="Toggle Starred">
       <template #display>
-        <ToggleStarred />
+        <ToggleStarred switch-id="toggle-starred" />
       </template>
     </InputField>
     <InputField id="toggle-indexes" label="Toggle Indexes">
       <template #display>
-        <ToggleIndexes />
+        <ToggleIndexes switch-id="toggle-indexes" />
       </template>
     </InputField>
   </div>

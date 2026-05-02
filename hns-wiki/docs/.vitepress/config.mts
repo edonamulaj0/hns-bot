@@ -25,6 +25,9 @@ import { replaceNoteLink } from './utils/markdown'
 // @unocss-include
 
 const baseUrl = process.env.GITHUB_ACTIONS ? '/edit' : '/'
+const iframeTopScriptSrc =
+  baseUrl === '/' ? '/iframe-top.js' : `${baseUrl.replace(/\/$/, '')}/iframe-top.js`
+
 export default defineConfig({
   title: meta.name,
   description: meta.description,
@@ -53,18 +56,7 @@ export default defineConfig({
     ['link', { rel: 'apple-touch-icon', href: '/pwa_icon.png', sizes: '192x192' }],
     ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
     ['meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'default' }],
-    // Redirect to main site if embedded in iframe
-    [
-      'script',
-      {},
-      `
-        (function() {
-          if (window.self !== window.top) {
-              window.top.location = window.location.href;
-          }
-        })();
-        `
-    ]
+    ['script', { src: iframeTopScriptSrc, defer: true }]
   ],
   transformHead: async (context) => generateMeta(context, meta.hostname),
   buildEnd: async (context) => {

@@ -49,6 +49,8 @@
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --container-max: 1200px;
+  /* Taller custom wiki bar (logo + compact search) */
+  --vp-nav-height: 72px;
 
   --vp-c-brand-1: var(--accent);
   --vp-c-brand-2: var(--accent-hover);
@@ -255,8 +257,9 @@ h4,
 }
 
 .hns-wiki-nav .VPNavBarSearch {
-  flex: 1 1 auto;
-  width: min(420px, 100%);
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: 260px;
   padding-left: 0 !important;
 }
 
@@ -267,7 +270,7 @@ h4,
 
 .hns-wiki-nav .DocSearch-Button {
   min-width: 0;
-  height: 40px;
+  height: 34px;
   margin: 0;
   border: 1px solid var(--border-bright);
   border-radius: 4px;
@@ -282,11 +285,15 @@ h4,
 }
 
 .hns-wiki-nav .DocSearch-Button-Placeholder {
-  font-size: var(--text-sm);
+  font-size: 0.78rem;
 }
 
 .hns-wiki-nav .DocSearch-Button-Keys {
   min-width: fit-content;
+}
+
+.hns-wiki-nav .DocSearch-Button .DocSearch-Button-Keys kbd {
+  font-size: 0.65rem;
 }
 
 .VPNavBarTitle .title,

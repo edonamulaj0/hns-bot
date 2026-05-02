@@ -4,6 +4,8 @@ import { Switch as HeadlessSwitch } from '@headlessui/vue'
 const props = defineProps<{
   modelValue: boolean
   disabled?: boolean
+  /** Matches `<label for>` from parent (sidebar toggles). */
+  id?: string
 }>()
 
 const emit = defineEmits<{
@@ -13,6 +15,7 @@ const emit = defineEmits<{
 
 <template>
   <HeadlessSwitch
+    :id="props.id"
     :model-value="props.modelValue"
     :disabled="props.disabled"
     class="switch"
