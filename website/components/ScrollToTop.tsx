@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { forceScrollToTop } from "@/lib/scroll-to-top";
 
 function ScrollToTopInner() {
   const pathname = usePathname();
@@ -12,7 +13,7 @@ function ScrollToTopInner() {
   }, []);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    forceScrollToTop();
   }, [pathname, searchParams]);
 
   return null;

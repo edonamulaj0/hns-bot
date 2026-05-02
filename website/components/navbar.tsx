@@ -9,6 +9,7 @@ import { getSessionClient, loginUrl, type SessionUser } from "@/lib/auth-client"
 import { userProfileAvatarUrl } from "@/lib/api";
 import { BRAND_LOGO_PNG, BRAND_NAME } from "@/lib/branding";
 import { getMonthKey } from "@/lib/month";
+import { forceScrollToTop } from "@/lib/scroll-to-top";
 
 const AVATAR_BLUR_DATA_URL =
   "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjMWExYTFhIi8+PC9zdmc+";
@@ -72,6 +73,10 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const [session, setSession] = useState<SessionUser | null>(null);
   const bodyLockedRef = useRef(false);
+  /** Route when the mobile menu last applied `position:fixed` to `body` — used to avoid restoring old scroll after navigation. */
+  const pathnameWhenMenuLockedRef = useRef<string | null>(null);
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
   const voteMonth = getMonthKey();
 
   useEffect(() => {
@@ -84,6 +89,7 @@ export function Navbar() {
 
   useEffect(() => {
     if (open) {
+      pathnameWhenMenuLockedRef.current = pathnameRef.current;
       document.documentElement.style.setProperty("--scroll-y", `${window.scrollY}px`);
       document.body.style.cssText =
         "position:fixed;top:calc(-1 * var(--scroll-y));width:100%;overflow:hidden";
@@ -93,9 +99,17 @@ export function Navbar() {
         document.documentElement.style.getPropertyValue("--scroll-y") || "0",
         10,
       );
+      const navigatedWhileMenuOpen =
+        pathnameWhenMenuLockedRef.current !== null &&
+        pathnameWhenMenuLockedRef.current !== pathnameRef.current;
+      pathnameWhenMenuLockedRef.current = null;
       document.body.style.cssText = "";
-      window.scrollTo(0, restoreY);
       bodyLockedRef.current = false;
+      if (navigatedWhileMenuOpen) {
+        forceScrollToTop();
+      } else {
+        window.scrollTo(0, restoreY);
+      }
     }
     return () => {
       if (!bodyLockedRef.current) return;
@@ -103,9 +117,17 @@ export function Navbar() {
         document.documentElement.style.getPropertyValue("--scroll-y") || "0",
         10,
       );
+      const navigatedWhileMenuOpen =
+        pathnameWhenMenuLockedRef.current !== null &&
+        pathnameWhenMenuLockedRef.current !== pathnameRef.current;
+      pathnameWhenMenuLockedRef.current = null;
       document.body.style.cssText = "";
-      window.scrollTo(0, restoreY);
       bodyLockedRef.current = false;
+      if (navigatedWhileMenuOpen) {
+        forceScrollToTop();
+      } else {
+        window.scrollTo(0, restoreY);
+      }
     };
   }, [open]);
 
