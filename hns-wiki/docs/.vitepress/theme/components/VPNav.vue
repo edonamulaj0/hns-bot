@@ -9,7 +9,7 @@ import {
   watch,
   watchEffect,
 } from 'vue'
-import { useData } from 'vitepress'
+import { useData, useRoute } from 'vitepress'
 import { inBrowser } from 'vitepress'
 import { onKeyStroke } from '@vueuse/core'
 import VPNavBarSearchButton from 'vitepress/dist/client/theme-default/components/VPNavBarSearchButton.vue'
@@ -26,7 +26,15 @@ const MAIN_LOGO_PNG = `${MAIN_SITE}/branding/hns-name.png`
 const GITHUB_REPO = 'https://github.com/edonamulaj0/hns-bot'
 const DISCORD_INVITE = 'https://discord.gg/xrxTUsgdv9'
 
+/** Mobile drawer links (same destinations as before redesign; layout matches main site nav). */
+const DRAWER_NAV_LINKS = [
+  { href: `${WIKI_ORIGIN}/`, label: 'Wiki home' },
+  { href: GITHUB_REPO, label: 'GitHub' },
+  { href: DISCORD_INVITE, label: 'Discord' },
+] as const
+
 const { frontmatter } = useData()
+const route = useRoute()
 
 const hasNavbar = computed(() => frontmatter.value.navbar !== false)
 
@@ -40,6 +48,26 @@ let removeMqListener: (() => void) | undefined
 
 function closeMenu() {
   menuOpen.value = false
+}
+
+function normalizePath(path: string): string {
+  const t = path.replace(/\/$/, '')
+  return t === '' ? '/' : t
+}
+
+/** Same rules as website `linkActive` but for absolute URLs on the current origin only. */
+function drawerLinkActive(href: string): boolean {
+  if (!inBrowser) return false
+  try {
+    const u = new URL(href)
+    if (u.origin !== window.location.origin) return false
+    const hrefPath = normalizePath(u.pathname)
+    const cur = normalizePath(window.location.pathname)
+    if (hrefPath === '/') return cur === '/'
+    return cur === hrefPath || cur.startsWith(`${hrefPath}/`)
+  } catch {
+    return false
+  }
 }
 
 function toggleMenu() {
@@ -112,6 +140,13 @@ watch(menuOpen, (open) => {
   if (open) window.addEventListener('keydown', onKeydown)
   else window.removeEventListener('keydown', onKeydown)
 })
+
+watch(
+  () => route.path,
+  () => {
+    closeMenu()
+  },
+)
 
 watch(searchOpen, (open) => {
   if (open) mobileSearchExpanded.value = false
@@ -232,12 +267,35 @@ onUnmounted(() => {
           <button
             type="button"
             class="hns-wiki-nav__icon-btn"
-            aria-label="Open menu"
+            :aria-label="menuOpen ? 'Close menu' : 'Open menu'"
             :aria-expanded="menuOpen"
+            aria-controls="wiki-nav-panel"
             @click="toggleMenu"
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <span class="sr-only">Menu</span>
+            <svg
+              v-if="!menuOpen"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
               <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+            <svg
+              v-else
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
         </div>
@@ -261,46 +319,39 @@ onUnmounted(() => {
         />
       </div>
     </div>
-  </header>
 
-  <Teleport v-if="menuOpen" to="body">
+    <!-- Mobile drawer: mirrors main site navbar (fixed below bar, justify-between, no overlay). -->
     <div
-      class="hns-wiki-mobile-nav"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Wiki navigation menu"
+      id="wiki-nav-panel"
+      v-show="menuOpen"
+      class="hns-wiki-nav__drawer md:hidden"
+      role="navigation"
+      aria-label="Site navigation"
     >
-      <div class="hns-wiki-mobile-nav__backdrop" @click="closeMenu" />
-      <div class="hns-wiki-mobile-nav__panel">
-        <div class="hns-wiki-mobile-nav__top">
-          <span class="hns-wiki-mobile-nav__title">Menu</span>
-          <button type="button" class="hns-wiki-mobile-nav__close" aria-label="Close menu" @click="closeMenu">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          </button>
+      <div class="hns-wiki-nav__drawer-inner">
+        <div class="hns-wiki-nav__drawer-links">
+          <a
+            v-for="item in DRAWER_NAV_LINKS"
+            :key="item.href"
+            class="hns-wiki-nav__drawer-link"
+            :class="{ 'hns-wiki-nav__drawer-link--active': drawerLinkActive(item.href) }"
+            :href="item.href"
+            @click="closeMenu"
+          >
+            <span>{{ item.label }}</span>
+            <span
+              class="hns-wiki-nav__drawer-dot"
+              :class="{ 'hns-wiki-nav__drawer-dot--off': !drawerLinkActive(item.href) }"
+              aria-hidden="true"
+            />
+          </a>
         </div>
-
-        <div class="hns-wiki-mobile-nav__body">
-          <a class="hns-wiki-mobile-nav__link" :href="`${WIKI_ORIGIN}/`" @click="closeMenu">
-            Wiki home
-          </a>
-
-          <a class="hns-wiki-mobile-nav__link" :href="GITHUB_REPO" @click="closeMenu">
-            GitHub
-          </a>
-
-          <a class="hns-wiki-mobile-nav__link" :href="DISCORD_INVITE" @click="closeMenu">
-            Discord
-          </a>
-
-          <a class="hns-wiki-mobile-nav__cta" :href="MAIN_SITE" @click="closeMenu">
-            Visit H4ck&amp;Stack
-          </a>
+        <div class="hns-wiki-nav__drawer-cta">
+          <a :href="MAIN_SITE" class="btn btn-primary" @click="closeMenu"> Visit H4ck&amp;Stack </a>
         </div>
       </div>
     </div>
-  </Teleport>
+  </header>
 </template>
 
 <style scoped>
@@ -499,121 +550,108 @@ html.hns-wiki-nav-lock {
   overflow: hidden;
 }
 
-.hns-wiki-mobile-nav {
+/* Mobile nav drawer — layout matches website components/navbar.tsx (#nav-panel). */
+.hns-wiki-nav__drawer {
   position: fixed;
-  inset: 0;
-  z-index: 10000;
-  display: flex;
-}
-
-.hns-wiki-mobile-nav__backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(5, 5, 5, 0.65);
-}
-
-.hns-wiki-mobile-nav__panel {
-  position: relative;
+  left: 0;
+  right: 0;
+  top: 3.75rem;
+  z-index: 99;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  min-height: 100dvh;
+  height: calc(100dvh - 3.75rem);
+  max-height: calc(100dvh - 3.75rem);
+  border-top: 1px solid var(--border);
   background: var(--bg);
-  border-right: 1px solid var(--border);
 }
 
-.hns-wiki-mobile-nav__top {
+@media (min-width: 640px) {
+  .hns-wiki-nav__drawer {
+    top: 4rem;
+    height: calc(100dvh - 4rem);
+    max-height: calc(100dvh - 4rem);
+  }
+}
+
+.hns-wiki-nav__drawer-inner {
   display: flex;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow-y: auto;
+  padding: clamp(1.25rem, 4vh, 2rem) clamp(1rem, 4vw, 2rem);
+  box-sizing: border-box;
+}
+
+.hns-wiki-nav__drawer-links {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hns-wiki-nav__drawer-link {
+  display: flex;
+  width: 100%;
   align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;
-  padding: 0.75rem clamp(1.25rem, 4vw, 2rem);
-  border-bottom: 1px solid var(--border);
-}
-
-.hns-wiki-mobile-nav__title {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-dimmer);
-}
-
-.hns-wiki-mobile-nav__close {
-  display: inline-flex;
-  width: 44px;
-  height: 44px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border-bright);
+  gap: 0.75rem;
   border-radius: 4px;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.hns-wiki-mobile-nav__close:hover {
-  border-color: var(--accent-border-soft);
-  color: var(--accent);
-}
-
-.hns-wiki-mobile-nav__body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-evenly;
-  gap: 1rem;
-  padding: clamp(1rem, 4vh, 2rem) clamp(1.5rem, 5vw, 2.5rem) clamp(2rem, 6vh, 3rem);
-  text-align: center;
-}
-
-.hns-wiki-mobile-nav__link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.85rem 1.25rem;
-  border: 1px solid var(--border-bright);
-  border-radius: 4px;
-  font-family: var(--font-display);
-  font-weight: 600;
-  color: var(--text-dim);
+  border: 1px solid transparent;
+  padding: 0.875rem 1rem;
+  text-align: left;
   text-decoration: none;
-  width: min(320px, 100%);
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1rem, 4vw, 1.2rem);
+  color: var(--text-dim);
   transition: border-color 200ms ease, color 200ms ease, background 200ms ease;
 }
 
-.hns-wiki-mobile-nav__link:hover {
-  border-color: var(--accent-border-soft);
-  background: var(--accent-soft);
+.hns-wiki-nav__drawer-link:hover {
+  border-color: var(--border-bright);
+  color: var(--text);
+}
+
+.hns-wiki-nav__drawer-link--active {
+  border-color: rgba(204, 255, 0, 0.35);
+  background: rgba(204, 255, 0, 0.1);
   color: var(--accent);
 }
 
-.hns-wiki-mobile-nav__cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 1.5rem;
-  border: 1px solid var(--accent);
-  border-radius: 4px;
+.hns-wiki-nav__drawer-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   background: var(--accent);
-  color: var(--button-primary-text);
-  font-family: var(--font-mono);
+}
+
+.hns-wiki-nav__drawer-dot--off {
+  opacity: 0;
+}
+
+.hns-wiki-nav__drawer-cta {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.hns-wiki-nav__drawer-cta .btn {
+  width: 100%;
+  justify-content: center;
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
+  font-size: clamp(1rem, 4vw, 1.05rem);
+}
+
+.hns-wiki-nav__drawer-cta .btn-primary {
   font-weight: 700;
-  font-size: var(--text-sm);
-  text-decoration: none;
-  width: min(320px, 100%);
-  transition: background 200ms ease, border-color 200ms ease;
-}
-
-.hns-wiki-mobile-nav__cta:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-}
-
-@media (min-width: 768px) {
-  .hns-wiki-mobile-nav {
-    display: none !important;
-  }
 }
 </style>
