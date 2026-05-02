@@ -259,7 +259,7 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
       </div>
       {showXpModal && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="xp-breakdown-title"

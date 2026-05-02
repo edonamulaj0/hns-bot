@@ -73,6 +73,14 @@ model Enrollment {
   @@unique([userId, challengeId])
 }
 
+/** Latest `/admin-test-generate` preview per Discord user (survives Worker isolates; consumed by Post / Discard). */
+model ChallengeGenPreview {
+  discordUserId String   @id
+  month         String
+  payloadJson   String
+  updatedAt     DateTime @updatedAt
+}
+
 model Submission {
   id            String    @id @default(cuid())
   userId        String

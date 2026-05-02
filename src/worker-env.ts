@@ -1,4 +1,4 @@
-import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
+import type { D1Database, Queue, R2Bucket } from "@cloudflare/workers-types";
 
 /**
  * Cloudflare Worker `env` — keep in sync with `wrangler.toml`:
@@ -8,9 +8,19 @@ import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
  * - **Secrets** (`wrangler secret put …`): `DISCORD_TOKEN`, `SESSION_SECRET`, optional
  *   `GITHUB_TOKEN`, `CLAUDE_API_KEY`, `GITHUB_OAUTH_CLIENT_SECRET`, `GITHUB_LINK_SECRET`.
  */
+/** Payload for `CHALLENGE_GEN_QUEUE` (see `challenge-gen-queue.ts`). */
+export type ChallengeGenQueueMessage = {
+  kind: "admin-test-preview";
+  applicationId: string;
+  interactionToken: string;
+  discordUserId: string;
+};
+
 export type WorkerBindings = {
   /** D1 database — `[[d1_databases]]` binding `DB`. */
   DB: D1Database;
+  /** Producer + consumer — `[[queues.producers]]` / `[[queues.consumers]]` `hns-challenge-gen`. */
+  CHALLENGE_GEN_QUEUE: Queue<ChallengeGenQueueMessage>;
   /** Optional R2 bucket for design image uploads (`POST /api/upload/design-image`). */
   SUBMISSIONS_BUCKET?: R2Bucket;
   /** Public website origin (no trailing slash), e.g. https://h4cknstack.com — used in Discord + cron copy. */

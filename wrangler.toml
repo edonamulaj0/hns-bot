@@ -12,6 +12,16 @@ database_id = "4b4b1a3d-44bf-42c7-9522-e0a50c6b4f52"
 binding = "SUBMISSIONS_BUCKET"
 bucket_name = "hns-submissions"
 
+# `/admin-test-generate` runs Claude outside the 30s `waitUntil` cap (discord-hono `resDefer`).
+[[queues.producers]]
+binding = "CHALLENGE_GEN_QUEUE"
+queue = "hns-challenge-gen"
+
+[[queues.consumers]]
+queue = "hns-challenge-gen"
+max_batch_size = 1
+max_batch_timeout = 0
+
 [vars]
 BASE_URL = "https://h4cknstack.com"
 DISCORD_GUILD_ID = "1387695542934437979"

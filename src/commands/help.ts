@@ -46,7 +46,7 @@ const ADMIN_ROWS: { name: string; value: string }[] = [
   {
     name: "/admin-test-generate",
     value:
-      "Generate this month’s challenges as a channel preview; **Post for real** replaces DB rows for the month and posts to challenge channels.",
+      "Queues Claude generation (can take ~1–3 min); then posts a channel preview. **Post for real** clears the month in DB and posts to challenge channels.",
   },
   {
     name: "/admin-test-notify",

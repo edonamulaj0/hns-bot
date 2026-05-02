@@ -1,6 +1,6 @@
 import { DiscordHono } from "discord-hono";
-import type { ExecutionContext } from "@cloudflare/workers-types";
-import type { HonoWorkerEnv, WorkerBindings } from "./worker-env";
+import type { ExecutionContext, MessageBatch } from "@cloudflare/workers-types";
+import type { ChallengeGenQueueMessage, HonoWorkerEnv, WorkerBindings } from "./worker-env";
 import {
   getNormalizedPathname,
   handleApiRequest,
@@ -34,6 +34,7 @@ import { getDiscordUserId } from "./commands/helpers";
 import { isAdmin } from "./commands/admin";
 import { MessageFlags } from "discord-api-types/v10";
 import { ensureRolesExist } from "./role-manager";
+import { processChallengeGenQueueBatch } from "./challenge-gen-queue";
 
 let app = new DiscordHono<HonoWorkerEnv>();
 let startupRolesInit = false;
@@ -179,4 +180,12 @@ export default {
   },
   /** Cron: `commands/cron.ts` — idempotent via Config `lastChallengeMonth`, `lastVoteFeedMonth`, `lastPublishMonth`. */
   scheduled: app.scheduled,
+  /** Runs Claude + Discord PATCH outside Discord interaction `waitUntil` (30s cap). */
+  queue: async (
+    batch: MessageBatch<ChallengeGenQueueMessage>,
+    env: WorkerBindings,
+    _ctx: ExecutionContext,
+  ) => {
+    await processChallengeGenQueueBatch(batch, env);
+  },
 };
