@@ -14,7 +14,7 @@
     "dotenv": "^17.4.1"
   },
   "scripts": {
-    "postinstall": "prisma generate",
+    "postinstall": "node -e \"const fs=require('fs'),{execSync}=require('child_process');if(fs.existsSync('node_modules/.bin/prisma'))execSync('npx prisma generate',{stdio:'inherit'})\"",
     "pages:wiki:build": "cd hns-wiki && corepack enable pnpm && pnpm install --frozen-lockfile && pnpm docs:build",
     "register": "npx tsx --env-file=.env src/register.ts",
     "deploy": "wrangler deploy"
