@@ -1,4 +1,5 @@
 import { mergedPublicDisplayName } from "./display-name";
+import { submissionEligibleForWinnerPick } from "./submission-lifecycle";
 import { getPrisma } from "./db";
 import { sendChannelMessage } from "./discord-api";
 import { communityMidnightUtc, getCommunityCalendarParts, monthKey } from "./time";
@@ -220,10 +221,7 @@ export async function notifyResultsPublished(
             month,
             track,
             tier,
-            OR: [
-              { submissionStatus: "APPROVED" },
-              { AND: [{ submissionStatus: null }, { isApproved: true }] },
-            ],
+            ...submissionEligibleForWinnerPick(),
           },
           include: {
             user: { select: { displayName: true, discordUsername: true } },
@@ -270,10 +268,7 @@ export async function notifyResultsPublished(
           month,
           track,
           tier,
-          OR: [
-            { submissionStatus: "APPROVED" },
-            { AND: [{ submissionStatus: null }, { isApproved: true }] },
-          ],
+          ...submissionEligibleForWinnerPick(),
         },
         include: {
           user: { select: { displayName: true, discordUsername: true } },
@@ -414,10 +409,7 @@ export async function buildAdminTestNotifyPayload(
             month,
             track,
             tier,
-            OR: [
-              { submissionStatus: "APPROVED" },
-              { AND: [{ submissionStatus: null }, { isApproved: true }] },
-            ],
+            ...submissionEligibleForWinnerPick(),
           },
           include: {
             user: { select: { displayName: true, discordUsername: true } },

@@ -97,6 +97,10 @@ async function main() {
       "delete-account",
       "Permanently delete your H4ck&Stack account (same as website danger zone)",
     ),
+    new Command(
+      "ticket",
+      "Anonymous bugs & website feedback — opens a short form; team gets one DM from the bot",
+    ),
   ];
 
   const jsonBody = commands.map((c) => c.toJSON());

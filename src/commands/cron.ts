@@ -10,6 +10,7 @@ import {
   notifyResultsPublished,
   notifySubmissionsClosed,
 } from "../notifications";
+import { createMonthlyResultsArticle } from "../results-article";
 
 export function registerCron(app: any) {
   return app.cron("5 22 * * *", async (c: any) => {
@@ -56,6 +57,7 @@ export function registerCron(app: any) {
           });
 
           await notifyResultsPublished(c, c.env);
+          await createMonthlyResultsArticle(prisma, c.env, currentMonth);
           await setConfig(prisma, config.id, { lastPublishMonth: currentMonth });
         }
       }

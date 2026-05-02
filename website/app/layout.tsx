@@ -64,32 +64,34 @@ export default function RootLayout({
         <main>{children}</main>
         <CookieConsent />
         <footer className="footer">
-          <div className="container flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-            <span className="mono dim shrink-0">
+          <div className="container flex flex-col items-center gap-6 text-center text-sm md:flex-row md:items-center md:justify-between md:gap-8 md:text-left">
+            <p className="mono dim m-0 shrink-0">
               © {new Date().getFullYear()} {BRAND_NAME}
-            </span>
-            <span className="hidden sm:inline text-white/25" aria-hidden>
-              ·
-            </span>
-            <a href="/terms" className="text-white/50 hover:text-[var(--accent)] no-underline">
-              Terms
-            </a>
-            <a href="/privacy" className="text-white/50 hover:text-[var(--accent)] no-underline">
-              Privacy
-            </a>
-            <a
-              href={WIKI_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-white/50 hover:text-[var(--accent)] no-underline"
+            </p>
+            <nav
+              className="flex flex-wrap justify-center gap-x-8 gap-y-2 md:justify-center"
+              aria-label="Legal and resources"
             >
-              Wiki
-            </a>
+              <a href="/terms" className="text-white/50 hover:text-[var(--accent)] no-underline">
+                Terms
+              </a>
+              <a href="/privacy" className="text-white/50 hover:text-[var(--accent)] no-underline">
+                Privacy
+              </a>
+              <a
+                href={WIKI_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/50 hover:text-[var(--accent)] no-underline"
+              >
+                Wiki
+              </a>
+            </nav>
             <a
               href={BUILDER_SITE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="mono text-white/50 hover:text-[var(--accent)] no-underline"
+              className="mono shrink-0 text-white/50 hover:text-[var(--accent)] no-underline"
             >
               Built by Cyphera
             </a>

@@ -16,6 +16,7 @@ import { registerHelp } from "./commands/help";
 import { registerCron } from "./commands/cron";
 import { registerEnroll } from "./commands/enroll";
 import { registerDeleteAccount } from "./commands/delete-account";
+import { registerTicket } from "./commands/ticket";
 import { registerAdminHealth } from "./commands/admin-health";
 import { registerAdminTestClaude } from "./commands/admin-test-claude";
 import {
@@ -48,6 +49,7 @@ app = registerHelp(app);
 app = registerCron(app);
 app = registerEnroll(app);
 app = registerDeleteAccount(app);
+app = registerTicket(app);
 app = registerAdminHealth(app);
 app = registerAdminTestClaude(app);
 app = registerAdminTestGenerate(app);
@@ -136,13 +138,18 @@ function rootApiDiscoveryResponse(): Response {
 export default {
   fetch: async (request: Request, env: WorkerBindings, executionCtx?: ExecutionContext) => {
     if (!startupRolesInit) {
-      try {
-        const prisma = getPrisma(env.DB);
-        await ensureRolesExist(prisma, env.DISCORD_GUILD_ID, env.DISCORD_TOKEN);
-        startupRolesInit = true;
-      } catch (e) {
-        console.error("role init error:", e);
-      }
+      startupRolesInit = true;
+      executionCtx?.waitUntil(
+        (async () => {
+          try {
+            const prisma = getPrisma(env.DB);
+            await ensureRolesExist(prisma, env.DISCORD_GUILD_ID, env.DISCORD_TOKEN);
+          } catch (e) {
+            console.error("role init error:", e);
+            startupRolesInit = false;
+          }
+        })(),
+      );
     }
 
     const pathname = getNormalizedPathname(request);

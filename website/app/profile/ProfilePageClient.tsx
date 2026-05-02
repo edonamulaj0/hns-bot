@@ -1,16 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchUserPublicProfile } from "@/lib/api-browser";
-import type { PublicMemberProfile } from "@/lib/api";
+import { fetchMe, fetchUserPublicProfile } from "@/lib/api-browser";
+import type { ChallengeDto, PublicMemberProfile } from "@/lib/api";
 import { getSessionClientWithRetry, loginUrl } from "@/lib/auth-client";
 import { PublicProfileView } from "@/app/members/user/[discordId]/PublicProfileView";
+import { ProfileChallengeStatus } from "@/components/ProfileChallengeStatus";
 
 export function ProfilePageClient() {
   const [loading, setLoading] = useState(true);
   const [needsSignIn, setNeedsSignIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PublicMemberProfile | null>(null);
+  const [enrollment, setEnrollment] = useState<{ challenge: ChallengeDto } | null | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     let alive = true;
@@ -25,14 +29,28 @@ export function ProfilePageClient() {
 
         if (alive) setNeedsSignIn(false);
 
-        const res = await fetchUserPublicProfile(session.discordId);
-        if (!res.ok) {
+        const profileRes = await fetchUserPublicProfile(session.discordId);
+        if (!profileRes.ok) {
           if (alive) setError("Could not load your profile.");
           return;
         }
 
-        const profile = (await res.json()) as PublicMemberProfile;
-        if (alive) setData(profile);
+        const profile = (await profileRes.json()) as PublicMemberProfile;
+        if (!alive) return;
+
+        setData(profile);
+
+        let nextEnrollment: { challenge: ChallengeDto } | null = null;
+        try {
+          const meRes = await fetchMe();
+          if (meRes.ok) {
+            const me = (await meRes.json()) as { enrollment: { challenge: ChallengeDto } | null };
+            nextEnrollment = me.enrollment ?? null;
+          }
+        } catch {
+          nextEnrollment = null;
+        }
+        if (alive) setEnrollment(nextEnrollment);
       } catch {
         if (alive) setError("Could not load your profile.");
       } finally {
@@ -84,14 +102,19 @@ export function ProfilePageClient() {
   }
 
   return (
-    <PublicProfileView
-      data={data}
-      isOwnProfile
-      manageLinks={{
-        submissions: "/profile/submissions",
-        articles: "/profile/articles",
-        projects: "/profile/projects",
-      }}
-    />
+    <>
+      {enrollment !== undefined ? (
+        <ProfileChallengeStatus phase={data.phase} month={data.month} enrollment={enrollment} />
+      ) : null}
+      <PublicProfileView
+        data={data}
+        isOwnProfile
+        manageLinks={{
+          submissions: "/profile/submissions",
+          articles: "/profile/articles",
+          projects: "/profile/projects",
+        }}
+      />
+    </>
   );
 }

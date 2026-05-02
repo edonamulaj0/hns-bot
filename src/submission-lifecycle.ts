@@ -39,3 +39,20 @@ export function isInVotePool(status: SubmissionLifecycleStatus): boolean {
 export function isPublishedArchive(status: SubmissionLifecycleStatus): boolean {
   return status === "PUBLISHED";
 }
+
+/** Approved / published / legacy-approved rows — use for winner picks after publish day. */
+export function submissionEligibleForWinnerPick(): {
+  OR: Array<
+    | { submissionStatus: "APPROVED" }
+    | { submissionStatus: "PUBLISHED" }
+    | { AND: [{ submissionStatus: null }, { isApproved: true }] }
+  >;
+} {
+  return {
+    OR: [
+      { submissionStatus: "APPROVED" },
+      { submissionStatus: "PUBLISHED" },
+      { AND: [{ submissionStatus: null }, { isApproved: true }] },
+    ],
+  };
+}

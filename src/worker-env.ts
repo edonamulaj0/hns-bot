@@ -40,6 +40,13 @@ export type WorkerBindings = {
   ADMIN_ROLE_ID: string;
   /** Comma-separated Discord user IDs allowed for `/admin/submissions` and submission approve/reject API. */
   ADMIN_DISCORD_IDS?: string;
+  /** Receives `/ticket` submissions via DM from the bot (optional — else first `ADMIN_DISCORD_IDS`). */
+  TICKET_ADMIN_DISCORD_ID?: string;
+  /**
+   * Override snowflake for automated results articles (`Blog` author). If unset, uses
+   * `DISCORD_APPLICATION_ID` (same id as the bot user — no extra env needed).
+   */
+  ANNOUNCEMENTS_AUTHOR_DISCORD_ID?: string;
   DEVELOPER_CHALLENGES_CHANNEL_ID: string;
   HACKER_CHALLENGES_CHANNEL_ID: string;
   /** Optional — if unset, design briefs post to DEVELOPER_CHALLENGES_CHANNEL_ID. */

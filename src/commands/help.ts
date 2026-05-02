@@ -32,6 +32,10 @@ const MEMBER_ROWS: { name: string; value: string }[] = [
     name: "/delete-account",
     value: "Permanently delete your H4ck&Stack account (same as the website danger zone).",
   },
+  {
+    name: "/ticket",
+    value: "Send anonymous bugs or web feedback — modal form; maintainer gets a DM from the bot only.",
+  },
 ];
 
 const ADMIN_ROWS: { name: string; value: string }[] = [

@@ -9,6 +9,7 @@ import { VoteBanner } from "@/components/VoteBanner";
 import { AnimateIn } from "@/components/AnimateIn";
 import type { Phase } from "@/lib/phase";
 import { getMonthKey } from "@/lib/month";
+import { DISCORD_BOT_COMMAND_ROWS } from "@/lib/discord-bot-commands";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -368,32 +369,7 @@ export default function ChallengesPage() {
             Commands that power the loop
           </h2>
           <ul className="space-y-4 text-left text-sm text-white/70 sm:text-base">
-            {[
-              {
-                cmd: "/help",
-                desc: "Shows the current Discord bot commands and what each one does.",
-              },
-              {
-                cmd: "/profile",
-                desc: "After signing in with Discord, complete your profile (bio, GitHub, LinkedIn, tech stack) for your public Members card. You can use /profile in Discord to view your profile.",
-              },
-              {
-                cmd: "/enroll",
-                desc: "Pick a monthly challenge (track + tier) before you can submit. Open during the build window (days 1–21 UTC+2).",
-              },
-              {
-                cmd: "Vote (site)",
-                desc: `During the vote window (days 22–25 UTC+2), cast up to 3 votes (max 1 per track: Developer, Hacker, Designer) at /vote/${currentMonth || voteMonth}.`,
-              },
-              {
-                cmd: "/pulse",
-                desc: "Awards this month’s GitHub activity XP once per month and shows a month-end estimate.",
-              },
-              {
-                cmd: "/leaderboard",
-                desc: "Shows top builders by points for the current month in Discord.",
-              },
-            ].map((row) => (
+            {DISCORD_BOT_COMMAND_ROWS.map((row) => (
               <li
                 key={row.cmd}
                 className="rounded border border-[var(--border)] bg-[var(--bg)] p-4 sm:p-5"

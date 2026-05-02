@@ -23,55 +23,32 @@ export function VoteBanner({ monthKey }: { monthKey?: string }) {
 
   return (
     <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        flexWrap: "wrap",
-        gap: "1rem",
-        padding: "1rem 1.25rem",
-        border: "1px solid rgba(204,255,0,0.3)",
-        background: "rgba(204,255,0,0.04)",
-        borderRadius: "2px",
-        marginBottom: "var(--space-lg)",
-      }}
+      className={[
+        "flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3",
+        "rounded-sm border border-[#ccff004d] bg-[#ccff000a]",
+        "px-2.5 py-2 sm:px-3 sm:py-2",
+        "mb-4 max-w-full",
+      ].join(" ")}
     >
       {/* Vote cap: 3 total, max 1 per track. Update here if src/vote-service.ts changes. */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      <div className="flex min-w-0 flex-1 items-start gap-2 sm:items-center">
         <span
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: "50%",
-            background: "var(--accent)",
-            animation: "pulse-dot 1.5s ease infinite",
-            flexShrink: 0,
-          }}
+          className="pulse-dot mt-1 shrink-0 sm:mt-0"
+          style={{ background: "var(--accent)" }}
+          aria-hidden
         />
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-sm)",
-            color: "var(--accent)",
-            fontWeight: 700,
-          }}
-        >
-          Voting is open
-        </span>
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-xs)",
-            color: "var(--text-dim)",
-          }}
-        >
-          Closes day 25 · 3 votes per member (up to 1 per track: Dev / Hacker / Designer)
-        </span>
+        <div className="min-w-0 leading-snug">
+          <span className="mono text-[var(--accent)] text-xs font-bold tracking-tight">
+            Voting is open
+          </span>
+          <span className="mono block text-[0.65rem] text-white/45 sm:mt-0.5 sm:inline sm:before:mx-1.5 sm:before:text-white/25 sm:before:content-['·']">
+            Closes day 25 · 3 votes · max 1 per track (Dev / Hacker / Designer)
+          </span>
+        </div>
       </div>
       <Link
         href={`/vote/${votePathMonth}`}
-        className="btn btn-primary"
-        style={{ fontSize: "var(--text-xs)", padding: "0.4rem 1rem" }}
+        className="btn btn-primary w-full shrink-0 px-3 py-1.5 text-xs sm:w-auto sm:self-center"
       >
         Vote now →
       </Link>

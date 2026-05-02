@@ -19,6 +19,7 @@ import { buildActivityFeed, submissionsFromPortfolio } from "@/lib/activity-feed
 import { ActivityFeedList, SeeAllActivityLink } from "@/components/ActivityTimeline";
 import { memberDisplayName } from "@/lib/member-label";
 import { AnimateIn } from "@/components/AnimateIn";
+import { DISCORD_BOT_COMMAND_ROWS } from "@/lib/discord-bot-commands";
 
 type HomePageClientProps = {
   initialPortfolio: PortfolioResponse;
@@ -536,6 +537,34 @@ export default function HomePageClient({
           </div>
         </AnimateIn>
       )}
+
+      <AnimateIn
+        className="section border-t border-[var(--border)]"
+        hidden={{ opacity: 0 }}
+        visible={{ opacity: 1 }}
+        transition={{ duration: 0.6, ease: EASE_OUT }}
+        amount={0.15}
+      >
+        <div className="container w-full max-w-3xl mx-auto">
+          <p className="mono mb-3 text-[0.7rem] uppercase tracking-wider text-[var(--accent)] text-center">
+            Discord bot
+          </p>
+          <h2 className="mb-6 text-2xl font-bold sm:text-3xl md:text-4xl text-center">
+            Commands that power the loop
+          </h2>
+          <ul className="space-y-4 text-left text-sm text-white/70 sm:text-base">
+            {DISCORD_BOT_COMMAND_ROWS.map((row) => (
+              <li
+                key={row.cmd}
+                className="rounded border border-[var(--border)] bg-[var(--bg-card)] p-4 sm:p-5"
+              >
+                <code className="mono text-[var(--accent)]">{row.cmd}</code>
+                <p className="mt-2 leading-relaxed">{row.desc}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </AnimateIn>
 
       <AnimateIn
         className="section border-t border-[var(--border)] bg-[var(--bg-card)]"

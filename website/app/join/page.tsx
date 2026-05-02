@@ -77,10 +77,10 @@ export default async function JoinPage({
             </div>
           )}
           <p className="text-base sm:text-lg text-white/65 leading-relaxed mb-8 max-w-2xl">
-            H4ck&Stack is a global community where developers and security researchers ship real work every month — projects,
-            writeups, and tools — and earn XP with a public portfolio on the site. You submit and vote on this site; Discord is
-            where the community hangs out — including <code className="mono text-[var(--accent)]">/enroll</code> for the hacker
-            track — with dedicated spaces for builders and security-focused work.
+            H4ck&Stack is a monthly challenge program for developers, security practitioners, and designers: ship substantive work,
+            document it, and earn XP that appears on a public portfolio on this site. Submissions and voting happen here; Discord is
+            the complement for enrollment (including{" "}
+            <code className="mono text-[var(--accent)]">/enroll</code>), announcements, and track-specific discussion.
           </p>
           <div className="flex flex-wrap gap-3 sm:gap-4">
             <a
@@ -99,24 +99,21 @@ export default async function JoinPage({
 
       <section className="section border-t border-[var(--border)] bg-[var(--bg-card)]/35">
         <div className="container max-w-3xl">
-          <p className="label mb-2">From the team</p>
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-white">Welcome</h2>
+          <p className="label mb-2">Overview</p>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-white">How H4ck&Stack works</h2>
           <div className="space-y-4 text-sm sm:text-base text-white/65 leading-relaxed">
             <p>
-              If you just landed here — or you&apos;ve been lurking — we&apos;re glad you&apos;re here.
+              <strong className="text-white/90">H4ck&Stack</strong> runs a monthly challenge cycle on a single{" "}
+              <strong className="text-white/85">UTC+2 calendar</strong> (fixed offset, no daylight saving time). Three tracks are
+              offered: <strong className="text-white/85">Developer</strong> (shipping a software project),{" "}
+              <strong className="text-white/85">Hacker</strong> (security outcomes such as writeups, tooling, and research), and{" "}
+              <strong className="text-white/85">Designer</strong> (visual deliverables, including mockups and image exports). During the
+              build phase, participants enroll and submit work through this website. In the vote phase, signed-in members cast votes on
+              the site (up to three votes per month, at most one per track). XP updates the public leaderboard and Discord roles tied
+              to participation.
             </p>
             <p>
-              <strong className="text-white/90">H4ck&Stack</strong> runs the same loop every month. Challenge dates follow a{" "}
-              <strong className="text-white/85">shared UTC+2 calendar</strong> (fixed offset, no daylight saving): three tracks —{" "}
-              <strong className="text-white/85">Developer</strong> (ship a project),{" "}
-              <strong className="text-white/85">Hacker</strong> (security work — writeups, tools, research), and{" "}
-              <strong className="text-white/85">Designer</strong> (visual deliverables such as mockups or image exports). During the
-              build window you enroll, build, then submit on this site. When voting opens, members vote here too (up to three votes
-              per month, at most one per track). XP feeds the leaderboard and your Discord XP roles — structure so you can finish
-              something and show it off.
-            </p>
-            <p>
-              <strong className="text-white/85">Site:</strong>{" "}
+              Primary site:{" "}
               <a
                 href="https://h4cknstack.com"
                 target="_blank"
@@ -125,63 +122,74 @@ export default async function JoinPage({
               >
                 h4cknstack.com
               </a>
+              .
             </p>
             <p>
-              <strong className="text-white/85">When you&apos;re ready:</strong> open the site and{" "}
+              <strong className="text-white/85">Account and profile.</strong> Use{" "}
               <a href={loginUrl()} className="text-[var(--accent)] hover:underline font-medium">
                 Sign in with Discord
-              </a>
-              . If you aren&apos;t in the server yet, use <strong className="text-white/85">Join Server</strong> above first — sign-in
-              requires membership. Then complete{" "}
+              </a>{" "}
+              after joining the Discord server (see <strong className="text-white/85">Join Server</strong> above; membership is
+              required for sign-in). Complete{" "}
               <Link href="/profile" className="text-[var(--accent)] hover:underline font-medium">
                 Profile
               </Link>{" "}
-              (GitHub link, bio, and so on). That powers{" "}
+              with GitHub, bio, and related fields so your entry appears correctly on{" "}
               <Link href="/members" className="text-[var(--accent)] hover:underline font-medium">
                 Members
-              </Link>{" "}
-              and how people discover you.
+              </Link>
+              .
             </p>
             <p>
-              <strong className="text-white/85">During the build window:</strong> in Discord, run{" "}
-              <code className="mono text-[var(--accent)] text-[0.9em]">/enroll</code> to pick track and tier (Beginner / Intermediate /
-              Advanced where applicable). Submit your entry at{" "}
+              <strong className="text-white/85">Enrollment and submissions.</strong> During the build window, select track and tier in
+              Discord with{" "}
+              <code className="mono text-[var(--accent)] text-[0.9em]">/enroll</code> (Beginner / Intermediate / Advanced where
+              offered). Submit work from{" "}
               <Link href="/submit" className="text-[var(--accent)] hover:underline font-medium">
-                /submit
+                Submit
               </Link>{" "}
-              on the site — there isn&apos;t a Discord <code className="mono text-[var(--accent)] text-[0.9em]">/submit</code>{" "}
-              command; onboarding points you to the web flow.
+              on this site. Submissions are not accepted via a Discord slash command; the workflow is web-based.
             </p>
             <p>
-              <strong className="text-white/85">Voting</strong> happens on the site when the vote window opens; we&apos;ll announce it
-              in Discord.
+              <strong className="text-white/85">Voting.</strong> When the vote window is open, voting is done on this site. Discord is
+              used for announcements and coordination.
             </p>
             <p>
-              <code className="mono text-[var(--accent)] text-[0.9em]">/pulse</code> looks at your GitHub activity for the{" "}
-              <strong className="text-white/85">current challenge month (UTC+2)</strong>. It can award pulse XP once per month (with a
-              cap) and shows a scaled &quot;if the month ended now&quot; estimate. For private contributions, use{" "}
-              <code className="mono text-[var(--accent)] text-[0.9em]">/link-github</code> (and{" "}
-              <code className="mono text-[var(--accent)] text-[0.9em]">/unlink-github</code> to disconnect). If there&apos;s no
-              qualifying activity for that run, you won&apos;t see pulse XP for it.
+              <strong className="text-white/85">GitHub activity (Discord).</strong> The{" "}
+              <code className="mono text-[var(--accent)] text-[0.9em]">/pulse</code> command summarizes GitHub activity for the current
+              challenge month (UTC+2), may award capped pulse XP once per month, and shows a projected month-end estimate. Link your
+              account with <code className="mono text-[var(--accent)] text-[0.9em]">/link-github</code> if private repositories should
+              count; use <code className="mono text-[var(--accent)] text-[0.9em]">/unlink-github</code> to remove access. Runs without
+              qualifying activity do not grant pulse XP for that invocation.
             </p>
             <p>
-              Want every command with short descriptions? Run{" "}
-              <code className="mono text-[var(--accent)] text-[0.9em]">/help</code> in Discord — only you see that reply.
+              <strong className="text-white/85">Command reference.</strong> In Discord,{" "}
+              <code className="mono text-[var(--accent)] text-[0.9em]">/help</code> lists commands with short descriptions (visible only
+              to you).
             </p>
             <p className="text-white/55 text-sm">
-              Popular commands:{" "}
+              Common commands:{" "}
               <code className="mono text-[var(--accent)] text-[0.85em]">/profile</code>,{" "}
               <code className="mono text-[var(--accent)] text-[0.85em]">/enroll</code>,{" "}
               <code className="mono text-[var(--accent)] text-[0.85em]">/leaderboard</code>,{" "}
               <code className="mono text-[var(--accent)] text-[0.85em]">/pulse</code>,{" "}
-              <code className="mono text-[var(--accent)] text-[0.85em]">/link-github</code> /{" "}
+              <code className="mono text-[var(--accent)] text-[0.85em]">/ticket</code>,{" "}
+              <code className="mono text-[var(--accent)] text-[0.85em]">/link-github</code>,{" "}
               <code className="mono text-[var(--accent)] text-[0.85em]">/unlink-github</code>,{" "}
-              <code className="mono text-[var(--accent)] text-[0.85em]">/delete-account</code> (same effect as deleting from the site —
-              no undo).
+              <code className="mono text-[var(--accent)] text-[0.85em]">/delete-account</code> (equivalent to deleting your account on
+              the site; irreversible).
             </p>
             <p>
-              Invite friends who&apos;d vibe with shipping and showing work — the more builders in the loop, the better each month
-              gets.
+              If this community fits someone you know, sharing{" "}
+              <a
+                href="https://h4cknstack.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--accent)] hover:underline font-medium"
+              >
+                h4cknstack.com
+              </a>{" "}
+              or the Discord invite helps more builders participate each month.
             </p>
           </div>
         </div>
