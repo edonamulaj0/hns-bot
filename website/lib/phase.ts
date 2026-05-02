@@ -74,6 +74,42 @@ export function phaseCountdownHeadline(phase: Phase, msLeft: number): string {
   return `New cycle starts in ${dh}`;
 }
 
+/** Stat grid: fixed label under `.stat-block .label` (phase timing context). */
+export function phaseStatBlockLabel(phase: Phase): string {
+  switch (phase) {
+    case "BUILD":
+      return "Days left in BUILD";
+    case "VOTE":
+      return "Days left in VOTE";
+    case "REVIEW":
+      return "Days left in REVIEW";
+    case "PUBLISH":
+      return "Publish day";
+    case "POST_PUBLISH":
+      return "Until BUILD";
+    default:
+      return "Phase";
+  }
+}
+
+/** Stat grid: countdown value from `msLeft` (same clock as `getNextPhaseTransitionAt`). */
+export function phaseStatBlockValue(phase: Phase, msLeft: number): string {
+  const { days, hours, minutes } = splitDuration(msLeft);
+  if (phase === "PUBLISH") {
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  }
+  if (phase === "POST_PUBLISH") {
+    if (days > 0) return `${days} day${days === 1 ? "" : "s"}`;
+    if (hours > 0) return `${hours} hour${hours === 1 ? "" : "s"}`;
+    return `${minutes} min`;
+  }
+  if (days > 0) return `${days} day${days === 1 ? "" : "s"}`;
+  if (hours > 0) return `${hours} hour${hours === 1 ? "" : "s"}`;
+  return `${minutes} min`;
+}
+
 /** One-line stat bar copy, e.g. "5 days left in BUILD". */
 export function phaseStatLine(phase: Phase, msLeft: number): string {
   const { days, hours } = splitDuration(msLeft);

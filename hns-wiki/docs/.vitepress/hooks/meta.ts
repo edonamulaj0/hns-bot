@@ -53,7 +53,7 @@ export function generateMeta(context: TransformContext, hostname: string) {
     )
   }
 
-  const brandingImage = 'https://h4cknstack.com/branding/hns-name.svg'
+  const brandingImage = 'https://h4cknstack.com/branding/hns-name.png'
   head.push(
     ['meta', { property: 'og:image', content: brandingImage }],
     ['meta', { property: 'og:image:type', content: 'image/png' }],

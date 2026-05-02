@@ -30,7 +30,7 @@ export async function generateFeed(config: SiteConfig): Promise<void> {
     description: meta.description,
     language: 'en-US',
     image: meta.tags.image,
-    favicon: 'https://h4cknstack.com/branding/hns-name.svg',
+    favicon: 'https://h4cknstack.com/branding/hns-name.png',
     copyright: `Copyright (c) ${new Date().getFullYear()} H4ck&Stack Wiki`
   })
 

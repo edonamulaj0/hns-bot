@@ -130,7 +130,7 @@ onMounted(() => {
   const resetKawaii = () => {
     const images = document.querySelectorAll('.VPImage.image-src')
     images.forEach((img) => {
-      img.src = 'https://h4cknstack.com/branding/hns-name.svg'
+      img.src = 'https://h4cknstack.com/branding/hns-name.png'
     })
   }
   if (kawaii === 'true') {

@@ -5,7 +5,8 @@ import {
   getMonthlyPhase,
   getNextPhaseTransitionAt,
   phaseCountdownHeadline,
-  phaseStatLine,
+  phaseStatBlockLabel,
+  phaseStatBlockValue,
   splitDuration,
   type Phase,
 } from "@/lib/phase";
@@ -20,8 +21,8 @@ function useCountdownTarget(phaseFromApi?: Phase) {
   }, []);
 
   if (!mounted) {
-    const phase = phaseFromApi ?? "BUILD";
-    return { phase, msLeft: 0, urgent: false, tick };
+    const phase = phaseFromApi ?? getMonthlyPhase(new Date());
+    return { phase, msLeft: 0, urgent: false, tick, mounted: false };
   }
 
   const now = new Date();
@@ -34,7 +35,7 @@ function useCountdownTarget(phaseFromApi?: Phase) {
     phase !== "PUBLISH" &&
     phase !== "POST_PUBLISH";
 
-  return { phase, msLeft, urgent, tick };
+  return { phase, msLeft, urgent, tick, mounted: true };
 }
 
 export function PhaseCountdown({ phase: phaseFromApi }: { phase?: Phase }) {
@@ -96,13 +97,22 @@ export function PhaseCountdown({ phase: phaseFromApi }: { phase?: Phase }) {
   );
 }
 
-/** Compact single-line countdown for stats row. */
-export function PhaseCountdownLine({ phase: phaseFromApi }: { phase?: Phase }) {
-  const { phase, msLeft } = useCountdownTarget(phaseFromApi);
-  const line = phaseStatLine(phase, msLeft);
+/** Stats grid cell: label + value aligned with other `.stat-block` columns. */
+export function PhaseCountdownStat({ phase: phaseFromApi }: { phase?: Phase }) {
+  const { phase, msLeft, mounted } = useCountdownTarget(phaseFromApi);
+  const label = phaseStatBlockLabel(phase);
+  const value = phaseStatBlockValue(phase, msLeft);
+
   return (
-    <span className="mono text-xs sm:text-sm text-[var(--accent-2)] block mt-1">
-      {line}
-    </span>
+    <>
+      <span className="value">
+        {!mounted ? (
+          <span className="stat-value-skeleton !w-[min(5.5rem,46vw)]" aria-hidden />
+        ) : (
+          value
+        )}
+      </span>
+      <span className="label">{label}</span>
+    </>
   );
 }

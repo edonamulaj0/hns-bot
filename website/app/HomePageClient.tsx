@@ -13,7 +13,7 @@ import {
   type BlogsResponse,
 } from "@/lib/api";
 import type { Phase } from "@/lib/phase";
-import { PhaseCountdownLine } from "@/components/PhaseCountdown";
+import { PhaseCountdownStat } from "@/components/PhaseCountdown";
 import { DISCORD_INVITE_URL } from "@/lib/branding";
 import { buildActivityFeed, submissionsFromPortfolio } from "@/lib/activity-feed";
 import { ActivityFeedList, SeeAllActivityLink } from "@/components/ActivityTimeline";
@@ -220,9 +220,7 @@ export default function HomePageClient({
               <span className="label">Months active</span>
             </div>
             <div className="stat-block">
-              <div className="value min-h-[2.75rem] flex flex-col justify-center text-left">
-                <PhaseCountdownLine phase={(portfolioData?.phase as Phase) ?? undefined} />
-              </div>
+              <PhaseCountdownStat phase={(portfolioData?.phase as Phase) ?? undefined} />
             </div>
           </div>
           {data !== null && !showStatNumbers && (

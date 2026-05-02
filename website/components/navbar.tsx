@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { AuthNav } from "@/components/AuthNav";
 import { getSessionClient, loginUrl, type SessionUser } from "@/lib/auth-client";
 import { userProfileAvatarUrl } from "@/lib/api";
+import { BRAND_LOGO_PNG, BRAND_NAME } from "@/lib/branding";
 import { getMonthKey } from "@/lib/month";
 
 const AVATAR_BLUR_DATA_URL =
@@ -55,10 +56,14 @@ function accountLinkActive(pathname: string, href: string): boolean {
 
 function NavBrand() {
   return (
-    <span className="font-mono text-lg font-bold tracking-tight sm:text-xl leading-none">
-      <span className="text-[var(--accent-subtle)]">H4ck</span>
-      <span className="text-[var(--accent)]">&amp;Stack</span>
-    </span>
+    <Image
+      src={BRAND_LOGO_PNG}
+      alt={BRAND_NAME}
+      width={1120}
+      height={400}
+      priority
+      className="h-8 w-auto max-h-9 max-w-[min(220px,58vw)] object-contain object-left"
+    />
   );
 }
 

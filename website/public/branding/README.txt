@@ -1,7 +1,6 @@
 Branding files (website/public/branding/)
 
-  hns-name.png   — Preferred navbar logo (transparent background recommended). Max height ~32–40px CSS; width auto.
-  hns-name.svg   — Fallback if PNG is missing; replace either file with your exports.
+  hns-name.png   — Navbar logo (`navbar.tsx` + `lib/branding.ts`). Transparent background recommended; shown ~32–40px tall CSS.
 
 Favicon (browser tab):
 
