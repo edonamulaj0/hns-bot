@@ -115,59 +115,71 @@ export default function HomePageClient({
       )}
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="section flex min-h-[min(80dvh,720px)] items-center">
-        <div className="container">
-          <div className="max-w-[720px]">
-            <div
-              className="mb-4 sm:mb-6 flex gap-4 items-center"
-            >
-              <span
-                className="phase-badge"
+        <div className="container w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 lg:items-center lg:gap-10 xl:gap-14">
+            <div className="max-w-[720px] min-w-0">
+              <div className="mb-4 sm:mb-6 flex gap-4 items-center">
+                <span
+                  className="phase-badge"
+                  style={{
+                    background: `${phaseMeta.color}18`,
+                    color: phaseMeta.color,
+                    border: `1px solid ${phaseMeta.color}40`,
+                  }}
+                >
+                  <span className="pulse-dot" style={{ background: phaseMeta.color }} />
+                  {phaseMeta.label}
+                </span>
+                <span className="mono dim text-xs sm:text-sm">{phaseMeta.description}</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl mb-4 sm:mb-6">
+                {heroWords.map((word, i) => (
+                  <span
+                    key={word}
+                    className={i === heroWords.length - 1 ? "text-[var(--accent)] block" : ""}
+                  >
+                    {word}{" "}
+                  </span>
+                ))}
+              </h1>
+
+              <p className="text-base sm:text-lg text-white/60 max-w-[540px] mb-6 sm:mb-8 lg:mb-10 leading-relaxed">
+                Monthly build challenges for developers, hackers, and designers — on Discord.
+              </p>
+
+              <div
+                className="flex"
                 style={{
-                  background: `${phaseMeta.color}18`,
-                  color: phaseMeta.color,
-                  border: `1px solid ${phaseMeta.color}40`,
+                  display: "flex",
+                  gap: "0.75rem",
+                  flexDirection: "var(--cta-direction, row)" as any,
                 }}
               >
-                <span className="pulse-dot" style={{ background: phaseMeta.color }} />
-                {phaseMeta.label}
-              </span>
-              <span className="mono dim text-xs sm:text-sm">{phaseMeta.description}</span>
+                <Link href="/join" className="btn btn-primary max-[480px]:w-full max-[480px]:justify-center">
+                  Join Us →
+                </Link>
+                <Link
+                  href="/challenges"
+                  className="btn btn-outline max-[480px]:w-full max-[480px]:justify-center"
+                >
+                  View Challenges
+                </Link>
+              </div>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl mb-4 sm:mb-6">
-              {heroWords.map((word, i) => (
-                <span
-                  key={word}
-                  className={i === heroWords.length - 1 ? "text-[var(--accent)] block" : ""}
-                >
-                  {word}{" "}
-                </span>
-              ))}
-            </h1>
-
-            <p
-              className="text-base sm:text-lg text-white/60 max-w-[540px] mb-6 sm:mb-8 lg:mb-10 leading-relaxed"
-            >
-              Monthly build challenges for developers, hackers, and designers — on Discord.
-            </p>
-
             <div
-              className="flex"
-              style={{
-                display: "flex",
-                gap: "0.75rem",
-                flexDirection: "var(--cta-direction, row)" as any,
-              }}
+              className="hidden lg:flex justify-center lg:justify-end items-center"
+              aria-hidden
             >
-              <Link href="/join" className="btn btn-primary max-[480px]:w-full max-[480px]:justify-center">
-                Join Us →
-              </Link>
-              <Link
-                href="/challenges"
-                className="btn btn-outline max-[480px]:w-full max-[480px]:justify-center"
-              >
-                View Challenges
-              </Link>
+              <img
+                src="/icon.svg"
+                alt=""
+                width={320}
+                height={226}
+                className="w-full max-w-[220px] xl:max-w-[300px] h-auto select-none pointer-events-none"
+                draggable={false}
+              />
             </div>
           </div>
         </div>

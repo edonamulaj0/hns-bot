@@ -8,8 +8,8 @@ Your **production domain** (e.g. `h4cknstack.com`) should use **Cloudflare DNS**
 2. **Deploy the auth Worker**: `cd auth && npx wrangler deploy` — note the URL (`https://hns-auth.<account>.workers.dev`).
 3. **Set secrets** on both Workers (see [§4](#4-secrets-and-vars)). **`SESSION_SECRET` must be identical** on bot + auth.
 4. **Set plain vars** in the dashboard or `wrangler.toml`: **`BASE_URL=https://h4cknstack.com`**, **`DISCORD_GUILD_ID`**, **`DISCORD_CLIENT_ID`** on auth; bot gets **`BASE_URL`**, guild, channels, **`DISCORD_PUBLIC_KEY`**, **`DISCORD_APPLICATION_ID`**.
-5. **Cloudflare Pages**: create a project from this Git repo (or **Direct Upload**). Set **Root directory** to **`website`**, **Build command** to **`npm run pages:build`**, **Build output directory** to **`.vercel/output/static`** (matches `website/wrangler.toml`). Use **Node 20+** (Environment variables → **Production** → add `NODE_VERSION=20` if needed). Under **Settings → Environment variables → Production**, set every variable from **`website/.env.example`** (especially **`NEXT_PUBLIC_BASE_URL`**, **`NEXT_PUBLIC_API_URL`**, **`HNS_WORKER_URL`**, **`HNS_AUTH_WORKER_URL`**, Discord IDs).
-6. **Deploy**: Git-connected Pages runs the build on push; or from **`website/`** run **`npm run pages:build`** then **`npx wrangler pages deploy`** (link the project on first run). Remove the **Vercel** deployment for this app when Cloudflare is verified.
+5. **Cloudflare Pages**: create a project from this Git repo (or **Direct Upload**). Dependencies are hoisted at the **repo root** (`package-lock.json` covers **`website/`** and **`auth/`** via npm workspaces). Set **Root directory** to **`.`** (repository root), **Build command** to **`npm ci && npm run pages:build --workspace=hns-website`**, **Build output directory** to **`website/.vercel/output/static`** (matches `website/wrangler.toml` paths when the app builds from the workspace package). Use **Node 20+** (Environment variables → **Production** → add `NODE_VERSION=20` if needed). Under **Settings → Environment variables → Production**, set every variable from **`website/.env.example`** (especially **`NEXT_PUBLIC_BASE_URL`**, **`NEXT_PUBLIC_API_URL`**, **`HNS_WORKER_URL`**, **`HNS_AUTH_WORKER_URL`**, Discord IDs).
+6. **Deploy**: Git-connected Pages runs the build on push; or from the **repo root** run **`npm run pages:build --workspace=hns-website`** then **`npx wrangler pages deploy`** from **`website/`** (link the project on first run). Remove the **Vercel** deployment for this app when Cloudflare is verified.
 7. **Attach the custom domain** to the Pages project (**Custom domains** → `h4cknstack.com` / `www`). Remove or disable the **Vercel** DNS record / project so traffic hits Pages only.
 8. **Auth routing** — pick one:
    - **Recommended:** **Workers → Triggers → Routes** (or zone routes): `h4cknstack.com/auth/*` → **hns-auth** Worker (more specific than Pages). Then browser hits your domain and Cloudflare sends `/auth/*` to auth.
@@ -223,7 +223,7 @@ Or use the combined script if configured in `package.json` (`pages:deploy`). The
 
 **`.env` vs Cloudflare Pages:** `website/.env` is for **local** `next dev` / optional local `pages:build`. Cloudflare’s build servers **do not read your gitignored `.env`**. Copy the same names and values into **Pages → Settings → Environment variables** (Production) for `NEXT_PUBLIC_*`, `HNS_WORKER_URL`, `HNS_AUTH_WORKER_URL`, etc., then redeploy.
 
-**Monorepo lockfile warning:** If Next warns about multiple lockfiles, either delete **`website/package-lock.json`** and install only from the repo root, or keep only one lockfile strategy so the build is deterministic.
+**Monorepo lockfile:** There is a single npm lockfile at the **repo root** (`package-lock.json`) for the bot, **`website/`**, and **`auth/`**. Install with **`npm install`** from the repo root only. **`hns-wiki/`** stays on **pnpm** (`pnpm-lock.yaml`).
 
 ---
 
@@ -265,11 +265,9 @@ Use `.dev.vars` / `.env` for tokens locally; never commit secrets.
 
 ## 10. Wrangler shows no output / `login` seems stuck
 
-1. **Install deps** (Wrangler must be on disk — root and `website/` now list it in `devDependencies`):
+1. **Install deps** (Wrangler must be on disk — root and `website/` list it in `devDependencies`; workspaces install in one step):
    ```bash
    cd /path/to/hns-bot && npm install
-   cd website && npm install
-   cd ../auth && npm install
    ```
 2. **Use a normal terminal** (system Terminal or VS Code integrated terminal with TTY). Some agent/sandbox environments hide Wrangler’s spinner and OAuth URL.
 3. **Run with debug logging:**
