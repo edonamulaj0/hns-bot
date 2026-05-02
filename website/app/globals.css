@@ -217,22 +217,7 @@ h1, h2, h3, h4 {
   padding-bottom: clamp(2rem, 6vh, 3.5rem);
 }
 
-/* ── Navbar ─────────────────────────────────────────────────────────────────── */
-
-nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-
-nav .container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 3.5rem;
-}
+/* Site chrome uses `<Navbar />` only — do not style global `nav { … }` or in-page `<nav>` breadcrumbs inherit sticky/z-index and stack above the bar. */
 
 /* ── Footer ─────────────────────────────────────────────────────────────────── */
 

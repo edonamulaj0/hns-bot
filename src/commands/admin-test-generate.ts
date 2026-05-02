@@ -1,7 +1,11 @@
 import type { DiscordHono } from "discord-hono";
 import { MessageFlags } from "discord-api-types/v10";
-import type { HonoWorkerEnv } from "../worker-env";
-import { getPrisma } from "../db";
+import type { HonoWorkerEnv, WorkerBindings } from "../worker-env";
+import {
+  deleteChallengeGenPreviewForDiscordUser,
+  findChallengeGenPreviewForDiscordUser,
+  getPrisma,
+} from "../db";
 import { postChallengesToDiscord, type GeneratedChallengesResult } from "../challenge-generator";
 import { getDiscordUserId } from "./helpers";
 import { isAdmin } from "./admin";
@@ -66,18 +70,18 @@ export async function handleAdminGenerateComponent(ctx: any): Promise<boolean> {
     return true;
   }
 
-  const prisma = getPrisma(ctx.env.DB);
+  /** `ctx` is loosely typed; `env.DB` as `any` breaks Prisma adapter generics (drops model delegates). */
+  const db = ctx.env.DB as WorkerBindings["DB"];
+  const prisma = getPrisma(db);
 
   if (customId === "admin:discard-challenges") {
-    await prisma.challengeGenPreview.deleteMany({ where: { discordUserId: discordId } }).catch(() => {});
+    await deleteChallengeGenPreviewForDiscordUser(db, discordId).catch(() => {});
     await patchAdminComponentMessage(ctx, "🗑️ Discarded. Nothing was posted.");
     return true;
   }
 
   const month = customId.replace("admin:confirm-post-challenges:", "").trim();
-  const row = await prisma.challengeGenPreview.findUnique({
-    where: { discordUserId: discordId },
-  });
+  const row = await findChallengeGenPreviewForDiscordUser(db, discordId);
   if (!row || row.month !== month) {
     await patchAdminComponentMessage(
       ctx,
@@ -97,7 +101,7 @@ export async function handleAdminGenerateComponent(ctx: any): Promise<boolean> {
   try {
     await clearMonthChallengeAndRelated(prisma, month);
     await postChallengesToDiscord({ env: ctx.env }, prisma, month, cached.challenges);
-    await prisma.challengeGenPreview.deleteMany({ where: { discordUserId: discordId } }).catch(() => {});
+    await deleteChallengeGenPreviewForDiscordUser(db, discordId).catch(() => {});
     await patchAdminComponentMessage(
       ctx,
       "✅ This month’s challenge data was cleared and replaced. New challenge posts were sent to the developer / hacker / designer channels.",

@@ -114,40 +114,125 @@ function normalizeChallengeTrack(raw: string): "DEVELOPER" | "HACKER" | "DESIGNE
   return "DEVELOPER";
 }
 
-function parseClaudeJson(text: string): GenChallenge[] | null {
-  let t = text.trim();
-  const fence = t.match(/^```(?:json)?\s*([\s\S]*?)```$/m);
-  if (fence) t = fence[1]!.trim();
-  try {
-    const arr = JSON.parse(t) as unknown;
-    if (!Array.isArray(arr) || (arr.length !== 9 && arr.length !== 6)) return null;
-    const out: GenChallenge[] = [];
-    for (const row of arr) {
-      if (!row || typeof row !== "object") return null;
-      const r = row as Record<string, unknown>;
-      if (
-        typeof r.track !== "string" ||
-        typeof r.tier !== "string" ||
-        typeof r.title !== "string" ||
-        typeof r.description !== "string" ||
-        typeof r.resources !== "string" ||
-        typeof r.deliverables !== "string"
-      ) {
-        return null;
-      }
-      out.push({
-        track: normalizeChallengeTrack(String(r.track)),
-        tier: r.tier,
-        title: r.title,
-        description: r.description,
-        resources: r.resources,
-        deliverables: r.deliverables,
-      });
+/** Pull out the outermost `[...]` span with bracket depth, respecting JSON string escapes. */
+function extractBalancedJsonArray(src: string): string | null {
+  const start = src.indexOf("[");
+  if (start === -1) return null;
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let j = start; j < src.length; j++) {
+    const c = src[j]!;
+    if (esc) {
+      esc = false;
+      continue;
     }
-    return out;
-  } catch {
-    return null;
+    if (inStr) {
+      if (c === "\\") esc = true;
+      else if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"') {
+      inStr = true;
+      continue;
+    }
+    if (c === "[") depth++;
+    else if (c === "]") {
+      depth--;
+      if (depth === 0) return src.slice(start, j + 1);
+    }
   }
+  return null;
+}
+
+function stripJsonTrailingCommas(json: string): string {
+  return json.replace(/,(\s*[\]}])/g, "$1");
+}
+
+function normalizeJsonishText(text: string): string {
+  return text
+    .replace(/\uFEFF/g, "")
+    .replace(/\u201c|\u201d/g, '"')
+    .replace(/\u2018|\u2019/g, "'");
+}
+
+/** Strip markdown fences (may appear after a short preamble). */
+function stripMarkdownFences(text: string): string {
+  let t = text.trim();
+  for (let i = 0; i < 8; i++) {
+    const m = t.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (!m) break;
+    t = m[1]!.trim();
+  }
+  return t.trim();
+}
+
+function coerceChallengeArray(raw: unknown): unknown[] | null {
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === "object") {
+    const o = raw as Record<string, unknown>;
+    const inner = o.challenges ?? o.items ?? o.results;
+    return Array.isArray(inner) ? inner : null;
+  }
+  return null;
+}
+
+function normalizeChallengesFromParsed(arr: unknown[]): GenChallenge[] | null {
+  if (arr.length !== 9 && arr.length !== 6) return null;
+  const out: GenChallenge[] = [];
+  for (const row of arr) {
+    if (!row || typeof row !== "object") return null;
+    const r = row as Record<string, unknown>;
+    if (
+      typeof r.track !== "string" ||
+      typeof r.tier !== "string" ||
+      typeof r.title !== "string" ||
+      typeof r.description !== "string" ||
+      typeof r.resources !== "string" ||
+      typeof r.deliverables !== "string"
+    ) {
+      return null;
+    }
+    out.push({
+      track: normalizeChallengeTrack(String(r.track)),
+      tier: r.tier,
+      title: r.title,
+      description: r.description,
+      resources: r.resources,
+      deliverables: r.deliverables,
+    });
+  }
+  return out;
+}
+
+function parseClaudeJson(text: string): GenChallenge[] | null {
+  let t = normalizeJsonishText(text.trim());
+  t = stripMarkdownFences(t);
+  const slices: string[] = [t.trim()];
+  const extracted = extractBalancedJsonArray(t);
+  if (extracted?.trim() && extracted.trim() !== slices[0]) {
+    slices.push(extracted.trim());
+  }
+
+  const tried = new Set<string>();
+  for (const slice of slices) {
+    const variants = [slice, stripJsonTrailingCommas(slice)];
+    for (const cand of variants) {
+      const s = cand.trim();
+      if (!s || tried.has(s)) continue;
+      tried.add(s);
+      try {
+        const parsed = JSON.parse(s) as unknown;
+        const arr = coerceChallengeArray(parsed);
+        if (!arr) continue;
+        const ok = normalizeChallengesFromParsed(arr);
+        if (ok) return ok;
+      } catch {
+        /* try next */
+      }
+    }
+  }
+  return null;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -175,11 +260,14 @@ async function callClaude(
 ): Promise<{ list: GenChallenge[] | null; error: string | null }> {
   const recent =
     recentTitles.length > 0 ? recentTitles.join("; ") : "(none yet)";
-  const user = `Current month: ${month}
+  const baseUser = `Current month: ${month}
 Do not repeat recent topics: ${recent}
 Respond ONLY with a JSON array of 9 objects. No markdown fences.
 Each object: track (DEVELOPER|HACKER|DESIGNERS), tier (Beginner|Intermediate|Advanced), title, description (markdown string), resources (markdown bullets), deliverables (markdown bullets).
 In descriptions/deliverables, mention relaxed pacing (~10 days part-time for core scope) where natural — avoid implying participants must use the entire build window.`;
+  const retrySuffix = `
+
+Your previous answer could not be parsed as JSON. Reply again with ONLY valid JSON: exactly one array of 9 objects (no wrapper object unless it is {"challenges":[...]}). Use ASCII double quotes; escape any double quote inside strings as \\". No trailing commas. No commentary before or after.`;
 
   const system = `You are the challenge designer for H4ck&Stack. Generate 9 unique monthly challenges:
 
@@ -207,7 +295,12 @@ General: The community month still runs up to ~21 days for build/review; size ea
           model: "claude-sonnet-4-20250514",
           max_tokens: 8192,
           system,
-          messages: [{ role: "user", content: user }],
+          messages: [
+            {
+              role: "user",
+              content: attempt === 0 ? baseUser : `${baseUser}${retrySuffix}`,
+            },
+          ],
         }),
       });
 
@@ -227,12 +320,17 @@ General: The community month still runs up to ~21 days for build/review; size ea
         content?: Array<{ type: string; text?: string }>;
       };
       const text = data.content?.find((c) => c.type === "text")?.text ?? "";
-      let parsed = parseClaudeJson(text);
+      const parsed = parseClaudeJson(text);
       if (!parsed) {
-        parsed = parseClaudeJson(text.replace(/^[\s\S]*?(\[[\s\S]*\])[\s\S]*$/, "$1"));
-      }
-      if (!parsed) {
+        console.error(
+          "Claude challenge JSON parse failed; response snippet:",
+          text.slice(0, 600),
+        );
         lastError = "Claude returned non-parseable JSON challenge list.";
+        if (attempt < maxAttempts - 1) {
+          await sleep(Math.min(12_000, 1500 * 2 ** attempt));
+          continue;
+        }
         return { list: null, error: lastError };
       }
       return { list: parsed, error: null };
