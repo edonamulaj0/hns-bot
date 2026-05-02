@@ -517,9 +517,6 @@ export function SubmitPageClient() {
           Internal id {me.submission.id} · codename {codenameFromSubmissionId(me.submission.id)}
         </p>
       )}
-      <Link href="/challenges" className="btn text-sm inline-block">
-        ← Challenges
-      </Link>
     </section>
   );
 }
