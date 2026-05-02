@@ -76,31 +76,43 @@ export class ThemeHandler {
   public applyTheme() {
     if (typeof document === 'undefined') return
 
-    const { currentMode, theme } = this.state.value
-
-    // Is this the WORST fix of all time???
     const root = document.documentElement
-    const bgColor = currentMode === 'dark' && this.amoledEnabled.value ? '#000000' : currentMode === 'dark' ? '#1A1A1A' : '#f8fafc'
-    root.style.setProperty('--vp-c-bg', bgColor)
-    const bgAltColor = currentMode === 'dark' && this.amoledEnabled.value ? '#000000' : currentMode === 'dark' ? '#171717' : '#eef2f5'
-    root.style.setProperty('--vp-c-bg-alt', bgAltColor)
-    const bgElvColor = currentMode === 'dark' && this.amoledEnabled.value ? 'rgba(0, 0, 0, 0.9)' : currentMode === 'dark' ? '#1a1a1acc' : 'rgba(255, 255, 255, 0.8)'
-    root.style.setProperty('--vp-c-bg-elv', bgElvColor)
+    root.classList.add('dark')
+    root.classList.remove('light', 'amoled', 'monochrome')
 
-    this.applyDOMClasses(currentMode)
-
-    if (!theme) return
-
-    const modeColors = theme.modes[currentMode]
-
-    this.applyDOMClasses(currentMode)
-    this.applyCSSVariables(modeColors, theme)
-
-    if (theme.name === 'monochrome') {
-      root.classList.add('monochrome')
-    } else {
-      root.classList.remove('monochrome')
+    const hnsVars: Record<string, string> = {
+      '--vp-c-bg': 'var(--bg)',
+      '--vp-c-bg-alt': 'var(--bg)',
+      '--vp-c-bg-soft': 'var(--bg-card)',
+      '--vp-c-bg-mute': 'var(--bg-raised)',
+      '--vp-c-bg-elv': 'var(--bg-overlay)',
+      '--vp-c-brand-1': 'var(--accent)',
+      '--vp-c-brand-2': 'var(--accent-hover)',
+      '--vp-c-brand-3': 'var(--accent-dim)',
+      '--vp-c-brand-soft': 'var(--accent-soft)',
+      '--vp-c-divider': 'var(--border)',
+      '--vp-c-divider-light': 'var(--border-bright)',
+      '--vp-c-text-1': 'var(--text)',
+      '--vp-c-text-2': 'var(--text-dim)',
+      '--vp-c-text-3': 'var(--text-dimmer)',
+      '--vp-button-brand-bg': 'var(--accent)',
+      '--vp-button-brand-border': 'var(--accent)',
+      '--vp-button-brand-text': 'var(--vp-button-brand-text)',
+      '--vp-button-brand-hover-bg': 'var(--accent-hover)',
+      '--vp-button-brand-hover-border': 'var(--accent-hover)',
+      '--vp-button-brand-hover-text': 'var(--vp-button-brand-hover-text)',
+      '--vp-button-brand-active-bg': 'var(--accent-dim)',
+      '--vp-button-brand-active-border': 'var(--accent-dim)',
+      '--vp-button-brand-active-text': 'var(--vp-button-brand-active-text)',
+      '--vp-button-alt-bg': 'transparent',
+      '--vp-button-alt-text': 'var(--text)',
+      '--vp-button-alt-hover-bg': 'var(--bg-card)',
+      '--vp-button-alt-hover-text': 'var(--accent)'
     }
+
+    Object.entries(hnsVars).forEach(([key, value]) => {
+      root.style.setProperty(key, value)
+    })
   }
 
   private applyDOMClasses(mode: DisplayMode) {
@@ -141,9 +153,9 @@ export class ThemeHandler {
     let bgElvColor = colors.bgElv
 
     if (this.state.value.currentMode === 'dark' && this.amoledEnabled.value) {
-      bgColor = '#000000'
-      bgAltColor = '#000000'
-      bgElvColor = 'rgba(0, 0, 0, 0.9)'
+      bgColor = 'var(--bg)'
+      bgAltColor = 'var(--bg)'
+      bgElvColor = 'var(--vp-c-bg-elv)'
     }
 
     // Apply brand colors only if theme specifies them

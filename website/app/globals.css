@@ -59,16 +59,6 @@ body {
   position: relative;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  pointer-events: none;
-  opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
 /* ── Typography ─────────────────────────────────────────────────────────────── */
 
 h1, h2, h3, h4 {
@@ -114,7 +104,6 @@ h1, h2, h3, h4 {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 4px;
-  transition: border-color 200ms ease;
 }
 
 .card:hover {
@@ -161,7 +150,6 @@ h1, h2, h3, h4 {
   cursor: pointer;
   text-decoration: none;
   border-radius: 4px;
-  transition: all 200ms ease;
 }
 
 .btn:hover {
@@ -235,8 +223,7 @@ nav {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(5, 5, 5, 0.9);
-  backdrop-filter: blur(12px);
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 
@@ -296,16 +283,29 @@ footer.footer {
   animation: skeleton-pulse 1.5s ease infinite;
 }
 
-@keyframes phase-countdown-border {
-  0%, 100% { border-color: var(--border); }
-  50% { border-color: var(--accent); }
-}
-
 .animate-phase-countdown-border {
   border-width: 1px;
   border-style: solid;
-  border-color: var(--border);
-  animation: phase-countdown-border 1.5s ease-in-out infinite;
+  border-color: var(--accent);
+}
+
+@keyframes splash-exit {
+  0%, 78% { opacity: 1; transform: translate3d(0, 0, 0); }
+  100% { opacity: 0; transform: translate3d(0, -12px, 0); }
+}
+
+.splash-screen {
+  animation: splash-exit 2000ms ease-out both;
+  will-change: opacity, transform;
+}
+
+@keyframes splash-cursor-blink {
+  0%, 45% { opacity: 1; }
+  46%, 100% { opacity: 0; }
+}
+
+.splash-cursor {
+  animation: splash-cursor-blink 650ms steps(1, end) infinite;
 }
 
 .scrollbar-none {

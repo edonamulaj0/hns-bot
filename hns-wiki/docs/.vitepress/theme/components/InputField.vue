@@ -24,7 +24,7 @@ defineProps<{
   line-height: 20px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--vt-c-text-1);
+  color: var(--vp-c-text-1);
   display: block;
 }
 

@@ -178,7 +178,7 @@ export function DiscordWidget({ className = "" }: { className?: string }) {
                       {m.avatar_url ? (
                         <Image
                           src={m.avatar_url}
-                          alt=""
+                          alt={`${m.nick || m.username} avatar`}
                           width={22}
                           height={22}
                           quality={80}

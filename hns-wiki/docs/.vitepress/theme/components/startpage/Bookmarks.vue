@@ -349,7 +349,7 @@ onUnmounted(() => {
       <div class="flex items-center gap-2">
         <div
           v-if="currentChordInput"
-          class="px-3 py-1 rounded-md text-sm font-medium bg-yellow-200/20 text-yellow-600"
+          class="rounded border border-[var(--accent-border-soft)] bg-[var(--accent-soft)] px-3 py-1 font-mono text-sm font-medium text-primary"
         >
           Chord: {{ currentChordInput }}...
         </div>
@@ -358,7 +358,7 @@ onUnmounted(() => {
         <DialogRoot v-model:open="isAddDialogOpen">
           <DialogTrigger as-child>
             <button
-              class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-bg-alt text-white hover:opacity-80 transition-opacity"
+              class="flex items-center gap-2 rounded border border-div bg-bg-alt px-3 py-1.5 font-mono text-sm font-medium text-white transition-colors hover:border-primary hover:text-primary"
             >
               <i class="i-lucide:plus w-4 h-4" />
               Add Bookmark
@@ -369,7 +369,7 @@ onUnmounted(() => {
             <DialogOverlay class="fixed inset-0 bg-black/50 z-50" />
             <DialogContent
               description="Add New Bookmark"
-              class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-bg border border-div rounded-lg p-6 w-full max-w-md z-50 max-h-[90vh] overflow-y-auto"
+              class="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-md -translate-x-1/2 -translate-y-1/2 transform overflow-y-auto rounded border border-div bg-bg-alt p-6"
             >
               <DialogTitle class="text-lg font-semibold text-text mb-4">
                 Add New Bookmark
@@ -560,7 +560,7 @@ onUnmounted(() => {
           </button>
           <button
             @click.stop="openDeleteDialog(bookmark)"
-            class="p-1 bg-bg-elv border border-div rounded hover:bg-red-100 hover:text-red-600 transition-colors"
+            class="p-1 bg-bg-elv border border-div rounded hover:bg-[var(--danger-soft)] hover:text-[var(--danger)] transition-colors"
             title="Delete bookmark"
           >
             <i class="i-lucide:trash-2 w-3 h-3 text-text-2" />
@@ -574,7 +574,7 @@ onUnmounted(() => {
       <DialogPortal>
         <DialogOverlay class="fixed inset-0 bg-black/50 z-50" />
         <DialogContent
-          class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-bg border border-div rounded-lg p-6 w-full max-w-md z-50 max-h-[90vh] overflow-y-auto"
+          class="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-md -translate-x-1/2 -translate-y-1/2 transform overflow-y-auto rounded border border-div bg-bg-alt p-6"
         >
           <DialogTitle class="text-lg font-semibold text-text mb-4">
             Edit Bookmark
@@ -700,7 +700,7 @@ onUnmounted(() => {
       <DialogPortal>
         <DialogOverlay class="fixed inset-0 bg-black/50 z-50" />
         <DialogContent
-          class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-bg border border-div rounded-lg p-6 w-full max-w-md z-50"
+          class="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 transform rounded border border-div bg-bg-alt p-6"
         >
           <DialogTitle class="text-lg font-semibold text-text mb-2">
             Delete Bookmark
@@ -713,7 +713,7 @@ onUnmounted(() => {
           <div class="flex gap-3">
             <button
               @click="handleDeleteBookmark"
-              class="flex-1 bg-red-600 text-white py-2 px-4 rounded-md font-medium hover:bg-red-700 transition-colors"
+              class="flex-1 rounded border border-[var(--danger)] bg-[var(--danger)] px-4 py-2 font-mono font-bold text-black transition-colors"
             >
               Delete
             </button>

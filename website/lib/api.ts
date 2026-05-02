@@ -1,7 +1,7 @@
 /**
  * Browser: same-origin `/hns-api/*` (Next rewrites to the bot Worker).
  * Server (RSC / SSR): `HNS_WORKER_URL` / `NEXT_PUBLIC_API_URL` if set; otherwise same-origin
- * `https://{host}/hns-api/api/...` so Cloudflare Pages can reach the Worker without a public env var.
+ * `https://{host}/hns-api/...` so Cloudflare Pages can reach the Worker without a public env var.
  */
 
 function getServerWorkerBase(): string {
@@ -61,7 +61,7 @@ async function resolveApiFetchUrl(pathAndQuery: string): Promise<string | null> 
     const rawProto = h.get("x-forwarded-proto");
     const proto = rawProto?.split(",")[0]?.trim() || "https";
     if (host) {
-      return `${proto}://${host}/hns-api/api${apiPath}`;
+      return `${proto}://${host}/hns-api${apiPath}`;
     }
   } catch {
     /* not in a Next.js request (e.g. static analysis) */

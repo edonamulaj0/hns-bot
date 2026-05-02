@@ -95,7 +95,7 @@ export function registerAdminHealth(app: DiscordHono<HonoWorkerEnv>) {
 
         if (XP_ROLES.some((def) => !roleMap.get(def.key))) {
           warnings.push(
-            "Could not verify/create one or more XP roles (bot may lack Manage Roles permission).",
+            "Could not verify one or more XP roles. Missing roles are not created automatically.",
           );
         }
 

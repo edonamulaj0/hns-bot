@@ -132,7 +132,8 @@ export default defineConfig({
     }),
     presetWebFonts({
       fonts: {
-        mono: 'Geist Mono'
+        mono: 'JetBrains Mono',
+        sans: 'Space Grotesk'
       }
     })
   ],

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AuthNav } from "@/components/AuthNav";
 import { getSessionClient, loginUrl, type SessionUser } from "@/lib/auth-client";
 import { userProfileAvatarUrl } from "@/lib/api";
@@ -84,6 +84,7 @@ export function Navbar() {
   const [session, setSession] = useState<SessionUser | null>(null);
   /** null = before hydration; false = first visit; true = returning visitor */
   const [hasVisitedBefore, setHasVisitedBefore] = useState<boolean | null>(null);
+  const bodyLockedRef = useRef(false);
   const voteMonth = getMonthKey();
 
   useEffect(() => {
@@ -105,26 +106,30 @@ export function Navbar() {
       document.documentElement.style.setProperty("--scroll-y", `${window.scrollY}px`);
       document.body.style.cssText =
         "position:fixed;top:calc(-1 * var(--scroll-y));width:100%;overflow:hidden";
-    } else {
+      bodyLockedRef.current = true;
+    } else if (bodyLockedRef.current) {
       const restoreY = parseInt(
         document.documentElement.style.getPropertyValue("--scroll-y") || "0",
         10,
       );
       document.body.style.cssText = "";
       window.scrollTo(0, restoreY);
+      bodyLockedRef.current = false;
     }
     return () => {
+      if (!bodyLockedRef.current) return;
       const restoreY = parseInt(
         document.documentElement.style.getPropertyValue("--scroll-y") || "0",
         10,
       );
       document.body.style.cssText = "";
       window.scrollTo(0, restoreY);
+      bodyLockedRef.current = false;
     };
   }, [open]);
 
   return (
-    <nav className="sticky top-0 z-[100] border-b border-[var(--border)] bg-[rgba(5,5,5,0.92)] backdrop-blur-md supports-[backdrop-filter]:bg-[rgba(5,5,5,0.85)]">
+    <nav className="sticky top-0 z-[100] border-b border-[var(--border)] bg-[var(--bg)]">
       <div className="container flex min-h-[3.5rem] w-full items-center justify-between gap-3 py-2">
         <Link
           href="/"
@@ -173,7 +178,7 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex w-full items-center justify-between rounded px-4 py-3.5 text-left text-[clamp(1rem,4vw,1.2rem)] no-underline transition-colors md:w-auto md:px-3 md:py-1.5 md:text-sm ${
+                    className={`flex w-full items-center justify-between rounded px-4 py-3.5 text-left text-[clamp(1rem,4vw,1.2rem)] no-underline md:w-auto md:px-3 md:py-1.5 md:text-sm ${
                       active
                         ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
                         : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
@@ -204,7 +209,7 @@ export function Navbar() {
                     >
                       <Image
                         src={sessionAvatarUrl(session)}
-                        alt=""
+                        alt={`${session.displayName?.trim() || "Account"} avatar`}
                         width={40}
                         height={40}
                         quality={80}
@@ -220,7 +225,7 @@ export function Navbar() {
                       href="/settings"
                       onClick={() => setOpen(false)}
                       aria-label="Settings"
-                      className={`shrink-0 rounded border p-2.5 no-underline transition-colors ${
+                      className={`shrink-0 rounded border p-2.5 no-underline ${
                         accountLinkActive(pathname, "/settings")
                           ? "border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
                           : "border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"
@@ -253,7 +258,7 @@ export function Navbar() {
                           key={item.href}
                           href={item.href}
                           onClick={() => setOpen(false)}
-                          className={`flex w-full items-center justify-between rounded px-4 py-3 text-left text-[clamp(1rem,4vw,1.05rem)] no-underline transition-colors ${
+                          className={`flex w-full items-center justify-between rounded px-4 py-3 text-left text-[clamp(1rem,4vw,1.05rem)] no-underline ${
                             active
                               ? "border border-[rgba(204,255,0,0.35)] bg-[rgba(204,255,0,0.1)] text-[var(--accent)]"
                               : "border border-transparent text-[var(--text-dim)] hover:border-[var(--border-bright)] hover:text-[var(--text)]"

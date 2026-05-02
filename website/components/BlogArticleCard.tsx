@@ -56,7 +56,7 @@ export function BlogArticleCard({
             <button
               type="button"
               onClick={() => onLikeToggle!(blog.id)}
-              className={`mono text-[0.65rem] rounded border px-2 py-1 min-h-[44px] sm:min-h-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] ${
+              className={`mono text-[0.65rem] rounded border px-2 py-1 min-h-[44px] sm:min-h-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] ${
                 liked
                   ? "border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/10"
                   : "border-[var(--border)] text-white/60 hover:text-white/90"

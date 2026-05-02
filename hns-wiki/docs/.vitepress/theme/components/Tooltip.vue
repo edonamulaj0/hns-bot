@@ -30,7 +30,7 @@ const triggers = computed(() => isHoverable.value ? ['hover'] : ['click'])
     </button>
 
     <template #popper>
-      <div class="border-$vp-c-divider bg-$vp-c-bg-alt b-rd-4 max-w-md max-h-md border-2 border-solid flex flex-col transition-all overflow-hidden">
+      <div class="border-$vp-c-divider bg-$vp-c-bg-soft max-w-md max-h-md rounded border border-solid flex flex-col transition-all overflow-hidden">
         <div class="overflow-y-auto p-4">
           <h3 v-if="title" class="text-$vp-c-text-1 mb-2 text-lg font-semibold" v-text="title" />
           <div class="text-$vp-c-text-1 text-sm content vp-doc">

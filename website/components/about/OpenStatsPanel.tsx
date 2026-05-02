@@ -1,11 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
 import type { AboutStatsPayload } from "@/lib/about-stats";
 import { memberDisplayName } from "@/lib/member-label";
 import { githubProfileHref } from "@/lib/url";
-
-const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 export function OpenStatsPanel({ data }: { data: AboutStatsPayload }) {
   const maxStack = Math.max(...data.topStacks.map((t) => t.count), 1);
@@ -65,12 +62,9 @@ export function OpenStatsPanel({ data }: { data: AboutStatsPayload }) {
                         <span className="mono shrink-0 text-white/45">{row.count}</span>
                       </div>
                       <div className="h-2 min-h-2 rounded-full bg-[var(--border)] overflow-hidden">
-                        <motion.div
+                        <div
                           className="h-full rounded-full bg-[var(--accent)]"
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${pct}%` }}
-                          viewport={{ once: true, amount: 0.4 }}
-                          transition={{ duration: 0.9, ease: EASE_OUT }}
+                          style={{ transform: `scaleX(${pct / 100})`, transformOrigin: "left" }}
                         />
                       </div>
                     </li>
@@ -85,17 +79,13 @@ export function OpenStatsPanel({ data }: { data: AboutStatsPayload }) {
             <p className="text-xs text-white/45 mb-4 mono">Published portfolio entries</p>
             <div className="w-full overflow-x-auto">
               <svg width={w} height={h + 24} className="mx-auto block max-w-full">
-                <motion.path
+                <path
                   d={pathD}
                   fill="none"
                   stroke="var(--accent)"
                   strokeWidth={2}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  initial={{ pathLength: 0, opacity: 0.4 }}
-                  whileInView={{ pathLength: 1, opacity: 1 }}
-                  viewport={{ once: true, amount: 0.5 }}
-                  transition={{ duration: 1.15, ease: EASE_OUT }}
                 />
               </svg>
             </div>

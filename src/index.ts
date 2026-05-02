@@ -27,6 +27,7 @@ import {
 } from "./commands/admin-test-generate";
 import { registerAdminTestNotify } from "./commands/admin-test-notify";
 import { registerAdminSyncRoles } from "./commands/admin-sync-roles";
+import { registerAdminSyncGithubXp } from "./commands/admin-sync-github-xp";
 import {
   handleAdminResetComponent,
   registerAdminResetMonth,
@@ -35,7 +36,6 @@ import { processDiscordEnrollment, type EnrollmentDeferCtx } from "./commands/en
 import { getDiscordUserId } from "./commands/helpers";
 import { MessageFlags } from "discord-api-types/v10";
 import { ensureRolesExist } from "./role-manager";
-import { ensureDesignRolesExist } from "./design-track-roles";
 
 let app = new DiscordHono<HonoWorkerEnv>();
 let startupRolesInit = false;
@@ -57,6 +57,7 @@ app = registerAdminTestClaude(app);
 app = registerAdminTestGenerate(app);
 app = registerAdminTestNotify(app);
 app = registerAdminSyncRoles(app);
+app = registerAdminSyncGithubXp(app);
 app = registerAdminResetMonth(app);
 
 app = app.component("", async (c) => {
@@ -133,9 +134,6 @@ export default {
       try {
         const prisma = getPrisma(env.DB);
         await ensureRolesExist(prisma, env.DISCORD_GUILD_ID, env.DISCORD_TOKEN);
-        await ensureDesignRolesExist(prisma, env.DISCORD_GUILD_ID, env.DISCORD_TOKEN).catch(
-          (e) => console.error("design roles init:", e),
-        );
         startupRolesInit = true;
       } catch (e) {
         console.error("role init error:", e);

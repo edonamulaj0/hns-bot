@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { browserApiUrl, deleteSubmit, fetchMe, patchSubmit } from "@/lib/api-browser";
 import { getSessionClientWithRetry, loginUrl } from "@/lib/auth-client";
@@ -223,7 +222,7 @@ export function SubmissionsClient({ backHref = "/profile" }: { backHref?: string
         {error && <p className="text-sm text-[var(--danger)] mb-3">{error}</p>}
         {authIssue && <p className="text-sm text-[var(--danger)] mb-3">{authIssue}</p>}
 
-        <AnimatePresence>
+        <>
           {items.map((s) => {
             const editable = !s.isLocked;
             const approved = Boolean(s.isApproved);
@@ -231,12 +230,9 @@ export function SubmissionsClient({ backHref = "/profile" }: { backHref?: string
             const isExpanded = expanded[s.id] ?? false;
             const confirmingDelete = deleteConfirmId === s.id;
             return (
-              <motion.article
+              <article
                 key={s.id}
                 className="card p-4 sm:p-5 mb-4"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
               >
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   <span className="tag">{s.month}</span>
@@ -419,10 +415,10 @@ export function SubmissionsClient({ backHref = "/profile" }: { backHref?: string
                     </div>
                   </div>
                 )}
-              </motion.article>
+              </article>
             );
           })}
-        </AnimatePresence>
+        </>
       </div>
     </section>
   );

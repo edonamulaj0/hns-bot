@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="bg-bg-elv text-text w-full max-w-md rounded-lg border shadow-sm">
+  <div class="w-full max-w-md rounded border border-div bg-bg-alt text-text">
     <div class="flex flex-col space-y-1.5 p-6 pb-4">
       <h4
         class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight"
@@ -23,7 +23,7 @@ defineProps<{
       <img
         :src="desktop"
         :alt="title"
-        class="aspect-[3/2] rounded-md object-cover"
+        class="aspect-[3/2] rounded object-cover"
         width="1080"
         height="1920"
       />

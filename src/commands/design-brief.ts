@@ -38,7 +38,7 @@ export function registerDesignBrief(app: DiscordHono<HonoWorkerEnv>) {
     }));
 
     return c.res({
-      content: `**Graphic Design track · ${m}** — three tiers below.`,
+      content: `**Designer track · ${m}** — three tiers below.`,
       embeds,
     });
   });

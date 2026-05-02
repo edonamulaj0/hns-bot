@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { PortfolioResponse, Submission } from "@/lib/api";
 import { memberDisplayName } from "@/lib/member-label";
 import { githubProfileHref } from "@/lib/url";
@@ -37,6 +38,7 @@ export function HallOfFame({ portfolio }: { portfolio: PortfolioResponse | null 
         >
           {winners.map(({ month, sub }) => {
             const gh = githubProfileHref(sub.user.github);
+            const isDesigner = sub.track === "DESIGNERS";
             return (
               <article
                 key={month}
@@ -69,14 +71,28 @@ export function HallOfFame({ portfolio }: { portfolio: PortfolioResponse | null 
                   )}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <a
-                    href={sub.repoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn text-xs py-1.5 px-3"
-                  >
-                    Repo
-                  </a>
+                  {isDesigner && sub.attachmentUrl ? (
+                    <a
+                      href={sub.attachmentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn text-xs py-1.5 px-3"
+                    >
+                      Image
+                    </a>
+                  ) : (
+                    <a
+                      href={sub.repoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn text-xs py-1.5 px-3"
+                    >
+                      Repo
+                    </a>
+                  )}
+                  <Link href={`/submissions/${sub.id}`} className="btn text-xs py-1.5 px-3">
+                    Detail
+                  </Link>
                   {sub.demoUrl && (
                     <a
                       href={sub.demoUrl}

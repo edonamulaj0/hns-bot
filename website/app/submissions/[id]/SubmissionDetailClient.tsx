@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { fetchSubmission } from "@/lib/api-browser";
 
@@ -62,7 +61,7 @@ export function SubmissionDetailClient({ id }: { id: string }) {
   }
 
   const trackLabel =
-    data.track === "HACKER" ? "Hacker" : data.track === "DESIGNERS" ? "Design" : "Developer";
+    data.track === "HACKER" ? "Hacker" : data.track === "DESIGNERS" ? "Designer" : "Developer";
 
   const hackerTypeLabel =
     data.challengeType === "CTF_WRITEUP"
@@ -110,12 +109,10 @@ export function SubmissionDetailClient({ id }: { id: string }) {
       {data.track === "DESIGNERS" && data.attachmentUrl && (
         <div>
           <div className="relative aspect-[16/10] w-full overflow-hidden rounded border border-[var(--border)] bg-black/30">
-            <Image
+            <img
               src={data.attachmentUrl}
-              alt=""
-              fill
-              sizes="(max-width:768px) 100vw, 50vw"
-              className="object-contain"
+              alt={`${data.title} submission image`}
+              className="h-full w-full object-contain"
             />
           </div>
           {imageMetaParsed && (imageMetaParsed.width || imageMetaParsed.mime) && (

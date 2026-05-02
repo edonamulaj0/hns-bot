@@ -43,7 +43,7 @@ const handleFocusChange = (focused: boolean) => {
 
 <style>
 kbd {
-  --uno: px-1.5 py-0.5 rounded-sm font-sans font-semibold text-xs bg-bg-alt
-    text-text-2 border-2 border-div nowrap;
+  --uno: px-1.5 py-0.5 rounded font-mono font-semibold text-xs bg-bg-alt
+    text-text-2 border border-div nowrap;
 }
 </style>

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import type { ActivityFeedItem } from "@/lib/activity-feed";
 import { formatFeedTime } from "@/lib/relative-time";
 import { memberDisplayName } from "@/lib/member-label";
@@ -18,16 +17,13 @@ export function ActivityFeedRow({
   if (item.type === "submission") {
     const tr = item.track ?? "DEVELOPER";
     const badge =
-      tr === "HACKER" ? "Hacker" : tr === "DESIGNERS" ? "Design" : "Developer";
+      tr === "HACKER" ? "Hacker" : tr === "DESIGNERS" ? "Designer" : "Developer";
     const thumb =
       item.attachmentUrl && tr === "DESIGNERS" ? (
-        <Image
+        <img
           src={item.attachmentUrl}
-          alt=""
-          width={72}
-          height={72}
-          quality={80}
-          className="shrink-0 rounded object-cover border border-[var(--border)] bg-black/30"
+          alt={`${item.title} submission image`}
+          className="h-[72px] w-[72px] shrink-0 rounded object-cover border border-[var(--border)] bg-black/30"
         />
       ) : (
         <span className="text-lg shrink-0 w-[72px] text-center leading-none pt-0.5">🚀</span>

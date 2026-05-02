@@ -1133,7 +1133,7 @@ function onMouseMove(e: MouseEvent) {
   border: 1px solid var(--vp-c-divider);
   border-radius: 4px;
   padding: 2px 4px;
-  box-shadow: var(--vp-shadow-1);
+  box-shadow: none;
 }
 
 @media (max-width: 767px) {
@@ -1257,15 +1257,15 @@ function onMouseMove(e: MouseEvent) {
 }
 
 .search-keyboard-shortcuts kbd {
-  background: rgba(128, 128, 128, 0.1);
+  background: var(--bg-raised);
   border-radius: 4px;
   padding: 3px 6px;
   min-width: 24px;
   display: inline-block;
   text-align: center;
   vertical-align: middle;
-  border: 1px solid rgba(128, 128, 128, 0.15);
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
+  box-shadow: none;
 }
 
 .results {
@@ -1392,8 +1392,8 @@ function onMouseMove(e: MouseEvent) {
 
 /* Custom Feature: Currently focused highlight (during navigation) */
 .excerpt :deep(mark.current) {
-  background-color: var(--vp-c-yellow-3);
-  color: #000;
+  background-color: var(--accent);
+  color: var(--button-primary-text);
   font-weight: bold;
 }
 
@@ -1402,7 +1402,7 @@ function onMouseMove(e: MouseEvent) {
 }
 
 .excerpt :deep(.vp-code-group) div[class*='language-'] {
-  border-radius: 8px !important;
+  border-radius: 4px !important;
 }
 
 .excerpt-gradient-bottom {

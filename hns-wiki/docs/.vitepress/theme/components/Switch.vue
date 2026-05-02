@@ -39,24 +39,25 @@ const emit = defineEmits<{
 }
 
 .switch.enabled {
-  background-color: var(--vp-c-brand);
+  background-color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-1);
 }
 
 .switch.disabled {
   opacity: 0.5;
   pointer-events: none;
-  background-color: var(--vp-c-bg-soft, #2f2f2f);
-  border-color: var(--vp-c-divider, #666);
+  background-color: var(--vp-c-bg-soft);
+  border-color: var(--vp-c-divider);
 }
 
 .switch.disabled .thumb {
-  background-color: #fff;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2), var(--vp-shadow-1);
+  background-color: var(--text);
+  box-shadow: none;
 }
 
 .dark .switch.disabled {
-  background-color: #2f2f2f;
-  border-color: #7d7d7d;
+  background-color: var(--vp-c-bg-soft);
+  border-color: var(--vp-c-divider);
 }
 </style>
 
@@ -67,12 +68,12 @@ const emit = defineEmits<{
 
 .thumb {
   display: inline-block;
-  background-color: #fff;
+  background-color: var(--text);
   transition: transform 0.25s;
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08), var(--vp-shadow-1);
+  box-shadow: none;
 }
 
 .switch.enabled .thumb {

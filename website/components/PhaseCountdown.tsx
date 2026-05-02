@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import {
   getMonthlyPhase,
   getNextPhaseTransitionAt,
@@ -61,7 +60,7 @@ export function PhaseCountdown({ phase: phaseFromApi }: { phase?: Phase }) {
               b.label === "MM" || b.label === "SS" ? "max-[359px]:hidden" : ""
             }`}
           >
-            <motion.div
+            <div
               className={`rounded border bg-[var(--bg-card)] px-3 py-2 sm:px-4 sm:py-3 text-center min-w-[48px] sm:min-w-[4rem] ${
                 urgent ? "animate-phase-countdown-border" : "border-[var(--border)]"
               }`}
@@ -80,7 +79,7 @@ export function PhaseCountdown({ phase: phaseFromApi }: { phase?: Phase }) {
               <div className="mono text-[0.55rem] sm:text-[0.65rem] text-white/40 uppercase">
                 {b.label}
               </div>
-            </motion.div>
+            </div>
             {i < blocks.length - 1 && (
               <span
                 className={`mono text-white/30 text-lg ${

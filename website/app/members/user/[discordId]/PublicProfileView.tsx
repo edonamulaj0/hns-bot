@@ -43,7 +43,7 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
           <aside className="h-fit space-y-4 rounded border border-[var(--border)] bg-[var(--bg-card)] p-5 lg:sticky lg:top-24">
             <Image
               src={avatar}
-              alt=""
+              alt={`${memberDisplayName(u)} avatar`}
               width={256}
               height={256}
               quality={80}
@@ -120,8 +120,9 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
                       (s.track ?? "DEVELOPER") === "HACKER"
                         ? "Hacker"
                         : (s.track ?? "DEVELOPER") === "DESIGNERS"
-                          ? "Design"
+                          ? "Designer"
                           : "Developer";
+                    const isDesigner = (s.track ?? "DEVELOPER") === "DESIGNERS";
                     return (
                       <article key={s.id} className="card p-4 sm:p-5 flex flex-col">
                         <div className="flex flex-wrap gap-2 mb-2">
@@ -134,14 +135,28 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
                         <h3 className="font-bold text-lg mb-2">{s.title}</h3>
                         <p className="text-sm text-white/55 line-clamp-3 mb-3 flex-1">{s.description}</p>
                         <div className="flex flex-wrap gap-2 mt-auto">
-                          <a
-                            href={s.repoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn text-xs py-1.5"
-                          >
-                            Repo
-                          </a>
+                          {isDesigner && s.attachmentUrl ? (
+                            <a
+                              href={s.attachmentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn text-xs py-1.5"
+                            >
+                              Image
+                            </a>
+                          ) : (
+                            <a
+                              href={s.repoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn text-xs py-1.5"
+                            >
+                              Repo
+                            </a>
+                          )}
+                          <Link href={`/submissions/${s.id}`} className="btn text-xs py-1.5">
+                            Detail
+                          </Link>
                           {s.demoUrl ? (
                             <a
                               href={s.demoUrl}

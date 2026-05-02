@@ -17,23 +17,6 @@ async function getCachedRoleIds(
   return map;
 }
 
-async function createDiscordRole(
-  guildId: string,
-  token: string,
-  payload: object,
-): Promise<{ id: string }> {
-  const res = await fetch(`https://discord.com/api/v10/guilds/${guildId}/roles`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bot ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) throw new Error(`Failed to create role: ${await res.text()}`);
-  return res.json();
-}
-
 async function verifyRoleExists(
   roleId: string,
   guildId: string,
@@ -45,6 +28,17 @@ async function verifyRoleExists(
   if (!res.ok) return false;
   const roles: Array<{ id: string }> = await res.json();
   return roles.some((r) => r.id === roleId);
+}
+
+async function getGuildRoles(
+  guildId: string,
+  token: string,
+): Promise<Array<{ id: string; name: string }>> {
+  const res = await fetch(`https://discord.com/api/v10/guilds/${guildId}/roles`, {
+    headers: { Authorization: `Bot ${token}` },
+  });
+  if (!res.ok) return [];
+  return res.json();
 }
 
 async function assignRole(
@@ -147,6 +141,7 @@ export async function ensureRolesExist(
   if (rolesInitialized) return getCachedRoleIds(prisma, guildId);
 
   const roleMap = new Map<RoleKey, string>();
+  const guildRoles = await getGuildRoles(guildId, botToken);
 
   for (const roleDef of XP_ROLES) {
     const stored = await prisma.roleMapping.findUnique({
@@ -161,21 +156,19 @@ export async function ensureRolesExist(
       }
     }
 
-    const created = await createDiscordRole(guildId, botToken, {
-      name: `${roleDef.emoji} ${roleDef.name}`,
-      color: roleDef.color,
-      hoist: roleDef.hoist,
-      mentionable: false,
-      permissions: "0",
+    const existing = guildRoles.find((role) => {
+      const n = role.name.trim().toLowerCase();
+      return n === roleDef.name.toLowerCase() || n === `${roleDef.emoji} ${roleDef.name}`.toLowerCase();
     });
+    if (!existing) continue;
 
     await prisma.roleMapping.upsert({
       where: { key: roleDef.key },
-      create: { key: roleDef.key, roleId: created.id, guildId },
-      update: { roleId: created.id, guildId },
+      create: { key: roleDef.key, roleId: existing.id, guildId },
+      update: { roleId: existing.id, guildId },
     });
 
-    roleMap.set(roleDef.key, created.id);
+    roleMap.set(roleDef.key, existing.id);
   }
 
   rolesInitialized = true;

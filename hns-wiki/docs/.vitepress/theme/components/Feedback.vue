@@ -138,7 +138,7 @@ const toggleCard = () => (isCardShown.value = !isCardShown.value)
   <template v-if="props.heading">
     <button
       @click="toggleCard()"
-      class="bg-$vp-c-default-soft text-primary border-$vp-c-default-soft hover:border-primary ml-3 inline-flex h-7 items-center justify-center whitespace-nowrap rounded-md border-2 border-solid px-1.5 py-3.5 text-sm font-medium transition-all duration-300 sm:h-6"
+      class="ml-3 inline-flex h-7 items-center justify-center whitespace-nowrap rounded border border-solid border-$vp-c-divider bg-$vp-c-bg-soft px-1.5 py-3.5 text-sm font-medium text-primary transition-colors duration-200 hover:border-primary sm:h-6"
     >
       <span
         :class="isCardShown === false ? `i-lucide:mail` : `i-lucide:mail-x`"
@@ -147,7 +147,7 @@ const toggleCard = () => (isCardShown.value = !isCardShown.value)
   </template>
   <template v-else>
     <div
-      class="mt-2 p-4 border-2 border-solid bg-$vp-c-bg-alt border-$vp-c-divider rounded-xl col-span-3 transition-colors duration-250"
+      class="col-span-3 mt-2 rounded border border-solid border-$vp-c-divider bg-$vp-c-bg-soft p-4 transition-colors duration-200"
     >
       <div class="flex items-start md:items-center gap-3">
         <div class="pt-1 md:pt-0">
@@ -168,7 +168,7 @@ const toggleCard = () => (isCardShown.value = !isCardShown.value)
           </div>
           <div>
             <button
-              class="bg-[#25262B] inline-block text-center rounded-full px-4 py-2.5 text-sm font-medium border-2 border-solid text-white border-$vp-c-divider"
+              class="inline-block rounded border border-solid border-$vp-c-divider bg-$vp-c-bg px-4 py-2.5 text-center font-mono text-sm font-medium text-white transition-colors hover:border-primary hover:text-primary"
               @click="toggleCard()"
             >
               Share Feedback
@@ -182,7 +182,7 @@ const toggleCard = () => (isCardShown.value = !isCardShown.value)
   <Transition name="fade" mode="out-in">
     <div
       v-if="isCardShown"
-      class="border-$vp-c-divider bg-$vp-c-bg-alt b-rd-4 m-[2rem 0] mt-4 border-2 border-solid p-6"
+      class="m-[2rem_0] mt-4 rounded border border-solid border-$vp-c-divider bg-$vp-c-bg-soft p-6"
     >
       <Transition name="fade" mode="out-in">
         <div v-if="!feedback.type">
@@ -193,7 +193,7 @@ const toggleCard = () => (isCardShown.value = !isCardShown.value)
             <button
               v-for="item in feedbackOptions"
               :key="item.value"
-                class="bg-[#25262B] border-$vp-c-default-soft hover:border-primary mt-2 select-none rounded border-2 border-solid font-bold transition-all duration-250 rounded-lg text-[14px] text-white font-500 leading-normal m-0 px-3 py-1.5 text-center align-middle whitespace-nowrap"
+              class="m-0 mt-2 select-none whitespace-nowrap rounded border border-solid border-$vp-c-divider bg-$vp-c-bg px-3 py-1.5 text-center align-middle font-mono text-sm font-bold leading-normal text-white transition-colors duration-200 hover:border-primary hover:text-primary"
               @click="selectType(item.value)"
             >
               <span>{{ item.label }}</span>
@@ -216,7 +216,7 @@ const toggleCard = () => (isCardShown.value = !isCardShown.value)
             v-model="feedback.message"
             autofocus
             @input="error = null"
-            class="bg-$vp-c-bg-alt text-$vp-c-text-2 w-full h-[100px] border border-$vp-c-divider rounded px-3 py-1.5 border-$vp-c-divider bg-$vp-c-bg-alt b-rd-4 border-2 border-solid"
+            class="h-[100px] w-full rounded border border-solid border-$vp-c-divider bg-$vp-c-bg text-$vp-c-text-1 px-3 py-1.5"
             placeholder="What a lovely wiki!"
           />
           <p class="desc mb-2">
@@ -231,7 +231,7 @@ const toggleCard = () => (isCardShown.value = !isCardShown.value)
           </p>
           <div class="flex flex-row gap-2">
             <button
-              class="bg-$vp-c-default-soft text-primary border-$vp-c-default-soft inline-flex h-7 items-center justify-center whitespace-nowrap rounded-md border-2 border-solid px-1.5 py-3.5 text-sm font-medium transition-all duration-300 sm:h-6"
+              class="inline-flex h-7 items-center justify-center whitespace-nowrap rounded border border-solid border-$vp-c-divider bg-$vp-c-bg px-1.5 py-3.5 text-sm font-medium text-primary transition-colors duration-200 hover:border-primary sm:h-6"
               @click="feedback.type = undefined; error = null"
             >
               <span class="i-lucide:panel-left-close">close</span>
@@ -257,15 +257,18 @@ const toggleCard = () => (isCardShown.value = !isCardShown.value)
 
 <style scoped lang="css">
 .btn {
-  border: 1px solid var(--vp-c-divider);
-  background-color: var(--vp-c-bg);
-  border-radius: 8px;
+  border: 1px solid var(--border-bright);
+  background-color: transparent;
+  border-radius: 4px;
   transition:
     border-color 0.25s,
     background-color 0.25s;
-  display: inline-block;
-  font-size: 14px;
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
   line-height: 1.5;
   margin: 0;
   padding: 0.375rem 0.75rem;
@@ -279,7 +282,8 @@ const toggleCard = () => (isCardShown.value = !isCardShown.value)
 }
 
 .btn:hover {
-  border-color: var(--vp-c-brand);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .btn-primary {

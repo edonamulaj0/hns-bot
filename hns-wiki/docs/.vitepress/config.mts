@@ -40,7 +40,7 @@ export default defineConfig({
     hostname: meta.hostname
   },
   head: [
-    ['meta', { name: 'theme-color', content: '#7bc5e4' }],
+    ['meta', { name: 'theme-color', content: '#050505' }],
     ['meta', { name: 'og:type', content: 'website' }],
     ['meta', { name: 'og:locale', content: 'en' }],
     ['link', { rel: 'icon', href: 'https://h4cknstack.com/icon.svg', type: 'image/svg+xml' }],

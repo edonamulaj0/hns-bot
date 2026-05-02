@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { getPortfolio, PHASE_META, type PortfolioResponse } from "@/lib/api";
 import { memberDisplayName } from "@/lib/member-label";
@@ -32,11 +31,8 @@ export default function ChallengesPage() {
   return (
     <>
       {/* ── Header ───────────────────────────────────────────────────────── */}
-      <motion.section
+      <section
         className="section-sm page-header min-h-[min(42dvh,420px)] flex flex-col justify-center"
-        initial={{ opacity: 1, y: 0 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: EASE_OUT }}
       >
         <div className="container w-full">
           <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -63,21 +59,15 @@ export default function ChallengesPage() {
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 lg:mb-6">
             Monthly Challenges
           </h1>
-          <motion.p
+          <p
             className="text-sm sm:text-base text-white/60 max-w-2xl"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
           >
             Three challenge tracks. Three difficulty levels. One global community.
             Build what you want, submit on the site or in Discord, and compete for recognition.
-          </motion.p>
+          </p>
           {phase === "VOTE" && currentMonth && (
-            <motion.div
+            <div
               className="mt-6 flex flex-wrap gap-3"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
             >
               <Link
                 href={`/vote/${currentMonth}`}
@@ -85,10 +75,10 @@ export default function ChallengesPage() {
               >
                 Cast votes — {currentMonth}
               </Link>
-            </motion.div>
+            </div>
           )}
         </div>
-      </motion.section>
+      </section>
 
       {/* ── Track Explanation ─────────────────────────────────────────────── */}
       <AnimateIn
@@ -101,12 +91,8 @@ export default function ChallengesPage() {
         <div className="container w-full">
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Three Tracks</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            <motion.div
+            <div
               className="card w-full p-5 sm:p-7"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: EASE_OUT }}
-              viewport={{ once: true, amount: 0.15 }}
             >
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-2xl">🛠</span>
@@ -126,14 +112,10 @@ export default function ChallengesPage() {
               <Link href="/challenges/developers" className="btn btn-primary w-fit mt-4">
                 View challenges →
               </Link>
-            </motion.div>
+            </div>
 
-            <motion.div
+            <div
               className="card w-full p-5 sm:p-7"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1, ease: EASE_OUT }}
-              viewport={{ once: true, amount: 0.15 }}
             >
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-2xl">🔒</span>
@@ -175,14 +157,10 @@ export default function ChallengesPage() {
               >
                 View challenges →
               </Link>
-            </motion.div>
+            </div>
 
-            <motion.div
+            <div
               className="card w-full p-5 sm:p-7"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2, ease: EASE_OUT }}
-              viewport={{ once: true, amount: 0.15 }}
             >
               <div className="flex items-center gap-3 mb-4">
                 <svg
@@ -208,10 +186,10 @@ export default function ChallengesPage() {
                     strokeLinecap="round"
                   />
                 </svg>
-                <h3 className="text-xl sm:text-2xl font-bold">Graphic Design Challenge</h3>
+                <h3 className="text-xl sm:text-2xl font-bold">Designer Challenge</h3>
               </div>
               <p className="text-white/60 text-sm sm:text-base mb-4 leading-relaxed">
-                Design posters, brand kits, UI mockups, or motion graphics. Submit a PNG, JPG, or WebP image export —
+                Create posters, brand kits, UI mockups, or motion graphics. Submit a PNG, JPG, or WebP image export —
                 show your visual thinking, not just your tools.
               </p>
               <div className="flex w-full flex-wrap gap-2">
@@ -221,7 +199,7 @@ export default function ChallengesPage() {
                 <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
-                {["Poster Design", "Brand Identity", "UI Mockup", "Motion Graphic"].map((t) => (
+                {["Poster", "Brand Identity", "UI Mockup", "Motion Graphic"].map((t) => (
                   <span
                     key={t}
                     className="tag text-[0.65rem]"
@@ -236,7 +214,7 @@ export default function ChallengesPage() {
                 ))}
               </div>
               <Link
-                href="/challenges/designers"
+                href="/challenges/designer"
                 className="btn w-fit mt-4"
                 style={{
                   borderColor: "#D85A3088",
@@ -246,7 +224,7 @@ export default function ChallengesPage() {
               >
                 View challenges →
               </Link>
-            </motion.div>
+            </div>
           </div>
         </div>
       </AnimateIn>
@@ -269,12 +247,8 @@ export default function ChallengesPage() {
                 const top3 = [...subs].sort((a, b) => b.votes - a.votes).slice(0, 3);
 
                 return (
-                  <motion.div
+                  <div
                     key={month}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, ease: EASE_OUT }}
-                    viewport={{ once: true, amount: 0.15 }}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-3 border-b border-[var(--border)]">
                       <h3 className="text-xl sm:text-2xl font-bold">{month}</h3>
@@ -349,13 +323,13 @@ export default function ChallengesPage() {
                         </article>
                       ))}
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
           ) : (
             <div className="empty-state">
-              <p>No challenges published yet. Check back soon!</p>
+              <p>No challenges are published yet. The first results appear after the monthly publish window.</p>
             </div>
           )}
         </div>
@@ -392,15 +366,15 @@ export default function ChallengesPage() {
               },
               {
                 cmd: "/design-brief",
-                desc: "Posts the current month’s Graphic Design challenge tiers (Beginner, Intermediate, Advanced) in-channel.",
+                desc: "Posts the current month’s Designer challenge tiers (Beginner, Intermediate, Advanced) in-channel.",
               },
               {
                 cmd: "Vote (site)",
-                desc: `During the vote window (days 22–25 UTC), cast up to 3 votes (max 1 per track: Developer, Hacker, Design) at /vote/${currentMonth || voteMonth}.`,
+                desc: `During the vote window (days 22–25 UTC), cast up to 3 votes (max 1 per track: Developer, Hacker, Designer) at /vote/${currentMonth || voteMonth}.`,
               },
               {
                 cmd: "/pulse",
-                desc: "Shows your GitHub activity for the current UTC month and estimated month-end pulse XP (preview only; does not award points).",
+                desc: "Awards this month’s GitHub activity XP once per month and shows a month-end estimate.",
               },
               {
                 cmd: "/leaderboard",

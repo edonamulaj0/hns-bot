@@ -123,7 +123,7 @@ export function registerSubmit(app: DiscordHono<HonoWorkerEnv>) {
         track: "DESIGNERS",
         title,
         description,
-        repoUrl: `${base}/challenges/designers`,
+        repoUrl: `${base}/challenges/designer`,
         demoUrl: null,
         attachmentUrl: imageUrl,
         deliverableType: DELIVERABLE_IMAGE_EXPORT,

@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useInView } from "framer-motion";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   getMembers,
   getBlogs,
@@ -27,26 +26,6 @@ type HomePageClientProps = {
 };
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
-const STAGGER_MS = 0.08;
-
-function useCountUp(target: number, inView: boolean, duration = 1200) {
-  const [value, setValue] = useState(0);
-  useEffect(() => {
-    if (!inView || target === 0) { setValue(target); return; }
-    let start: number | null = null;
-    let raf: number;
-    const step = (ts: number) => {
-      if (!start) start = ts;
-      const progress = Math.min((ts - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setValue(Math.round(eased * target));
-      if (progress < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, inView, duration]);
-  return value;
-}
 
 function relativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -114,39 +93,17 @@ export default function HomePageClient({
     [portfolioData, blogsData],
   );
 
-  const statsRef = useRef<HTMLDivElement>(null);
-  const statsInView = useInView(statsRef, { once: true, amount: 0.15 });
   const showStatNumbers =
     data !== null && (totalMembers > 0 || totalSubmissions > 0);
-  const membersCount = useCountUp(totalMembers, statsInView && showStatNumbers);
-  const submissionsCount = useCountUp(totalSubmissions, statsInView && showStatNumbers);
   const monthsSinceLaunch = Math.max(
     0,
     (new Date().getUTCFullYear() - 2025) * 12 + new Date().getUTCMonth() - 5,
   );
-  const monthsCount = useCountUp(monthsSinceLaunch, statsInView && showStatNumbers);
 
   const heroWords = ["Build.", "Ship.", "Get seen."];
   const latestProjects = Object.entries(portfolioData?.published ?? {})
     .flatMap(([, subs]) => subs as any[])
     .slice(0, 6);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: STAGGER_MS, delayChildren: 0.2 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: EASE_OUT },
-    },
-  };
 
   return (
     <>
@@ -159,11 +116,8 @@ export default function HomePageClient({
       <section className="section flex min-h-[min(80dvh,720px)] items-center">
         <div className="container">
           <div className="max-w-[720px]">
-            <motion.div
+            <div
               className="mb-4 sm:mb-6 flex gap-4 items-center"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: EASE_OUT }}
             >
               <span
                 className="phase-badge"
@@ -177,41 +131,32 @@ export default function HomePageClient({
                 {phaseMeta.label}
               </span>
               <span className="mono dim text-xs sm:text-sm">{phaseMeta.description}</span>
-            </motion.div>
+            </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl mb-4 sm:mb-6">
               {heroWords.map((word, i) => (
-                <motion.span
+                <span
                   key={word}
                   className={i === heroWords.length - 1 ? "text-[var(--accent)] block" : ""}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 + i * 0.15, ease: EASE_OUT }}
                 >
                   {word}{" "}
-                </motion.span>
+                </span>
               ))}
             </h1>
 
-            <motion.p
+            <p
               className="text-base sm:text-lg text-white/60 max-w-[540px] mb-6 sm:mb-8 lg:mb-10 leading-relaxed"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.7, ease: EASE_OUT }}
             >
               Monthly build challenges for developers worldwide. Submit your projects, earn XP, and build a portfolio that speaks for itself.
-            </motion.p>
+            </p>
 
-            <motion.div
+            <div
               className="flex"
               style={{
                 display: "flex",
                 gap: "0.75rem",
                 flexDirection: "var(--cta-direction, row)" as any,
               }}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.85, ease: EASE_OUT }}
             >
               <Link href="/join" className="btn btn-primary max-[480px]:w-full max-[480px]:justify-center">
                 Join Us →
@@ -219,7 +164,7 @@ export default function HomePageClient({
               <Link href="/challenges" className="btn max-[480px]:w-full max-[480px]:justify-center">
                 View Challenges
               </Link>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -232,28 +177,28 @@ export default function HomePageClient({
         transition={{ duration: 0.6, ease: EASE_OUT }}
         amount={0.15}
       >
-        <div ref={statsRef} className="container">
+        <div className="container">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             <div className="stat-block">
               <span className="value">
-                {data === null ? "…" : showStatNumbers ? membersCount : "—"}
+                {data === null ? "…" : showStatNumbers ? totalMembers : "—"}
               </span>
-              <span className="label">{showStatNumbers ? "Members" : "Members (launching soon)"}</span>
+              <span className="label">{showStatNumbers ? "Members" : "Members"}</span>
             </div>
             <div className="stat-block">
               <span className="value">
-                {data === null ? "…" : showStatNumbers ? submissionsCount : "—"}
+                {data === null ? "…" : showStatNumbers ? totalSubmissions : "—"}
               </span>
               <span className="label">
-                {showStatNumbers ? "Projects shipped" : "Projects (launching soon)"}
+                {showStatNumbers ? "Projects shipped" : "Projects shipped"}
               </span>
             </div>
             <div className="stat-block">
               <span className="value">
-                {data === null ? "…" : showStatNumbers ? monthsCount : "—"}
+                {data === null ? "…" : showStatNumbers ? monthsSinceLaunch : "—"}
               </span>
               <span className="label">
-                {showStatNumbers ? "Months active" : "Season (launching soon)"}
+                {showStatNumbers ? "Months active" : "Months active"}
               </span>
             </div>
             <div className="stat-block">
@@ -264,7 +209,7 @@ export default function HomePageClient({
           </div>
           {data !== null && !showStatNumbers && (
             <p className="mono mt-3 text-center text-[var(--text-xs)] text-[var(--text-dimmer)] max-w-lg mx-auto leading-relaxed">
-              Launching soon — live member and project counts appear here as the community ships work.
+              Live stats are temporarily unavailable. Check back shortly.
             </p>
           )}
         </div>
@@ -286,12 +231,8 @@ export default function HomePageClient({
             How It Works
           </h2>
 
-          <motion.div
+          <div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--border)]"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
           >
             {[
               { step: "01", title: "Join Discord", body: "Sign in on the site and complete your profile (GitHub, LinkedIn, tech stack) for your public card." },
@@ -299,17 +240,16 @@ export default function HomePageClient({
               { step: "03", title: "Vote (Days 22–25)", body: "Signed-in members vote on the site; each vote on your work earns you XP." },
               { step: "04", title: "Get Published", body: "After results are revealed at month-end, winning work appears in the portfolio." },
             ].map((item) => (
-              <motion.div
+              <div
                 key={item.step}
                 className="bg-[var(--bg)] border-l-2 border-[var(--accent)] pl-4 sm:border-l-0 sm:pl-5 p-4 sm:p-5 lg:p-6"
-                variants={itemVariants}
               >
                 <p className="mono hidden sm:block text-[0.65rem] sm:text-xs text-white/40 mb-2 sm:mb-3">{item.step}</p>
                 <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3">{item.title}</h3>
                 <p className="text-white/60 text-xs sm:text-sm leading-relaxed">{item.body}</p>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </AnimateIn>
 
@@ -337,12 +277,8 @@ export default function HomePageClient({
               </Link>
             </div>
 
-            <motion.div
+            <div
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.15 }}
             >
               {top3.map((member: any, i: number) => {
                 const r = member.rank ?? 0;
@@ -358,10 +294,9 @@ export default function HomePageClient({
                           : `#${r}`;
                 const barWidth = maxXp > 0 ? Math.round((member.points / maxXp) * 100) : 0;
                 return (
-                  <motion.div
+                  <div
                     key={member.discordId}
                     className="card p-4 sm:p-5 lg:p-6"
-                    variants={itemVariants}
                   >
                     <div className="flex gap-4 items-center mb-3">
                       <span className="text-2xl sm:text-3xl flex-shrink-0">{rankMedal}</span>
@@ -375,18 +310,15 @@ export default function HomePageClient({
                       </div>
                     </div>
                     <div className="h-1.5 rounded-full bg-[var(--border)] overflow-hidden">
-                      <motion.div
+                      <div
                         className="h-full rounded-full bg-[var(--accent)]"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${barWidth}%` }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, delay: 0.2 + i * 0.1, ease: EASE_OUT }}
+                        style={{ transform: `scaleX(${barWidth / 100})`, transformOrigin: "left" }}
                       />
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
-            </motion.div>
+            </div>
           </div>
         </AnimateIn>
       )}
@@ -413,21 +345,16 @@ export default function HomePageClient({
               </Link>
             </div>
 
-            <motion.div
+            <div
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.15 }}
             >
               {latestBlogs.map((blog) => (
-                <motion.a
+                <a
                   key={blog.id}
                   href={blog.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="card card-lift p-4 sm:p-5 lg:p-6 no-underline text-[var(--text)] flex flex-col gap-3"
-                  variants={itemVariants}
                 >
                   <h3 className="text-base sm:text-lg font-bold leading-tight">
                     {blog.title}
@@ -445,9 +372,9 @@ export default function HomePageClient({
                       {relativeTime(blog.createdAt)}
                     </span>
                   )}
-                </motion.a>
+                </a>
               ))}
-            </motion.div>
+            </div>
           </div>
         </AnimateIn>
       )}
@@ -473,20 +400,17 @@ export default function HomePageClient({
             </Link>
           </div>
 
-          <motion.div
+          <div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
           >
-            {latestProjects.map((sub: any, idx: number) => (
-                <motion.article
+            {latestProjects.map((sub: any, idx: number) => {
+              const isDesigner = sub.track === "DESIGNERS";
+              return (
+                <article
                   key={sub.id}
                   className={`card card-lift p-4 sm:p-5 lg:p-6 ${
                     idx >= 3 && !showAllProjects ? "hidden sm:block" : ""
                   }`}
-                  variants={itemVariants}
                 >
                   <div className="flex justify-between items-start mb-2 sm:mb-3">
                     <span className="tag tag-accent text-xs sm:text-sm">{sub.tier}</span>
@@ -499,14 +423,31 @@ export default function HomePageClient({
                   </p>
                   <div className="flex justify-between items-center gap-2">
                     <div className="flex gap-2">
-                      <a
-                        href={sub.repoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      {isDesigner && sub.attachmentUrl ? (
+                        <a
+                          href={sub.attachmentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn text-[0.65rem] sm:text-xs py-1 px-2"
+                        >
+                          Image
+                        </a>
+                      ) : (
+                        <a
+                          href={sub.repoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn text-[0.65rem] sm:text-xs py-1 px-2"
+                        >
+                          Repo
+                        </a>
+                      )}
+                      <Link
+                        href={`/submissions/${sub.id}`}
                         className="btn text-[0.65rem] sm:text-xs py-1 px-2"
                       >
-                        Repo
-                      </a>
+                        Detail
+                      </Link>
                       {sub.demoUrl && (
                         <a
                           href={sub.demoUrl}
@@ -522,9 +463,10 @@ export default function HomePageClient({
                       ▲ {sub.votes}
                     </span>
                   </div>
-                </motion.article>
-              ))}
-          </motion.div>
+                </article>
+              );
+            })}
+          </div>
 
           {latestProjects.length > 3 && (
             <div className="mt-4 sm:hidden">

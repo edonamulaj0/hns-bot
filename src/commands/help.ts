@@ -26,7 +26,7 @@ const MEMBER_ROWS: { name: string; value: string }[] = [
   },
   {
     name: "/pulse",
-    value: "Preview GitHub activity for the month and estimated month-end pulse XP (no points granted).",
+    value: "Award monthly GitHub activity XP and show a month-end estimate.",
   },
   {
     name: "/link-github · /unlink-github",

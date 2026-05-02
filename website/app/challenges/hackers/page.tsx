@@ -24,7 +24,7 @@ export default async function HackerChallengesPage() {
     <ChallengesTrackPage
       track="HACKER"
       heading="Hacker Challenges"
-      description="Focus on security outcomes each month: CTF writeups, tooling, vuln research, and red-team style work. Same calendar as the developer track — enroll, build during the window, submit via Discord."
+      description="Focus on security outcomes each month: CTF writeups, tooling, vuln research, and red-team style work. Same calendar as the developer track — enroll, build during the window, and submit on the site."
       otherLabel="Looking for the build track? → Developer Challenges"
       otherHref="/challenges/developers"
       challenges={challenges}

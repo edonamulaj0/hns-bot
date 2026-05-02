@@ -9,14 +9,14 @@ import { ClientOverlays } from "@/components/ClientOverlays";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600", "700"],
   variable: "--font-display",
   display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "700"],
   variable: "--font-mono",
   display: "swap",
 });
@@ -34,9 +34,16 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Home | ${BRAND_NAME}`,
     description:
-      "Monthly build challenges for the global hacker and developer community.",
+      "Monthly build challenges for the global Developer, Hacker, and Designer community.",
     type: "website",
-    images: [{ url: "/og.png", width: 1200, height: 630 }],
+    images: [{ url: "/og.svg", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `Home | ${BRAND_NAME}`,
+    description:
+      "Monthly build challenges for the global Developer, Hacker, and Designer community.",
+    images: ["/og.svg"],
   },
 };
 
@@ -50,9 +57,6 @@ export default function RootLayout({
       lang="en"
       className={`${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
     >
-      <head>
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-      </head>
       <body>
         <ClientOverlays />
         <Navbar />

@@ -15,6 +15,7 @@ const ADMIN_SLASH_NAMES = new Set([
   "admin-test-notify",
   "admin-reset-month",
   "admin-sync-roles",
+  "admin-sync-github-xp",
 ]);
 
 async function main() {
@@ -54,7 +55,7 @@ async function main() {
         "String",
       ).required(false),
     ),
-    new Command("pulse", "Preview GitHub activity and estimated month-end pulse XP"),
+    new Command("pulse", "Award monthly GitHub activity XP and show a month-end estimate"),
     new Command(
       "link-github",
       "Connect GitHub (OAuth) so /pulse can include private repo contributions",
@@ -63,7 +64,7 @@ async function main() {
     new Command("leaderboard", "See the top contributors this month"),
     new Command(
       "design-brief",
-      "Show this month's Graphic Design challenge briefs (all tiers)",
+      "Show this month's Designer challenge briefs (all tiers)",
     ),
     new Command("help", "List all bot commands and what they do (ephemeral)"),
     new Command("intro", "Post a plain-text welcome in this channel (mods only)"),
@@ -113,6 +114,10 @@ async function main() {
     new Command(
       "admin-sync-roles",
       "Admin: manually sync all member Discord roles based on current XP",
+    ),
+    new Command(
+      "admin-sync-github-xp",
+      "Admin: backfill GitHub activity XP from Jul 2025 through May 2026",
     ),
     new Command(
       "delete-account",

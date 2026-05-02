@@ -7,7 +7,7 @@ import ToggleIndexes from './ToggleIndexes.vue'
 
 <template>
   <div
-    class="bg-$vp-c-bg hover:bg-$vp-c-bg/40 border-$vp-c-default-soft hover:border-primary transition-border relative z-0 rounded-lg border-2 border-solid p-5 duration-500"
+    class="relative z-0 rounded border border-solid border-$vp-c-divider bg-$vp-c-bg-soft p-5 transition-colors duration-200 hover:border-primary"
   >
     <div class="align-center mb-4 flex justify-between">
       <div class="text-$vp-c-text-1 lh-relaxed text-sm font-bold">

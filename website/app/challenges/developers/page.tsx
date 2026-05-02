@@ -24,7 +24,7 @@ export default async function DeveloperChallengesPage() {
     <ChallengesTrackPage
       track="DEVELOPER"
       heading="Developer Challenges"
-      description="Ship a real project over the monthly build window. Any stack, any idea — tiers help you pick scope. Submit through Discord before the deadline, get votes from the community, and land in the public portfolio."
+      description="Ship a real project over the monthly build window. Any stack, any idea — tiers help you pick scope. Enroll, submit, and vote on the site before the deadline, then land in the public portfolio."
       otherLabel="Looking for the security track? → Hacker Challenges"
       otherHref="/challenges/hackers"
       challenges={challenges}

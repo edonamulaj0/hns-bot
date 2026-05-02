@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { fetchAdminSubmissions, patchAdminSubmission } from "@/lib/api-browser";
 
 type Row = {
@@ -126,14 +125,12 @@ export function AdminSubmissionsClient() {
               {s.track === "DESIGNERS" && s.attachmentUrl && (
                 <div className="shrink-0 w-full lg:w-64">
                   <div className="relative aspect-[16/10] w-full overflow-hidden rounded border border-[var(--border)] bg-black/30">
-                    <Image
+                    <img
                       src={s.attachmentUrl}
-                      alt=""
-                      fill
-                      sizes="(max-width:768px) 100vw, 50vw"
-                      className="object-contain"
+                      alt={`${s.title} submission image`}
+                      className="h-full w-full object-contain"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
+                        e.currentTarget.style.display = "none";
                       }}
                     />
                   </div>

@@ -1,94 +1,115 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import { BRAND_NAME } from "@/lib/branding";
-const TOTAL_DURATION = 2500; // ms
+
+const FULL_TEXT = "H4cknStack";
+const PURPLE_CHARS = 4; // "H4ck"
+const TYPING_MS = 1300;
+const TOTAL_MS = 2000;
+const EXIT_DELAY = TOTAL_MS - 350;
 
 export function SplashScreen() {
-  const [show, setShow] = useState(false);
-  const [isLeaving, setIsLeaving] = useState(false);
+  const [visibleChars, setVisibleChars] = useState(0);
+  const [phase, setPhase] = useState<"typing" | "exit" | "done">("typing");
 
   useEffect(() => {
-    // Only show on first visit
-    const hasSeen = sessionStorage.getItem("hns-splash-seen");
-    if (hasSeen) return;
+    const charDelay = TYPING_MS / FULL_TEXT.length;
 
-    setShow(true);
-    sessionStorage.setItem("hns-splash-seen", "true");
+    const typingTimer = window.setInterval(() => {
+      setVisibleChars((n) => {
+        if (n >= FULL_TEXT.length) {
+          clearInterval(typingTimer);
+          return n;
+        }
+        return n + 1;
+      });
+    }, charDelay);
 
-    // Start fade out after total duration
-    const fadeTimer = setTimeout(() => {
-      setIsLeaving(true);
-    }, TOTAL_DURATION - 500);
-
-    // Remove splash after fade completes
-    const removeTimer = setTimeout(() => {
-      setShow(false);
-    }, TOTAL_DURATION);
+    const exitTimer = window.setTimeout(() => setPhase("exit"), EXIT_DELAY);
+    const doneTimer = window.setTimeout(() => setPhase("done"), TOTAL_MS);
 
     return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(removeTimer);
+      clearInterval(typingTimer);
+      clearTimeout(exitTimer);
+      clearTimeout(doneTimer);
     };
   }, []);
 
-  if (!show) return null;
+  if (phase === "done") return null;
 
-  // Split brand name into characters, highlighting 4, &, and S
-  const characters = BRAND_NAME.split("").map((char, i) => {
-    const isHighlight = char === "4" || char === "S" || char === "&";
-    return { char, isHighlight, index: i };
-  });
+  const typed = FULL_TEXT.slice(0, visibleChars);
+  const purplePart = typed.slice(0, PURPLE_CHARS);
+  const limePart = typed.slice(PURPLE_CHARS);
+  const cursorIsLime = visibleChars >= PURPLE_CHARS;
+  const showCursor = phase === "typing";
 
   return (
-    <AnimatePresence>
-      {!isLeaving && (
-        <motion.div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-[var(--bg)]"
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 0, y: -20 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    <>
+      <style>{`
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0; }
+        }
+        @keyframes splashExit {
+          to { opacity: 0; transform: scale(0.96); }
+        }
+      `}</style>
+
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 9999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--bg, #09090b)",
+          overflow: "hidden",
+          animation: phase === "exit" ? "splashExit 0.35s cubic-bezier(0.4,0,1,1) forwards" : undefined,
+        }}
+      >
+        <div
+          aria-label={FULL_TEXT}
+          style={{
+            position: "relative",
+            zIndex: 10,
+            fontFamily: "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            fontSize: "clamp(3.5rem, 14vw, 8rem)",
+            fontWeight: 700,
+            letterSpacing: "-0.06em",
+            lineHeight: 1,
+            userSelect: "none",
+            filter: "drop-shadow(0 0 40px rgba(163,230,53,0.15))",
+          }}
         >
-          <motion.div
-            className="flex text-[clamp(3rem,8vw,6rem)] font-bold tracking-tight"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            {characters.map(({ char, isHighlight, index }) => (
-              <motion.span
-                key={index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: isHighlight ? 1 : 1, y: 0 }}
-                transition={{
-                  duration: 0.3,
-                  delay: index * 0.09,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-                className={isHighlight ? "text-[var(--accent)]" : "text-[var(--text)]"}
-              >
-                {char}
-                {/* Blinking cursor after last character */}
-                {index === characters.length - 1 && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: [0, 1, 0] }}
-                    transition={{
-                      duration: 0.6,
-                      delay: index * 0.09,
-                      times: [0, 0.5, 1],
-                      repeat: 1,
-                    }}
-                    className="inline-block w-[0.3em] h-[0.9em] ml-1 bg-[var(--accent)] align-middle"
-                  />
-                )}
-              </motion.span>
-            ))}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          <span style={{
+            color: "#a78bfa",
+            textShadow: "0 0 20px rgba(167,139,250,0.5), 0 0 60px rgba(167,139,250,0.2)",
+          }}>
+            {purplePart}
+          </span>
+          <span style={{
+            color: "#a3e635",
+            textShadow: "0 0 20px rgba(163,230,53,0.5), 0 0 60px rgba(163,230,53,0.2)",
+          }}>
+            {limePart}
+          </span>
+          {showCursor && (
+            <span style={{
+              display: "inline-block",
+              width: "0.11em",
+              height: "0.85em",
+              marginLeft: "0.06em",
+              verticalAlign: "-0.05em",
+              background: cursorIsLime ? "#a3e635" : "#a78bfa",
+              boxShadow: cursorIsLime
+                ? "0 0 12px rgba(163,230,53,0.8)"
+                : "0 0 12px rgba(167,139,250,0.8)",
+              animation: "blink 0.6s step-end infinite",
+            }} />
+          )}
+        </div>
+      </div>
+    </>
   );
 }

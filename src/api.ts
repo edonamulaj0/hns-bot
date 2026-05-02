@@ -3,6 +3,7 @@ import type { WorkerBindings } from "./worker-env";
 import { mergedPublicDisplayName } from "./display-name";
 import { getMonthlyPhase, monthKey } from "./time";
 import { getPrisma } from "./db";
+import { normalizeTrackParam } from "./tracks";
 import {
   corsHeaders,
   jsonResponse,
@@ -268,11 +269,11 @@ export async function handleApiRequest(
         break;
       case "/api/challenges": {
         const url = new URL(request.url);
-        const track = url.searchParams.get("track");
+        const track = normalizeTrackParam(url.searchParams.get("track"));
         const monthQ = url.searchParams.get("month");
-        if (track !== "DEVELOPER" && track !== "HACKER" && track !== "DESIGNERS") {
+        if (!track) {
           body = corsJson(
-            { error: "Invalid or missing track (use DEVELOPER, HACKER, or DESIGNERS)" },
+            { error: "Invalid or missing track (use developer, hacker, or designer)" },
             400,
           );
           break;

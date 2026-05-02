@@ -38,7 +38,7 @@ const FAQ: { q: string; a: ReactNode }[] = [
         Enroll with <code className="mono text-[var(--accent)]">/enroll</code> in Discord, submit on the site.
         <br />
         <br />
-        Graphic Design — posters, brand kits, UI mockups, or motion storyboards.
+        Designer — posters, brand kits, UI mockups, or motion storyboards.
         Submit a PNG, JPG, or WebP image export — no GitHub repo. Enroll with{" "}
         <code className="mono text-[var(--accent)]">/enroll</code> or from the{" "}
         <Link href="/challenges" className="text-[var(--accent)] hover:underline">
@@ -53,7 +53,7 @@ const FAQ: { q: string; a: ReactNode }[] = [
   },
   {
     q: "Can I use any tech stack or programming language?",
-    a: "Yes for the Developer track — use whatever languages, frameworks, or platforms fit your project. The Graphic Design track also has no tool restrictions: Figma, Penpot, Photoshop, Illustrator, Canva, and similar tools are all fine. We care that you ship something real and document it clearly — not which tool logo is on it.",
+    a: "Yes for the Developer track — use whatever languages, frameworks, or platforms fit your project. The Designer track also has no tool restrictions: Figma, Penpot, Photoshop, Illustrator, Canva, and similar tools are all fine. We care that you ship something real and document it clearly — not which tool logo is on it.",
   },
   {
     q: "How are projects judged?",
@@ -75,8 +75,8 @@ const FAQ: { q: string; a: ReactNode }[] = [
         <br />- First submission ever: +10 (one-time bonus)
         <br />
         <br />
-        On Discord, <code>/pulse</code> is a preview only: it shows GitHub counts for the month and an estimated
-        month-end pulse XP from the community formula (capped); it does not change your XP.
+        On Discord, <code>/pulse</code> awards GitHub activity XP once per UTC month and shows a month-end estimate
+        from the community formula (capped at 100 XP).
       </>
     ),
   },
@@ -113,7 +113,7 @@ export function AboutFaq() {
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? null : i)}
-                  className="w-full min-h-12 flex items-center justify-between gap-4 text-left px-4 py-3 sm:px-5 sm:py-4 hover:bg-white/[0.03] transition-colors"
+                  className="w-full min-h-12 flex items-center justify-between gap-4 text-left px-4 py-3 sm:px-5 sm:py-4 hover:bg-white/[0.03]"
                   aria-expanded={isOpen}
                 >
                   <span className="font-bold text-sm sm:text-base pr-2">{item.q}</span>
@@ -122,7 +122,7 @@ export function AboutFaq() {
                   </span>
                 </button>
                 <div
-                  className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${
+                  className={`grid ${
                     isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
                   }`}
                 >

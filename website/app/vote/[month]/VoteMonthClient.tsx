@@ -227,7 +227,7 @@ export function VoteMonthClient({ month }: { month: string }) {
         <h1 className="text-3xl font-bold mb-2">{month}</h1>
         <p className="text-sm text-white/55">
           Phase: <span className="mono">{phase ?? "—"}</span> · Votes left — Dev: {devRem} · Hacker:{" "}
-          {hackRem} · Design: {designRem}
+          {hackRem} · Designer: {designRem}
         </p>
         {beforeVote && (
           <p className="mt-4 text-white/60">
@@ -280,10 +280,11 @@ export function VoteMonthClient({ month }: { month: string }) {
                           <div className="mt-1 space-y-1">
                             <img
                               src={s.attachmentUrl}
-                              alt=""
+                              alt={`${s.title} submission image`}
+                              loading="lazy"
                               className="w-full max-h-48 rounded border border-[var(--border)] object-contain bg-black/40"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = "none";
+                                e.currentTarget.style.display = "none";
                               }}
                             />
                             {meta && (meta.width || meta.height || meta.mime) && (

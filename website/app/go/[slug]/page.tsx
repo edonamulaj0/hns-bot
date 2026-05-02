@@ -35,7 +35,7 @@ export default async function GoPage({
     return (
       <section className="section flex min-h-[50vh] items-center justify-center px-4">
         <p className="text-white/60 text-center">
-          API URL is not configured. Set <code className="mono">NEXT_PUBLIC_API_URL</code>.
+          This link is temporarily unavailable. Try again shortly.
         </p>
       </section>
     );

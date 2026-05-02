@@ -127,7 +127,7 @@ export async function notifyChallengesLive(
       track === "HACKER"
         ? "h4cknstack.com/challenges/hackers"
         : track === "DESIGNERS"
-          ? "h4cknstack.com/challenges/designers"
+          ? "h4cknstack.com/challenges/designer"
           : "h4cknstack.com/challenges/developers";
     await sendChannelMessage(env.DISCORD_TOKEN, chId, {
       content: link,
@@ -171,7 +171,7 @@ export async function notifySubmissionsClosed(
     title: "🗳️ Submissions are closed — voting is open!",
     color: 0x5865f2,
     description:
-      "The build window has ended. All submitted projects are now live for community voting.\n\nYou have **3 votes this month** — up to **1 per track** (Developer, Hacker, and Graphic Design). Voting closes on day 25.",
+      "The build window has ended. All submitted projects are now live for community voting.\n\nYou have **3 votes this month** — up to **1 per track** (Developer, Hacker, and Designer). Voting closes on day 25.",
     fields: [
       { name: "Vote now", value: `h4cknstack.com/vote/${month}`, inline: false },
       { name: "Voting closes", value: `Day 25 — ${closes}`, inline: false },
@@ -359,7 +359,7 @@ export async function buildAdminTestNotifyPayload(
     return {
       embeds: [embed],
       content:
-        "h4cknstack.com/challenges/developers\nh4cknstack.com/challenges/hackers\nh4cknstack.com/challenges/designers",
+        "h4cknstack.com/challenges/developers\nh4cknstack.com/challenges/hackers\nh4cknstack.com/challenges/designer",
     };
   }
 
@@ -385,7 +385,7 @@ export async function buildAdminTestNotifyPayload(
       title: "🗳️ Submissions are closed — voting is open!",
       color: 0x5865f2,
       description:
-        "The build window has ended. All submitted projects are now live for community voting.\n\nYou have **3 votes this month** — up to **1 per track** (Developer, Hacker, and Graphic Design). Voting closes on day 25.",
+        "The build window has ended. All submitted projects are now live for community voting.\n\nYou have **3 votes this month** — up to **1 per track** (Developer, Hacker, and Designer). Voting closes on day 25.",
       fields: [
         { name: "Vote now", value: `h4cknstack.com/vote/${month}`, inline: false },
         { name: "Voting closes", value: `Day 25 — ${closes}`, inline: false },

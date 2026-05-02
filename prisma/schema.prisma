@@ -34,6 +34,7 @@ model User {
   enrollments           Enrollment[]
   votesCast             Vote[]        @relation("VoteVoter")
   blogLikes             BlogLike[]
+  pulseAwards           PulseAward[]
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
 
@@ -136,6 +137,24 @@ model BlogLike {
 
   @@id([blogId, userId])
   @@index([userId])
+}
+
+model PulseAward {
+  id        String   @id @default(cuid())
+  userId    String
+  month     String
+  xp        Int
+  source    String?
+  commits   Int      @default(0)
+  prsOpened Int      @default(0)
+  prsMerged Int      @default(0)
+  prReviews Int?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+  @@index([month])
 }
 
 model PendingDiscordAttachment {

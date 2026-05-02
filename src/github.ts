@@ -53,7 +53,7 @@ export class GitHubApiError extends Error {
   }
 }
 
-/** Caps hypothetical pulse XP (preview formula; /pulse does not award points). */
+/** Caps monthly pulse XP from GitHub activity. */
 export const PULSE_XP_CAP = 100;
 
 const MAX_EVENT_PAGES = 10;

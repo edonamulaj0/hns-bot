@@ -153,14 +153,14 @@ export default async function JoinPage({
                     </div>
                     <div className="card p-4 sm:p-5">
                       <p className="text-xl mb-2">🎨</p>
-                      <h3 className="font-bold text-[var(--accent)] mb-2">Graphic Design Track</h3>
+                      <h3 className="font-bold text-[var(--accent)] mb-2">Designer Track</h3>
                       <p className="text-sm text-white/60 leading-relaxed">
                         Same monthly calendar as developers — days 1–21 to create, days 22–25 to vote.
                         Submit posters, brand kits, UI mockups, or motion storyboards as a PNG, JPG,
                         or WebP image export. Use <code className="mono text-[var(--accent)]">/enroll</code>{" "}
                         in Discord to pick your tier, then submit your image on the site from{" "}
                         <strong className="text-white/80">Submit</strong> or the{" "}
-                        <Link href="/challenges/designers" className="text-[var(--accent)] hover:underline font-medium">
+                        <Link href="/challenges/designer" className="text-[var(--accent)] hover:underline font-medium">
                           Challenges
                         </Link>{" "}
                         page.

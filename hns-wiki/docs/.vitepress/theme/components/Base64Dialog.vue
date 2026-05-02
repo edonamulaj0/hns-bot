@@ -25,9 +25,8 @@ const openLink = () => {
 <template>
   <Teleport to="body">
     <div v-show="show" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" @click="close">
-      <div 
-        class="p-6 rounded-xl shadow-2xl max-w-md w-full"
-        style="background-color: var(--vp-c-bg); border: 1px solid var(--vp-c-divider);"
+      <div
+        class="w-full max-w-md rounded border border-div bg-bg-alt p-6"
         @click.stop
       >
         <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
@@ -58,7 +57,7 @@ const openLink = () => {
             type="checkbox" 
             id="dont-show" 
             v-model="dontShowAgain"
-            class="rounded border-border bg-bg-input text-brand focus:ring-brand"
+            class="rounded border border-div bg-bg-alt text-primary focus:ring-primary"
           >
           <label for="dont-show" class="text-sm text-text-1 select-none">Don't show again</label>
         </div>
@@ -66,13 +65,13 @@ const openLink = () => {
         <div class="flex justify-end gap-3">
           <button
             @click="close"
-            class="px-4 py-2 border border-border rounded-lg hover:bg-bg-input transition-colors font-medium text-text-2"
+            class="rounded border border-div px-4 py-2 font-mono text-sm font-medium text-text-2 transition-colors hover:border-primary hover:text-primary"
           >
             Cancel
           </button>
           <button
             @click="openLink"
-            class="px-4 py-2 border-2 border-brand text-brand bg-[var(--vp-c-bg-alt)] hover:bg-brand hover:text-white rounded-lg transition-colors font-medium"
+            class="rounded border border-primary bg-primary px-4 py-2 font-mono text-sm font-bold text-black transition-colors hover:bg-[var(--vp-button-brand-hover-bg)] hover:border-[var(--vp-button-brand-hover-border)]"
           >
             Open Link
           </button>

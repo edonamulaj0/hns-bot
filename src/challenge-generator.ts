@@ -180,7 +180,7 @@ Do not repeat recent topics: ${recent}
 Respond ONLY with a JSON array of 9 objects. No markdown fences.
 Each object: track (DEVELOPER|HACKER|DESIGNERS), tier (Beginner|Intermediate|Advanced), title, description (markdown string), resources (markdown bullets), deliverables (markdown bullets).`;
 
-  const system = `You are the challenge designer for H4ck&Stack. Generate 9 unique monthly challenges: 3 Developer (shipped software), 3 Hacker (security research, tools, CTF, vuln writeups, red team methodology), and 3 Graphic Design (posters, brand kits, UI mockups, motion storyboards — deliverables must require a PNG/JPG/WebP image export, not a GitHub repo). Each completable solo in 21 days. No paid APIs required.`;
+  const system = `You are the challenge designer for H4ck&Stack. Generate 9 unique monthly challenges: 3 Developer (shipped software), 3 Hacker (security research, tools, CTF, vuln writeups, red team methodology), and 3 Designer (posters, brand kits, UI mockups, motion storyboards — deliverables must require a PNG/JPG/WebP image export, not a GitHub repo). Each completable solo in 21 days. No paid APIs required.`;
 
   const maxAttempts = 5;
   let lastError: string | null = null;
@@ -369,7 +369,7 @@ export async function postChallengesToDiscord(
     }
   }
 
-  const announce = `📅 **${month}** challenges are live! Enroll with the button on each post or on **${base}/challenges/developers** / **${base}/challenges/hackers** / **${base}/challenges/designers**. Build window: **days 1–21**.`;
+  const announce = `📅 **${month}** challenges are live! Enroll with the button on each post or on **${base}/challenges/developers** / **${base}/challenges/hackers** / **${base}/challenges/designer**. Build window: **days 1–21**.`;
 
   const devCh = c.env.DEVELOPER_CHALLENGES_CHANNEL_ID?.trim();
   const hackCh = c.env.HACKER_CHALLENGES_CHANNEL_ID?.trim();

@@ -18,7 +18,6 @@ import type { Theme } from 'vitepress'
 import Components from '@fmhy/components'
 import DefaultTheme from 'vitepress/theme'
 import { loadProgress } from './composables/nprogress'
-import { useThemeHandler } from './themes/themeHandler'
 import Layout from './Layout.vue'
 import Post from './PostLayout.vue'
 import './style.scss'
@@ -68,7 +67,6 @@ export default {
       }
     }
 
-    // Initialize theme handler
-    useThemeHandler()
+    // HNS uses the same fixed dark design system as the main site.
   }
 } satisfies Theme

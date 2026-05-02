@@ -23,7 +23,7 @@ export function CookieConsent() {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[120] border-t border-[var(--border)] bg-[rgba(5,5,5,0.96)] p-4 backdrop-blur-md">
+    <div className="fixed inset-x-0 bottom-0 z-[120] border-t border-[var(--border)] bg-[var(--bg)] p-4">
       <div className="container flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <p className="text-sm text-[var(--text-dim)]">
           We use cookies for authentication and basic analytics. You can accept or reject non-essential cookies.

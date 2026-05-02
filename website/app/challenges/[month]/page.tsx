@@ -66,6 +66,14 @@ export default async function ChallengeMonthPage({
       trackFilter === "DESIGNERS") ||
       tierFilter,
   );
+  const trackFilterLabel =
+    trackFilter === "DEVELOPER"
+      ? "Developer"
+      : trackFilter === "HACKER"
+        ? "Hacker"
+        : trackFilter === "DESIGNERS"
+          ? "Designer"
+          : "";
 
   return (
     <>
@@ -77,7 +85,7 @@ export default async function ChallengeMonthPage({
           </h1>
           <p className="text-white/60 max-w-2xl text-sm sm:text-base mb-4">
             Submissions published after community review and the monthly publish
-            window. Voting and submissions happen in Discord.
+            window. Enroll, submit, and vote on the site.
           </p>
           <div className="flex flex-wrap gap-3 items-center">
             <Link href="/challenges" className="btn text-xs sm:text-sm">
@@ -116,10 +124,7 @@ export default async function ChallengeMonthPage({
           {!data ? (
             <div className="empty-state">
               <p>
-                Could not load portfolio data. Set{" "}
-                <code className="mono">NEXT_PUBLIC_API_URL</code> to your worker
-                URL and ensure <code className="mono">GET /api/portfolio</code>{" "}
-                is available.
+                Live portfolio data is temporarily unavailable. Try again shortly.
               </p>
             </div>
           ) : subs.length === 0 ? (
@@ -146,9 +151,7 @@ export default async function ChallengeMonthPage({
               {hasFilters && (
                 <p className="text-sm text-white/55 mb-6">
                   Filtered
-                  {trackFilter === "DEVELOPER" || trackFilter === "HACKER"
-                    ? ` · track: ${trackFilter}`
-                    : ""}
+                  {trackFilterLabel ? ` · track: ${trackFilterLabel}` : ""}
                   {tierFilter ? ` · tier: ${tierFilter}` : ""}
                   {" · "}
                   <Link href={`/challenges/${month}`} className="text-[var(--accent)] underline">
@@ -206,14 +209,31 @@ export default async function ChallengeMonthPage({
                               GitHub
                             </a>
                           )}
-                          <a
-                            href={sub.repoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          {sub.track === "DESIGNERS" && sub.attachmentUrl ? (
+                            <a
+                              href={sub.attachmentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn text-[0.65rem] sm:text-xs py-1 px-2"
+                            >
+                              Image
+                            </a>
+                          ) : (
+                            <a
+                              href={sub.repoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn text-[0.65rem] sm:text-xs py-1 px-2"
+                            >
+                              Repo
+                            </a>
+                          )}
+                          <Link
+                            href={`/submissions/${sub.id}`}
                             className="btn text-[0.65rem] sm:text-xs py-1 px-2"
                           >
-                            Repo
-                          </a>
+                            Detail
+                          </Link>
                           {sub.demoUrl && (
                             <a
                               href={sub.demoUrl}

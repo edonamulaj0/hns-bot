@@ -73,7 +73,7 @@ export function AuthNav() {
       >
         <Image
           src={avatarUrl(user)}
-          alt=""
+          alt={`${label} avatar`}
           width={28}
           height={28}
           quality={80}

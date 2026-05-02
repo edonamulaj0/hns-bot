@@ -71,13 +71,13 @@ function handlePlatformClick(platform: PlatformType) {
 
 function platformClass() {
   const base =
-    'widget-card group relative widget-button rounded-md bg-bg-elv p-2 border transition-transform'
+    'widget-card group relative widget-button rounded bg-bg-alt p-2 border transition-colors'
   const disabled = !query.value.trim()
   const highlight = showShortcuts.value && isInputFocused.value
   return [
     base,
     disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
-    highlight ? 'border-2 border-primary scale-105' : 'border-div'
+    highlight ? 'border-primary bg-[var(--accent-soft)]' : 'border-div'
   ].join(' ')
 }
 
@@ -149,7 +149,7 @@ onMounted(() => {
           @focus="handleInputFocus"
           @blur="handleInputBlur"
           placeholder="What would you like to search for?"
-          class="w-full pl-10 pr-3 py-3 text-lg rounded-md shadow-sm transition-colors bg-bg-elv text-text border-2 outline-none border-div hover:border-primary"
+          class="w-full rounded border border-div bg-bg-alt py-3 pl-10 pr-3 text-lg text-text outline-none transition-colors hover:border-primary"
         />
       </div>
     </form>

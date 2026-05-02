@@ -18,7 +18,7 @@ function introMessage(base: string): string {
     "",
     "When the **build window** is open: run **`/enroll`** here to pick your track and tier, then **`/submit`** will point you at the right place on the web. Voting happens on the site when we say so; we’ll shout in here.",
     "",
-    "**`/pulse`** is optional — it’s just a peek at your GitHub activity for the month and a rough “if the month ended now” pulse number. It doesn’t add XP; think of it as a dashboard, not a reward.",
+    "**`/pulse`** is optional — it checks your GitHub activity, awards this month’s pulse XP once, and shows a rough “if the month ended now” estimate.",
     "",
     "Want the full list of slash commands with short descriptions? Run **`/help`** — only you see that reply.",
     "",

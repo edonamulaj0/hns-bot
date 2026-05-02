@@ -48,10 +48,7 @@ export function corsHeaders(
 ): Record<string, string> {
   const base = env.BASE_URL?.replace(/\/$/, "") ?? "";
   const origin = request.headers.get("Origin") ?? "";
-  const allow =
-    base && origin && (origin === base || origin.startsWith(base))
-      ? origin
-      : base || "*";
+  const allow = base && origin === base ? origin : base || "*";
   const h: Record<string, string> = {
     "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS, HEAD",
     "Access-Control-Allow-Headers": "Content-Type, Cookie, Authorization",
@@ -1222,7 +1219,7 @@ export async function handleSubmitPost(
 
   if (ch.track === TRACK_DESIGNERS) {
     deliverableType = DELIVERABLE_IMAGE_EXPORT;
-    repoUrl = "https://h4cknstack.com/challenges/designers";
+    repoUrl = "https://h4cknstack.com/challenges/designer";
     if (!attachmentUrl) {
       return jsonResponse(
         env,
@@ -1929,8 +1926,12 @@ export async function handleDesignImageUpload(
     httpMetadata: { contentType: mime },
   });
 
-  const base = env.BASE_URL?.replace(/\/$/, "") || env.WORKER_PUBLIC_URL?.replace(/\/$/, "") || "";
-  const url = `${base}/api/media/r2/${encodeURIComponent(key)}`;
+  const siteBase = env.BASE_URL?.replace(/\/$/, "") || "";
+  const workerBase = env.WORKER_PUBLIC_URL?.replace(/\/$/, "") || "";
+  const mediaPath = `media/r2/${encodeURIComponent(key)}`;
+  const url = siteBase
+    ? `${siteBase}/hns-api/${mediaPath}`
+    : `${workerBase}/api/${mediaPath}`;
   return jsonResponse(env, request, {
     url,
     imageMeta: JSON.stringify({ mime }),

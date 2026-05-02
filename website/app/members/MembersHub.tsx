@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -23,14 +22,11 @@ import { memberDisplayName } from "@/lib/member-label";
 
 type View = "profiles" | "projects" | "articles";
 
-const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
-const STAGGER_MS = 0.08;
-
 const XP_TABLE = [
   { action: "Submission approved", xp: 50, note: "Per submission" },
   { action: "Vote received", xp: 2, note: "Per vote on your work" },
   { action: "Article shared", xp: 10, note: "Per article" },
-  { action: "/pulse (Discord)", xp: "—", note: "GitHub stats + estimated month-end pulse XP (preview only)" },
+  { action: "/pulse (Discord)", xp: "Up to 100", note: "GitHub activity XP, once per UTC month" },
   { action: "Challenge enrollment bonus", xp: 25, note: "On first approval" },
   { action: "First submission ever", xp: 10, note: "One-time bonus" },
 ];
@@ -95,12 +91,20 @@ export default function MembersHub({
   /** Mobile only: hide tech tag row while scrolling down; expand on scroll up, near top, or tap. */
   const [mobileTechStackCollapsed, setMobileTechStackCollapsed] = useState(false);
   const lastScrollYRef = useRef(0);
+  const mobileTechStackCollapsedRef = useRef(false);
+  const scrollRafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const mdMq = window.matchMedia("(min-width: 768px)");
-    const onScroll = () => {
+    const setCollapsed = (next: boolean) => {
+      if (mobileTechStackCollapsedRef.current === next) return;
+      mobileTechStackCollapsedRef.current = next;
+      setMobileTechStackCollapsed(next);
+    };
+    const updateFromScroll = () => {
+      scrollRafRef.current = null;
       if (mdMq.matches) {
-        setMobileTechStackCollapsed(false);
+        setCollapsed(false);
         return;
       }
       const y = window.scrollY;
@@ -108,15 +112,19 @@ export default function MembersHub({
       const delta = y - last;
       lastScrollYRef.current = y;
       if (y < 56) {
-        setMobileTechStackCollapsed(false);
+        setCollapsed(false);
         return;
       }
-      if (delta > 8) setMobileTechStackCollapsed(true);
-      else if (delta < -10) setMobileTechStackCollapsed(false);
+      if (delta > 8) setCollapsed(true);
+      else if (delta < -10) setCollapsed(false);
+    };
+    const onScroll = () => {
+      if (scrollRafRef.current !== null) return;
+      scrollRafRef.current = window.requestAnimationFrame(updateFromScroll);
     };
 
     const onMdChange = () => {
-      if (mdMq.matches) setMobileTechStackCollapsed(false);
+      if (mdMq.matches) setCollapsed(false);
     };
 
     lastScrollYRef.current = window.scrollY;
@@ -125,6 +133,9 @@ export default function MembersHub({
     return () => {
       window.removeEventListener("scroll", onScroll);
       mdMq.removeEventListener("change", onMdChange);
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+      }
     };
   }, []);
 
@@ -141,13 +152,9 @@ export default function MembersHub({
         if (cancelled) return;
         setPortfolio(portfolioRes);
         setBlogs(blogsRes.blogs);
-      } catch (e) {
+      } catch {
         if (!cancelled) {
-          const msg =
-            e instanceof Error
-              ? e.message
-              : "Could not load portfolio/article data. Check NEXT_PUBLIC_API_URL in Cloudflare Pages settings.";
-          setError(msg);
+          setError("Live member data is temporarily unavailable. Try again shortly.");
         }
       }
     }
@@ -309,25 +316,10 @@ export default function MembersHub({
   const top15 = leaderboard.slice(0, 15);
   const maxXp = top15[0]?.points ?? 1;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: STAGGER_MS, delayChildren: 0.06 },
-    },
-  };
-  const itemVariants = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: EASE_OUT } },
-  };
-
   return (
     <>
-      <motion.section
+      <section
         className="page-header min-h-[min(28dvh,280px)] flex flex-col justify-center"
-        initial={{ opacity: 1, y: 0 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: EASE_OUT }}
       >
         <div className="container w-full">
           <p className="label">Community</p>
@@ -336,7 +328,7 @@ export default function MembersHub({
             Profiles, shipped projects, and articles — one hub for the community.
           </p>
         </div>
-      </motion.section>
+      </section>
 
       <section className="section pt-4">
         <div className="container w-full">
@@ -346,7 +338,7 @@ export default function MembersHub({
                 key={v}
                 type="button"
                 onClick={() => setView(v)}
-                className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+                className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider ${
                   view === v
                     ? "bg-[var(--accent)] text-black"
                     : "border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-dim)] hover:text-[var(--text)]"
@@ -359,7 +351,7 @@ export default function MembersHub({
           </div>
 
           <div
-            className="sticky z-40 -mx-4 px-4 py-3 mb-6 border-b border-[var(--border)] bg-[rgba(5,5,5,0.92)] backdrop-blur-md supports-[backdrop-filter]:bg-[rgba(5,5,5,0.88)]"
+            className="sticky z-10 -mx-4 px-4 py-3 mb-6 border-b border-[var(--border)] bg-[var(--bg)]"
             style={{ top: "3.5rem" }}
           >
             <div className="flex flex-col gap-4">
@@ -419,7 +411,7 @@ export default function MembersHub({
                   ) : null}
                 </div>
                 <div
-                  className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none md:grid-rows-[1fr] ${
+                  className={`grid md:grid-rows-[1fr] ${
                     mobileTechStackCollapsed
                       ? "grid-rows-[0fr] md:grid-rows-[1fr]"
                       : "grid-rows-[1fr]"
@@ -434,7 +426,7 @@ export default function MembersHub({
                             key={label}
                             type="button"
                             onClick={() => toggleStack(label)}
-                            className={`tag shrink-0 text-[0.65rem] cursor-pointer transition-colors ${
+                            className={`tag shrink-0 text-[0.65rem] cursor-pointer ${
                               on ? "border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]" : ""
                             }`}
                           >
@@ -540,13 +532,9 @@ export default function MembersHub({
               }
             >
               <div className={view === "profiles" ? "w-full lg:w-[70%]" : "w-full"}>
-                <AnimatePresence mode="wait">
-                  <motion.div
+                <>
+                  <div
                     key={view}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
                   >
                     {view === "profiles" && (
                       <>
@@ -562,11 +550,8 @@ export default function MembersHub({
                             <p>No members match filters.</p>
                           </div>
                         ) : (
-                          <motion.div
+                          <div
                             className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
                           >
                             {filteredProfiles.map((m) => {
                               const stack = formatTechStack(m.techStack);
@@ -582,10 +567,9 @@ export default function MembersHub({
                               const gh = githubProfileHref(m.github);
                               const li = ensureAbsoluteUrl(m.linkedin);
                               return (
-                                <motion.article
+                                <article
                                   key={m.discordId}
                                   className="card p-4 sm:p-5 cursor-pointer"
-                                  variants={itemVariants}
                                   role="link"
                                   tabIndex={0}
                                   aria-label={`Open profile for ${memberDisplayName(m)}`}
@@ -600,7 +584,7 @@ export default function MembersHub({
                                   <div className="flex items-start gap-3 mb-3">
                                     <Image
                                       src={avatar}
-                                      alt=""
+                                      alt={`${memberDisplayName(m)} avatar`}
                                       width={40}
                                       height={40}
                                       quality={80}
@@ -626,7 +610,7 @@ export default function MembersHub({
                                             }
                                           >
                                             {t === "DESIGNERS"
-                                              ? "Design"
+                                              ? "Designer"
                                               : t === "HACKER"
                                                 ? "Hacker"
                                                 : "Developer"}
@@ -687,10 +671,10 @@ export default function MembersHub({
                                       </a>
                                     )}
                                   </div>
-                                </motion.article>
+                                </article>
                               );
                             })}
-                          </motion.div>
+                          </div>
                         )}
                         <HallOfFame portfolio={portfolio} />
                       </>
@@ -702,11 +686,8 @@ export default function MembersHub({
                           <p>No projects match filters.</p>
                         </div>
                       ) : (
-                        <motion.div
+                        <div
                           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
-                          variants={containerVariants}
-                          initial="hidden"
-                          animate="visible"
                         >
                           {filteredProjects.map((s) => {
                             const stack = formatTechStack(s.user.techStack);
@@ -714,13 +695,13 @@ export default function MembersHub({
                               (s.track ?? "DEVELOPER") === "HACKER"
                                 ? "Hacker"
                                 : (s.track ?? "DEVELOPER") === "DESIGNERS"
-                                  ? "Design"
+                                  ? "Designer"
                                   : "Developer";
+                            const isDesigner = (s.track ?? "DEVELOPER") === "DESIGNERS";
                             return (
-                              <motion.article
+                              <article
                                 key={s.id}
                                 className="card p-4 sm:p-5 flex flex-col"
-                                variants={itemVariants}
                               >
                                 <div className="flex flex-wrap gap-2 mb-2">
                                   <span className="tag tag-accent text-xs">{s.tier}</span>
@@ -753,14 +734,28 @@ export default function MembersHub({
                                   </Link>
                                 </p>
                                 <div className="flex flex-wrap gap-2">
-                                  <a
-                                    href={s.repoUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="btn text-xs py-1.5"
-                                  >
-                                    Repo
-                                  </a>
+                                  {isDesigner && s.attachmentUrl ? (
+                                    <a
+                                      href={s.attachmentUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn text-xs py-1.5"
+                                    >
+                                      Image
+                                    </a>
+                                  ) : (
+                                    <a
+                                      href={s.repoUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn text-xs py-1.5"
+                                    >
+                                      Repo
+                                    </a>
+                                  )}
+                                  <Link href={`/submissions/${s.id}`} className="btn text-xs py-1.5">
+                                    Detail
+                                  </Link>
                                   {s.demoUrl && (
                                     <a
                                       href={s.demoUrl}
@@ -772,10 +767,10 @@ export default function MembersHub({
                                     </a>
                                   )}
                                 </div>
-                              </motion.article>
+                              </article>
                             );
                           })}
-                        </motion.div>
+                        </div>
                       ))}
 
                     {view === "articles" &&
@@ -784,25 +779,21 @@ export default function MembersHub({
                           <p>No articles match filters.</p>
                         </div>
                       ) : (
-                        <motion.div
+                        <div
                           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
-                          variants={containerVariants}
-                          initial="hidden"
-                          animate="visible"
                         >
                           {filteredArticles.map((blog) => (
-                            <motion.div
+                            <div
                               key={blog.id}
                               className="h-full"
-                              variants={itemVariants}
                             >
                               <BlogArticleCard blog={blog} />
-                            </motion.div>
+                            </div>
                           ))}
-                        </motion.div>
+                        </div>
                       ))}
-                  </motion.div>
-                </AnimatePresence>
+                  </div>
+                </>
               </div>
 
               {view === "profiles" && (
@@ -825,13 +816,10 @@ export default function MembersHub({
                         </button>
                       ))}
                     </div>
-                    <AnimatePresence mode="wait">
+                    <>
                       {sidebarTab === "leaderboard" ? (
-                        <motion.div
+                        <div
                           key="lb"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
                           className="p-4"
                         >
                           {top15.length === 0 ? (
@@ -880,13 +868,10 @@ export default function MembersHub({
                               })}
                             </div>
                           )}
-                        </motion.div>
+                        </div>
                       ) : (
-                        <motion.div
+                        <div
                           key="xp"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
                           className="p-4"
                         >
                           <table className="w-full text-sm">
@@ -931,9 +916,9 @@ export default function MembersHub({
                               </tbody>
                             </table>
                           </div>
-                        </motion.div>
+                        </div>
                       )}
-                    </AnimatePresence>
+                    </>
                   </div>
                 </div>
               )}

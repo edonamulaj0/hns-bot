@@ -12,6 +12,7 @@ import {
   type PulseResult,
 } from "../github";
 import { getValidGithubAccessTokenForUser } from "../github-oauth";
+import { awardMonthlyPulsePoints } from "../points";
 import { monthEndLinearScale, monthKey } from "../time";
 import { getDiscordUserId } from "./helpers";
 
@@ -63,6 +64,7 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
             githubAccessTokenEnc: true,
             githubRefreshTokenEnc: true,
             githubTokenExpiresAt: true,
+            lastPulseMonth: true,
           },
         });
 
@@ -92,6 +94,24 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
         const scale = monthEndLinearScale();
         const projectedRaw = computePulseRawXp(scaledPulsePreview(pulse, scale));
         const xpProjectedMonthEnd = Math.min(projectedRaw, PULSE_XP_CAP);
+        const xpAwarded = pulse.xpEarned;
+        const pulseAward =
+          xpAwarded > 0
+            ? await awardMonthlyPulsePoints(
+                prisma,
+                user.id,
+                currentMonth,
+                xpAwarded,
+                ctx.env,
+                {
+                  source: pulse.source,
+                  commits: pulse.commits,
+                  prsOpened: pulse.prsOpened,
+                  prsMerged: pulse.prsMerged,
+                  prReviews: pulse.prReviews ?? null,
+                },
+              )
+            : { awarded: false, points: null };
 
         const noActivity =
           pulse.commits === 0 &&
@@ -117,12 +137,18 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
 
         const description = noActivity
           ? noActivityText
-          : `Counts are **${currentMonth}** (UTC), from GitHub. **Projected XP** applies the pulse formula to counts scaled by **${scale.toFixed(2)}×** (your pace so far vs full month) and caps at **${PULSE_XP_CAP}**. This command **does not change your XP**.`;
+          : `Counts are **${currentMonth}** (UTC), from GitHub. Pulse XP is awarded once per month from current activity and caps at **${PULSE_XP_CAP}**. Projected XP scales your pace by **${scale.toFixed(2)}×** for a month-end estimate.`;
 
         const footerBase =
           pulse.source === "viewer"
-            ? "Preview only · OAuth viewer (private repos you allowed)"
-            : `Preview only · ${pulse.source} (public) · /link-github for private`;
+            ? "OAuth viewer (private repos you allowed)"
+            : `${pulse.source} (public) · /link-github for private`;
+        const awardFooter =
+          xpAwarded <= 0
+            ? "No pulse XP awarded"
+            : pulseAward.awarded
+              ? `Awarded +${xpAwarded} XP`
+              : `Pulse XP already claimed for ${currentMonth}`;
 
         await safeFollowup(ctx, {
           embeds: [
@@ -137,15 +163,28 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
                     { name: "Commits", value: `${pulse.commits}`, inline: true },
                     ...prFields,
                     {
-                      name: "Projected pulse XP (month-end est.)",
+                      name: pulseAward.awarded ? "Pulse XP awarded" : "Pulse XP",
+                      value:
+                        xpAwarded <= 0
+                          ? `**+0** / ${PULSE_XP_CAP} max`
+                          : pulseAward.awarded
+                            ? `**+${xpAwarded}** / ${PULSE_XP_CAP} max`
+                            : `Already claimed for ${currentMonth}`,
+                      inline: true,
+                    },
+                    {
+                      name: "Projected month-end XP",
                       value: `**+${xpProjectedMonthEnd}** / ${PULSE_XP_CAP} max`,
                       inline: true,
                     },
+                    ...(pulseAward.points != null
+                      ? [{ name: "Total XP", value: `${pulseAward.points}`, inline: true }]
+                      : []),
                     ...(pulse.repoCount > 0
                       ? [{ name: "Repos Active", value: `${pulse.repoCount}`, inline: true }]
                       : []),
                   ],
-              footer: { text: footerBase },
+              footer: { text: `${awardFooter} · ${footerBase}` },
             },
           ],
         });

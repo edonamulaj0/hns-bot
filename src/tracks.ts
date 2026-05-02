@@ -24,6 +24,6 @@ export function trackLabel(track: string): string {
 
 export function trackBadge(track: string): string {
   if (track === TRACK_HACKER) return "Hacker";
-  if (track === TRACK_DESIGNERS) return "Design";
+  if (track === TRACK_DESIGNERS) return "Designer";
   return "Developer";
 }

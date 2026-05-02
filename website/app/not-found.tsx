@@ -8,13 +8,27 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-center px-[clamp(1rem,4vw,2rem)]">
-      <div className="text-center">
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">404</h1>
-        <p className="text-xl sm:text-2xl text-white/60 mb-8">Page not found</p>
-        <Link href="/" className="btn btn-primary">
-          Go back home
-        </Link>
+    <div className="section flex min-h-[70dvh] flex-col items-center justify-center px-[clamp(1rem,4vw,2rem)]">
+      <div className="card max-w-2xl p-6 text-center sm:p-10">
+        <p className="label mb-3">404</p>
+        <h1 className="mb-4 text-3xl font-bold sm:text-4xl lg:text-5xl">Page not found</h1>
+        <p className="mx-auto mb-8 max-w-lg text-sm leading-relaxed text-white/60 sm:text-base">
+          This link does not resolve, but the launch loop is still live. Head back to the main paths below.
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link href="/" className="btn btn-primary">
+            Home
+          </Link>
+          <Link href="/challenges" className="btn">
+            Challenges
+          </Link>
+          <Link href="/members" className="btn">
+            Members
+          </Link>
+          <Link href="/join" className="btn">
+            Join Discord
+          </Link>
+        </div>
       </div>
     </div>
   );

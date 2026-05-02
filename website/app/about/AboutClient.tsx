@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import type { AboutStatsPayload } from "@/lib/about-stats";
 import { BUILDER_SITE_URL, DISCORD_INVITE_URL, WIKI_URL } from "@/lib/branding";
 import { OpenStatsPanel } from "@/components/about/OpenStatsPanel";
@@ -8,30 +7,10 @@ import { AboutFaq } from "@/components/about/AboutFaq";
 import { AnimateIn } from "@/components/AnimateIn";
 
 export default function AboutClient({ openStats }: { openStats: AboutStatsPayload }) {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut" },
-    },
-  };
-
   return (
     <>
-      <motion.section
+      <section
         className="section-sm page-header min-h-hero-sm flex flex-col justify-center"
-        initial={{ opacity: 1, y: 0 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
       >
         <div className="container">
           <div className="label">Our Story</div>
@@ -41,7 +20,7 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
             pitch deck, just people who like building things and nerding out together.
           </p>
         </div>
-      </motion.section>
+      </section>
 
       <AnimateIn
         className="section"
@@ -65,12 +44,8 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
             </p>
 
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">What We Stand For</h2>
-            <motion.div
+            <div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
             >
               {[
                 { title: "Innovation", description: "Encouraging developers to experiment, and create the next big thing." },
@@ -80,16 +55,15 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
                 { title: "Opportunity", description: "Opening doors for developers to showcase their skills and build their futures." },
                 { title: "Diversity", description: "Welcoming all developers regardless of background, experience, or interests." },
               ].map((value) => (
-                <motion.div
+                <div
                   key={value.title}
                   className="pl-4 sm:pl-6 border-l-2 border-[var(--accent)]"
-                  variants={itemVariants}
                 >
                   <h3 className="text-[var(--accent)] font-bold mb-1 sm:mb-2 text-sm sm:text-base">{value.title}</h3>
                   <p className="text-white/60 text-xs sm:text-sm">{value.description}</p>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
       </AnimateIn>
@@ -146,21 +120,17 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
       >
         <div className="container">
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">Get Involved</h2>
-          <motion.div
+          <div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
           >
-            <motion.div className="card p-4 sm:p-6 text-center" variants={itemVariants}>
+            <div className="card p-4 sm:p-6 text-center">
               <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">👨‍💻 Join as Developer</h3>
               <p className="text-white/60 text-xs sm:text-sm">
                 Participate in challenges, build projects, and grow with the community.
               </p>
-            </motion.div>
+            </div>
 
-            <motion.div className="card p-4 sm:p-6 text-center" variants={itemVariants}>
+            <div className="card p-4 sm:p-6 text-center">
               <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">
                 🎨 Join as Designer
               </h3>
@@ -168,24 +138,24 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
                 Submit posters, brand kits, UI mockups, and motion storyboards.
                 Image exports only — no code required.
               </p>
-            </motion.div>
+            </div>
 
-            <motion.div className="card p-4 sm:p-6 text-center" variants={itemVariants}>
+            <div className="card p-4 sm:p-6 text-center">
               <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">🤝 Partner With Us</h3>
               <p className="text-white/60 text-xs sm:text-sm">
                 Support the community and connect with talented developers. For partnerships or questions, reach a
                 moderator in our Discord server.
               </p>
-            </motion.div>
+            </div>
 
-            <motion.div className="card p-4 sm:p-6 text-center" variants={itemVariants}>
+            <div className="card p-4 sm:p-6 text-center">
               <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">💬 Community</h3>
               <p className="text-white/60 text-xs sm:text-sm">
                 Hang out in Discord for voice, feedback, and announcements. New here? Read how we work on the join page.
               </p>
-            </motion.div>
+            </div>
 
-            <motion.div className="card p-4 sm:p-6 text-center flex flex-col" variants={itemVariants}>
+            <div className="card p-4 sm:p-6 text-center flex flex-col">
               <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">📚 Free Resources</h3>
               <p className="text-white/60 text-xs sm:text-sm flex-1">
                 Developer tools, security research, educational content — curated and free.
@@ -198,8 +168,8 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
               >
                 Browse wiki →
               </a>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
           <div className="mt-8 flex justify-center">
             <a
               href={DISCORD_INVITE_URL}
