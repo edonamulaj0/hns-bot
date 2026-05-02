@@ -91,7 +91,7 @@ export default function ChallengesPage() {
         <div className="container w-full">
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Three Tracks</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:items-stretch">
-            <div className="card flex min-h-[320px] sm:min-h-[340px] lg:min-h-[400px] h-full w-full flex-col p-6 sm:p-8 lg:p-9">
+            <div className="card flex min-h-[380px] sm:min-h-[420px] lg:min-h-[480px] h-full w-full flex-col p-6 sm:p-8 lg:p-9">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-2xl">🛠</span>
                 <h3 className="text-xl sm:text-2xl font-bold">Developer Track</h3>
@@ -127,7 +127,7 @@ export default function ChallengesPage() {
               </Link>
             </div>
 
-            <div className="card flex min-h-[320px] sm:min-h-[340px] lg:min-h-[400px] h-full w-full flex-col p-6 sm:p-8 lg:p-9">
+            <div className="card flex min-h-[380px] sm:min-h-[420px] lg:min-h-[480px] h-full w-full flex-col p-6 sm:p-8 lg:p-9">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-2xl">🔒</span>
                 <h3 className="text-xl sm:text-2xl font-bold">Hacker Track</h3>
@@ -170,7 +170,7 @@ export default function ChallengesPage() {
               </Link>
             </div>
 
-            <div className="card flex min-h-[320px] sm:min-h-[340px] lg:min-h-[400px] h-full w-full flex-col p-6 sm:p-8 lg:p-9">
+            <div className="card flex min-h-[380px] sm:min-h-[420px] lg:min-h-[480px] h-full w-full flex-col p-6 sm:p-8 lg:p-9">
               <div className="flex items-center gap-3 mb-4">
                 <svg
                   width="28"

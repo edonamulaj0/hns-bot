@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import type { AboutStatsPayload } from "@/lib/about-stats";
-import { BUILDER_SITE_URL, DISCORD_INVITE_URL, WIKI_URL } from "@/lib/branding";
+import { BUILDER_SITE_URL, WIKI_URL } from "@/lib/branding";
 import { OpenStatsPanel } from "@/components/about/OpenStatsPanel";
 import { AboutFaq } from "@/components/about/AboutFaq";
 import { AnimateIn } from "@/components/AnimateIn";
@@ -95,8 +96,9 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
               </p>
               <p>
                 The hacker track came when enough security-minded people wanted their own lane for writeups and tooling;
-                developer and hacker share the same calendar and XP vibe. The platform—bot, site, and database—is built
-                and maintained by{" "}
+                the designer track followed so visual builders could ship mockups, posters, and brand work on the same
+                monthly calendar. Developer, hacker, and designer all share one UTC rhythm—build, vote, publish—and the
+                same XP loop on the site. The platform—bot, site, and database—is built and maintained by{" "}
                 <a
                   href={BUILDER_SITE_URL}
                   target="_blank"
@@ -120,26 +122,7 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
       >
         <div className="container">
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center">Get Involved</h2>
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6"
-          >
-            <div className="card p-4 sm:p-6 text-center">
-              <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">👨‍💻 Join as Developer</h3>
-              <p className="text-white/60 text-xs sm:text-sm">
-                Participate in challenges, build projects, and grow with the community.
-              </p>
-            </div>
-
-            <div className="card p-4 sm:p-6 text-center">
-              <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">
-                🎨 Join as Designer
-              </h3>
-              <p className="text-white/60 text-xs sm:text-sm">
-                Submit posters, brand kits, UI mockups, and motion storyboards.
-                Image exports only — no code required.
-              </p>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-5xl mx-auto">
             <div className="card p-4 sm:p-6 text-center">
               <h3 className="text-[var(--accent)] font-bold mb-2 sm:mb-3 text-base sm:text-lg">🤝 Partner With Us</h3>
               <p className="text-white/60 text-xs sm:text-sm">
@@ -171,14 +154,9 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
             </div>
           </div>
           <div className="mt-8 flex justify-center">
-            <a
-              href={DISCORD_INVITE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-primary inline-flex justify-center"
-            >
+            <Link href="/join" className="btn btn-primary inline-flex justify-center">
               Join Us
-            </a>
+            </Link>
           </div>
         </div>
       </AnimateIn>
