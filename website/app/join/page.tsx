@@ -101,7 +101,7 @@ export default async function JoinPage({
                 body: (
                   <>
                     <p className="text-white/65 text-sm sm:text-base leading-relaxed">
-                      Click the invite link above. The server has channels for both tracks —{" "}
+                      Click the invite link above. The server has channels for all three tracks —{" "}
                       <strong className="text-white/90">#dev-chat</strong> for builders and{" "}
                       <strong className="text-white/90">#hacker-lounge</strong> for security folks.
                     </p>

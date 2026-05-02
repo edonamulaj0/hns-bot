@@ -84,7 +84,8 @@ export default function HomePageClient({
   const phaseMeta = PHASE_META[phase];
   const totalSubmissions = Object.values(portfolioData?.published ?? {}).flat().length;
   const totalMembers = data?.discordWidgetMembers ?? membersData.length;
-  const top3 = leaderboardData.slice(0, 3);
+  const leaderboardNonZero = leaderboardData.filter((m) => m.points > 0);
+  const top3 = leaderboardNonZero.slice(0, 3);
   const maxXp = top3[0]?.points ?? 1;
   const latestBlogs = blogsData.slice(0, 3);
 
@@ -147,7 +148,7 @@ export default function HomePageClient({
             <p
               className="text-base sm:text-lg text-white/60 max-w-[540px] mb-6 sm:mb-8 lg:mb-10 leading-relaxed"
             >
-              Monthly build challenges for developers worldwide. Submit your projects, earn XP, and build a portfolio that speaks for itself.
+              Monthly build challenges for developers, hackers, and designers — on Discord.
             </p>
 
             <div
@@ -161,7 +162,10 @@ export default function HomePageClient({
               <Link href="/join" className="btn btn-primary max-[480px]:w-full max-[480px]:justify-center">
                 Join Us →
               </Link>
-              <Link href="/challenges" className="btn max-[480px]:w-full max-[480px]:justify-center">
+              <Link
+                href="/challenges"
+                className="btn btn-outline max-[480px]:w-full max-[480px]:justify-center"
+              >
                 View Challenges
               </Link>
             </div>
@@ -177,29 +181,43 @@ export default function HomePageClient({
         transition={{ duration: 0.6, ease: EASE_OUT }}
         amount={0.15}
       >
-        <div className="container">
+        <div className="container" aria-busy={data === null}>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             <div className="stat-block">
               <span className="value">
-                {data === null ? "…" : showStatNumbers ? totalMembers : "—"}
+                {data === null ? (
+                  <span className="stat-value-skeleton" aria-hidden />
+                ) : showStatNumbers ? (
+                  totalMembers
+                ) : (
+                  "—"
+                )}
               </span>
-              <span className="label">{showStatNumbers ? "Members" : "Members"}</span>
+              <span className="label">Members</span>
             </div>
             <div className="stat-block">
               <span className="value">
-                {data === null ? "…" : showStatNumbers ? totalSubmissions : "—"}
+                {data === null ? (
+                  <span className="stat-value-skeleton !w-[min(4rem,38vw)]" aria-hidden />
+                ) : showStatNumbers ? (
+                  totalSubmissions
+                ) : (
+                  "—"
+                )}
               </span>
-              <span className="label">
-                {showStatNumbers ? "Projects shipped" : "Projects shipped"}
-              </span>
+              <span className="label">Projects shipped</span>
             </div>
             <div className="stat-block">
               <span className="value">
-                {data === null ? "…" : showStatNumbers ? monthsSinceLaunch : "—"}
+                {data === null ? (
+                  <span className="stat-value-skeleton !w-[min(3rem,28vw)]" aria-hidden />
+                ) : showStatNumbers ? (
+                  monthsSinceLaunch
+                ) : (
+                  "—"
+                )}
               </span>
-              <span className="label">
-                {showStatNumbers ? "Months active" : "Months active"}
-              </span>
+              <span className="label">Months active</span>
             </div>
             <div className="stat-block">
               <div className="value min-h-[2.75rem] flex flex-col justify-center text-left">
@@ -521,8 +539,7 @@ export default function HomePageClient({
         <div className="container text-center max-w-2xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">Join the community</h2>
           <p className="text-sm sm:text-base text-white/60 leading-relaxed mb-8">
-            Hundreds of developers and security researchers. Monthly challenges. Real projects—on Discord and here on
-            the site.
+            Early community — come help build it. Monthly challenges, real projects on Discord and this site.
           </p>
           <a
             href={DISCORD_INVITE_URL}
@@ -530,7 +547,7 @@ export default function HomePageClient({
             rel="noopener noreferrer"
             className="btn btn-primary inline-flex justify-center"
           >
-            Join Us
+            Join Discord
           </a>
         </div>
       </AnimateIn>

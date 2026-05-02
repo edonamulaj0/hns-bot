@@ -9,7 +9,6 @@ import { getSessionClient, loginUrl, type SessionUser } from "@/lib/auth-client"
 import { userProfileAvatarUrl } from "@/lib/api";
 import { getMonthKey } from "@/lib/month";
 
-const VISITED_KEY = "hns_has_visited";
 const AVATAR_BLUR_DATA_URL =
   "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjMWExYTFhIi8+PC9zdmc+";
 
@@ -67,16 +66,8 @@ export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [session, setSession] = useState<SessionUser | null>(null);
-  /** null = before hydration; false = first visit; true = returning visitor */
-  const [hasVisitedBefore, setHasVisitedBefore] = useState<boolean | null>(null);
   const bodyLockedRef = useRef(false);
   const voteMonth = getMonthKey();
-
-  useEffect(() => {
-    const prev = localStorage.getItem(VISITED_KEY);
-    setHasVisitedBefore(prev === "1");
-    if (prev !== "1") localStorage.setItem(VISITED_KEY, "1");
-  }, []);
 
   useEffect(() => {
     getSessionClient().then(setSession);
@@ -278,23 +269,32 @@ export function Navbar() {
             <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-6 md:ml-2 md:flex-row md:items-center md:gap-2 md:border-t-0 md:pt-0">
               <div className="md:hidden w-full">
                 {!session && (
-                  <div style={{ paddingTop: "1.5rem", borderTop: "1px solid var(--border)" }}>
+                  <div
+                    className="flex flex-col gap-3"
+                    style={{ paddingTop: "1.5rem", borderTop: "1px solid var(--border)" }}
+                  >
+                    <Link
+                      href="/join"
+                      className="btn btn-outline w-full justify-center"
+                      onClick={() => setOpen(false)}
+                    >
+                      Join Discord
+                    </Link>
                     <a
                       href={loginUrl()}
-                      className="btn btn-primary"
-                      style={{ width: "100%", justifyContent: "center" }}
+                      className="btn btn-primary w-full justify-center"
                     >
                       Sign in with Discord
                     </a>
                   </div>
                 )}
               </div>
-              {!session && hasVisitedBefore === false && (
+              {!session && (
                 <Link
                   href="/join"
-                  className="btn btn-primary hidden md:inline-flex w-full items-center justify-center text-center md:w-auto"
+                  className="btn btn-outline hidden md:inline-flex w-full items-center justify-center text-center md:w-auto whitespace-nowrap"
                 >
-                  Join Us
+                  Join Discord
                 </Link>
               )}
               <div className="hidden md:block">

@@ -10,6 +10,6 @@ export const BUILDER_SITE_URL = "https://cyphera.tech";
 /** Curated resource wiki (footer + supplementary links — not primary nav). */
 export const WIKI_URL = "https://wiki.h4cknstack.com";
 
-/** Legacy asset paths (e.g. OG, emails). Navbar uses styled text in `components/navbar.tsx`. */
+/** Logo paths (emails, wiki links). Open Graph image is `/og.png` in `app/layout.tsx`. Navbar uses styled text in `components/navbar.tsx`. */
 export const BRAND_LOGO_PNG = "/branding/hns-name.svg";
 export const BRAND_LOGO_SVG = "/branding/hns-name.svg";

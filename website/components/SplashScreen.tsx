@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-const TOTAL_MS = 2800;
-const EXIT_MS = 450;
-const EXIT_AT = TOTAL_MS - EXIT_MS;
-const REDUCED_TOTAL_MS = 550;
+/** Desktop-only splash; skipped on narrow viewports (e.g. Instagram in-app browser). */
+const MOBILE_MAX_WIDTH_PX = 768;
+
+const DESKTOP_TOTAL_MS = 800;
+const DESKTOP_EXIT_MS = 220;
+const DESKTOP_EXIT_AT = DESKTOP_TOTAL_MS - DESKTOP_EXIT_MS;
+const REDUCED_TOTAL_MS = 300;
 
 const FLOAT_SPECKS = [
   { left: "8%", top: "18%", delay: "0s", size: 3 },
@@ -19,10 +22,14 @@ const FLOAT_SPECKS = [
 ];
 
 export function SplashScreen() {
-  const [phase, setPhase] = useState<"in" | "exit" | "done">("in");
+  const [phase, setPhase] = useState<"in" | "exit" | "done">(() =>
+    typeof window !== "undefined" && window.innerWidth < MOBILE_MAX_WIDTH_PX ? "done" : "in",
+  );
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
+    if (window.innerWidth < MOBILE_MAX_WIDTH_PX) return;
+
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const motionReduced = mq.matches;
     setReducedMotion(motionReduced);
@@ -32,8 +39,8 @@ export function SplashScreen() {
       return () => clearTimeout(done);
     }
 
-    const exitTimer = window.setTimeout(() => setPhase("exit"), EXIT_AT);
-    const doneTimer = window.setTimeout(() => setPhase("done"), TOTAL_MS);
+    const exitTimer = window.setTimeout(() => setPhase("exit"), DESKTOP_EXIT_AT);
+    const doneTimer = window.setTimeout(() => setPhase("done"), DESKTOP_TOTAL_MS);
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(doneTimer);
@@ -107,7 +114,7 @@ export function SplashScreen() {
       <div
         role="status"
         aria-live="polite"
-        aria-label="H4ck and Stack loading"
+        aria-label="H4ck&Stack loading"
         style={{
           position: "fixed",
           inset: 0,
@@ -117,7 +124,10 @@ export function SplashScreen() {
           justifyContent: "center",
           background: "#050508",
           overflow: "hidden",
-          animation: exiting && !reducedMotion ? `splash-exit-root ${EXIT_MS}ms cubic-bezier(0.45, 0, 0.55, 1) forwards` : undefined,
+          animation:
+            exiting && !reducedMotion
+              ? `splash-exit-root ${DESKTOP_EXIT_MS}ms cubic-bezier(0.45, 0, 0.55, 1) forwards`
+              : undefined,
           pointerEvents: "none",
         }}
       >
@@ -202,7 +212,7 @@ export function SplashScreen() {
                   height: "28%",
                   background:
                     "linear-gradient(to bottom, transparent, rgba(204,255,0,0.15), transparent)",
-                  animation: "splash-scan 2.8s ease-in-out infinite",
+                  animation: "splash-scan 1.2s ease-in-out infinite",
                 }}
               />
             </div>

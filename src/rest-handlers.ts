@@ -1297,7 +1297,7 @@ export async function imageUrlLooksValid(url: string): Promise<boolean> {
       method: "HEAD",
       redirect: "follow",
       signal: ctrl.signal,
-      headers: { "User-Agent": "H4cknStack/1.0" },
+      headers: { "User-Agent": "H4ckStack/1.0" },
     });
     clearTimeout(timer);
     const ct = res.headers.get("content-type")?.toLowerCase() ?? "";
@@ -1324,7 +1324,7 @@ async function fetchImageMeta(
       method: "HEAD",
       redirect: "follow",
       signal: ctrl.signal,
-      headers: { "User-Agent": "H4cknStack/1.0" },
+      headers: { "User-Agent": "H4ckStack/1.0" },
     });
     clearTimeout(t);
     const ct = res.headers.get("content-type")?.toLowerCase().split(";")[0]?.trim() ?? "";

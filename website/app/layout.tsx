@@ -30,20 +30,20 @@ export const metadata: Metadata = {
   icons: { icon: "/icon.svg" },
   title: `Home | ${BRAND_NAME}`,
   description:
-    "Monthly build challenges, community projects, and developer profiles for hackers and developers worldwide.",
+    "Monthly build challenges for developers, hackers, and designers — on Discord.",
   openGraph: {
     title: `Home | ${BRAND_NAME}`,
     description:
-      "Monthly build challenges for the global Developer, Hacker, and Designer community.",
+      "Monthly build challenges for developers, hackers, and designers — on Discord.",
     type: "website",
-    images: [{ url: "/og.svg", width: 1200, height: 630 }],
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: `Home | ${BRAND_NAME}`,
     description:
-      "Monthly build challenges for the global Developer, Hacker, and Designer community.",
-    images: ["/og.svg"],
+      "Monthly build challenges for developers, hackers, and designers — on Discord.",
+    images: ["/og.png"],
   },
 };
 

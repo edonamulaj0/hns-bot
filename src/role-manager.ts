@@ -104,7 +104,7 @@ async function sendRoleUpgradeDm(
           {
             title: `${role.emoji} You've been promoted to ${role.name}!`,
             description:
-              `You've reached **${totalXp} XP** on H4cknStack.\n\n` +
+              `You've reached **${totalXp} XP** on H4ck&Stack.\n\n` +
               "Keep building, sharing, and contributing to climb higher.",
             color: role.color,
             fields:
@@ -123,7 +123,7 @@ async function sendRoleUpgradeDm(
                       inline: false,
                     },
                   ],
-            footer: { text: "H4cknStack · XP Leaderboard at hns.gg/members" },
+            footer: { text: "H4ck&Stack · XP Leaderboard at hns.gg/members" },
           },
         ],
       }),
