@@ -66,14 +66,10 @@ onUnmounted(() => {
 
   <header v-if="hasNavbar" class="VPNav hns-wiki-nav">
     <div class="hns-wiki-nav__inner">
-      <a class="hns-wiki-nav__brand" :href="`${WIKI_ORIGIN}/`" aria-label="Wiki home">
-        <img
-          src="https://h4cknstack.com/branding/hns-name.svg"
-          alt="H4ck&Stack"
-          class="hns-wiki-nav__logo"
-          width="280"
-          height="52"
-        >
+      <a class="hns-wiki-nav__brand" :href="`${WIKI_ORIGIN}/`" aria-label="H4ck&amp;Stack Wiki home">
+        <span class="hns-wiki-nav__wordmark" aria-hidden="true">
+          <span class="hns-wiki-nav__wordmark-purple">H4ck</span><span class="hns-wiki-nav__wordmark-lime">&amp;Stack&nbsp;</span><span class="hns-wiki-nav__wordmark-lime">Wiki</span>
+        </span>
       </a>
 
       <div class="hns-wiki-nav__search hns-wiki-nav__search--desktop">
@@ -196,12 +192,23 @@ onUnmounted(() => {
   text-decoration: none;
 }
 
-.hns-wiki-nav__logo {
-  display: block;
-  width: auto;
-  height: 42px;
-  max-width: min(280px, 62vw);
-  object-fit: contain;
+.hns-wiki-nav__wordmark {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  font-family: var(--vp-font-family-mono), ui-monospace, monospace;
+  font-size: clamp(1rem, 3.6vw, 1.2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.hns-wiki-nav__wordmark-purple {
+  color: var(--accent-subtle, #7c2feb);
+}
+
+.hns-wiki-nav__wordmark-lime {
+  color: var(--accent, #ccff00);
 }
 
 .hns-wiki-nav__search--desktop {
@@ -281,9 +288,8 @@ onUnmounted(() => {
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
 
-  .hns-wiki-nav__logo {
-    height: 46px;
-    max-width: min(300px, 36vw);
+  .hns-wiki-nav__wordmark {
+    font-size: 1.25rem;
   }
 }
 </style>

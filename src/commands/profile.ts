@@ -13,6 +13,14 @@ function profileUrl(url: string | null | undefined, kind: "github" | "linkedin")
   return `https://linkedin.com/in/${t}`;
 }
 
+function framerSiteUrl(url: string | null | undefined): string | null {
+  if (!url?.trim()) return null;
+  const t = url.trim();
+  if (t.startsWith("https://")) return t;
+  if (t.startsWith("http://")) return t;
+  return `https://${t.replace(/^\/+/, "")}`;
+}
+
 export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
   return app.command("profile", async (c) => {
     const prisma = getPrisma(c.env.DB);
@@ -36,6 +44,7 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
         bio: true,
         github: true,
         linkedin: true,
+        framer: true,
         techStack: true,
         points: true,
         rank: true,
@@ -73,7 +82,8 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
 
     const ghLine = row.github ? `GitHub: ${row.github}` : "";
     const liLine = row.linkedin ? `LinkedIn: ${row.linkedin}` : "";
-    const footerParts = [ghLine, liLine].filter(Boolean);
+    const frLine = row.framer ? `Framer: ${row.framer}` : "";
+    const footerParts = [ghLine, liLine, frLine].filter(Boolean);
     const memberSince = new Date(row.profileCompletedAt).toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
@@ -117,6 +127,7 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
 
     const ghUrl = profileUrl(row.github, "github");
     const liUrl = profileUrl(row.linkedin, "linkedin");
+    const frUrl = framerSiteUrl(row.framer);
 
     const linkButtons: object[] = [];
     if (ghUrl) {
@@ -135,6 +146,15 @@ export function registerProfile(app: DiscordHono<HonoWorkerEnv>) {
         label: "LinkedIn",
         emoji: { name: "💼" },
         url: liUrl,
+      });
+    }
+    if (frUrl) {
+      linkButtons.push({
+        type: 2,
+        style: 5,
+        label: "Framer",
+        emoji: { name: "✨" },
+        url: frUrl,
       });
     }
 

@@ -119,6 +119,28 @@ function normalizeLinkedinInput(raw: string | null | undefined): string | null {
   return null;
 }
 
+/** Portfolio URL (Framer-hosted or custom domain); stored normalized https URL. */
+function normalizeFramerInput(raw: string | null | undefined): string | null {
+  const t = raw?.trim();
+  if (!t) return null;
+  if (t.startsWith("http://")) return null;
+  let urlStr = t;
+  if (!/^https:\/\//i.test(urlStr)) {
+    urlStr = `https://${urlStr.replace(/^\/+/, "")}`;
+  }
+  try {
+    const u = new URL(urlStr);
+    if (u.protocol !== "https:") return null;
+    if (!u.hostname || u.hostname.length > 253) return null;
+    u.hash = "";
+    const out = u.toString();
+    if (out.length > 500) return null;
+    return out;
+  } catch {
+    return null;
+  }
+}
+
 async function validateRepoReachable(urlStr: string): Promise<boolean> {
   try {
     const u = new URL(urlStr);
@@ -265,6 +287,7 @@ export async function handleMe(
       bio: user.bio,
       github: user.github,
       linkedin: user.linkedin,
+      framer: user.framer,
       techStack: user.techStack,
       points: user.points,
       rank: user.rank,
@@ -300,7 +323,7 @@ export async function handleUserPublicProfile(
   const user = await prisma.user.findUnique({
     where: { discordId: discordIdParam },
     include: {
-      _count: { select: { submissions: true, blogs: true, votesCast: true } },
+      _count: { select: { votesCast: true } },
     },
   });
 
@@ -439,11 +462,18 @@ export async function handleUserPublicProfile(
         bio: user.bio,
         github: user.github,
         linkedin: user.linkedin,
+        framer: user.framer,
         techStack: user.techStack,
         points: user.points,
         rank: user.rank,
         profileCompletedAt: user.profileCompletedAt?.toISOString() ?? null,
-        stats: user._count,
+        stats: {
+          votesCast: user._count.votesCast,
+          /** Portfolio challenge submissions + profile “other projects” (Blog PROJECT). */
+          projectsTotal: submissionRows.length + projectRows.length,
+          /** Blog rows with kind ARTICLE only (not PROJECT). */
+          articles: blogRows.length,
+        },
         xpBreakdown: {
           total: user.points,
           github: githubXp,
@@ -485,22 +515,37 @@ export async function handleBlogPost(
   const kind = normalizeBlogKind(body.kind);
   if (!kind) return jsonResponse(env, request, { error: "invalid_kind" }, 400);
   const title = body.title?.trim() ?? "";
-  const url = body.url?.trim() ?? "";
+  const urlRaw = body.url?.trim() ?? "";
   if (title.length < 3 || title.length > 120) {
     return jsonResponse(env, request, { error: "title_length" }, 400);
   }
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(url);
-  } catch {
-    return jsonResponse(env, request, { error: "invalid_url" }, 400);
-  }
-  if (!["https:", "http:"].includes(parsedUrl.protocol)) {
-    return jsonResponse(env, request, { error: "invalid_url_protocol" }, 400);
-  }
-  const content = body.content?.trim() || null;
+
+  const contentTrimmed = body.content?.trim() ?? "";
+  const content = contentTrimmed.length > 0 ? contentTrimmed : null;
   if (content && content.length > 20_000) {
     return jsonResponse(env, request, { error: "content_too_long" }, 400);
+  }
+
+  let storedUrl = "";
+  if (urlRaw.length > 0) {
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(urlRaw);
+    } catch {
+      return jsonResponse(env, request, { error: "invalid_url" }, 400);
+    }
+    if (!["https:", "http:"].includes(parsedUrl.protocol)) {
+      return jsonResponse(env, request, { error: "invalid_url_protocol" }, 400);
+    }
+    storedUrl = parsedUrl.toString();
+  } else if (kind === "PROJECT") {
+    return jsonResponse(env, request, { error: "project_url_required" }, 400);
+  }
+
+  if (kind === "ARTICLE") {
+    if (!content || content.length < 10) {
+      return jsonResponse(env, request, { error: "article_content_required" }, 400);
+    }
   }
 
   const user = await prisma.user.findUnique({
@@ -514,7 +559,7 @@ export async function handleBlogPost(
       userId: user.id,
       kind,
       title,
-      url: parsedUrl.toString(),
+      url: storedUrl,
       content,
     },
   });
@@ -554,16 +599,20 @@ export async function handleBlogPatch(
   }
   if (body.url !== undefined) {
     const raw = body.url.trim();
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(raw);
-    } catch {
-      return jsonResponse(env, request, { error: "invalid_url" }, 400);
+    if (raw.length === 0) {
+      data.url = "";
+    } else {
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(raw);
+      } catch {
+        return jsonResponse(env, request, { error: "invalid_url" }, 400);
+      }
+      if (!["https:", "http:"].includes(parsedUrl.protocol)) {
+        return jsonResponse(env, request, { error: "invalid_url_protocol" }, 400);
+      }
+      data.url = parsedUrl.toString();
     }
-    if (!["https:", "http:"].includes(parsedUrl.protocol)) {
-      return jsonResponse(env, request, { error: "invalid_url_protocol" }, 400);
-    }
-    data.url = parsedUrl.toString();
   }
   if (body.content !== undefined) {
     const content = body.content?.trim() || null;
@@ -571,6 +620,22 @@ export async function handleBlogPatch(
       return jsonResponse(env, request, { error: "content_too_long" }, 400);
     }
     data.content = content;
+  }
+
+  const mergedUrl =
+    body.url !== undefined ? String(data.url ?? "") : existing.url;
+  const mergedContent =
+    body.content !== undefined
+      ? ((data.content as string | null) ?? "").trim()
+      : (existing.content ?? "").trim();
+
+  if (existing.kind === "ARTICLE") {
+    if (mergedContent.length < 10) {
+      return jsonResponse(env, request, { error: "article_content_required" }, 400);
+    }
+  }
+  if (existing.kind === "PROJECT" && mergedUrl.trim().length === 0) {
+    return jsonResponse(env, request, { error: "project_url_required" }, 400);
   }
 
   const blog = await prisma.blog.update({
@@ -957,6 +1022,7 @@ export async function handleProfilePatch(
     bio?: string | null;
     github?: string | null;
     linkedin?: string | null;
+    framer?: string | null;
     techStack?: string[] | null;
     profileAvatarSource?: string | null;
   }>(request);
@@ -1020,6 +1086,20 @@ export async function handleProfilePatch(
       );
     }
     data.linkedin = linkedin;
+  }
+
+  if (body.framer !== undefined) {
+    if (body.framer !== null && typeof body.framer !== "string") {
+      return validation("framer", "framer must be a string or null.");
+    }
+    const framer = normalizeFramerInput(body.framer ?? null);
+    if (body.framer && !framer) {
+      return validation(
+        "framer",
+        "framer must be a valid https URL (e.g. your Framer portfolio).",
+      );
+    }
+    data.framer = framer;
   }
 
   if (body.techStack !== undefined) {
@@ -1117,13 +1197,25 @@ export async function handleBlogView(
   prisma: PrismaClient,
   id: string,
   request: Request,
+  env: WorkerBindings,
 ): Promise<Response> {
   const blog = await prisma.blog.findUnique({
     where: { id },
-    select: { id: true, url: true },
+    select: { id: true, url: true, content: true, kind: true },
   });
   if (!blog) {
     return new Response(JSON.stringify({ error: "not_found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+    });
+  }
+  if (blog.kind === "ARTICLE" && blog.content?.trim()) {
+    const base = env.BASE_URL?.replace(/\/$/, "") || "https://h4cknstack.com";
+    return Response.redirect(`${base}/articles/${blog.id}`, 302);
+  }
+  const dest = blog.url?.trim();
+  if (!dest) {
+    return new Response(JSON.stringify({ error: "no_external_url" }), {
       status: 404,
       headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
     });
@@ -1132,7 +1224,63 @@ export async function handleBlogView(
     where: { id: blog.id },
     data: { views: { increment: 1 } },
   });
-  return Response.redirect(blog.url, 302);
+  return Response.redirect(dest, 302);
+}
+
+/** Public hosted article (Markdown body). Increments view count once per fetch. */
+export async function handleBlogArticleGet(
+  prisma: PrismaClient,
+  id: string,
+  env: WorkerBindings,
+  request: Request,
+): Promise<Response> {
+  const blog = await prisma.blog.findFirst({
+    where: { id, kind: "ARTICLE" },
+    include: {
+      user: {
+        select: {
+          discordId: true,
+          displayName: true,
+          discordUsername: true,
+          github: true,
+        },
+      },
+    },
+  });
+  const bodyMd = blog?.content?.trim();
+  if (!blog || !bodyMd) {
+    return jsonResponse(env, request, { error: "not_found" }, 404);
+  }
+
+  await prisma.blog.update({
+    where: { id: blog.id },
+    data: { views: { increment: 1 } },
+  });
+
+  const u = blog.user;
+  const views = blog.views + 1;
+  return jsonResponse(
+    env,
+    request,
+    {
+      blog: {
+        id: blog.id,
+        title: blog.title,
+        content: blog.content,
+        url: blog.url?.trim() || null,
+        createdAt: blog.createdAt.toISOString(),
+        upvotes: blog.upvotes,
+        views,
+        user: {
+          discordId: u.discordId,
+          displayName: mergedPublicDisplayName(u.displayName, u.discordUsername),
+          github: u.github,
+        },
+      },
+    },
+    200,
+    { "Cache-Control": "private, no-store" },
+  );
 }
 
 const IMAGE_EXT_RE = /\.(png|jpg|jpeg|webp)(\?|#|$)/i;

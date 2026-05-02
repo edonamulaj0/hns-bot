@@ -17,6 +17,8 @@ model User {
   bio                   String?
   github                String?
   linkedin              String?
+  /** Published portfolio site (e.g. Framer). HTTPS URLs only. */
+  framer                String?
   techStack             Json?
   points                Int           @default(0)
   rank                  Int           @default(0)

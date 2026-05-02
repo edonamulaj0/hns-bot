@@ -120,6 +120,7 @@ function rootApiDiscoveryResponse(): Response {
       "/api/submit",
       "/api/submit/:id",
       "/api/submission/:id",
+      "/api/blogs/:id",
       "/api/redirect/:slug",
       "/oauth/github/callback",
     ],

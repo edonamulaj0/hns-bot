@@ -32,12 +32,13 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
   );
   const gh = githubProfileHref(u.github);
   const li = ensureAbsoluteUrl(u.linkedin);
+  const fr = ensureAbsoluteUrl(u.framer);
   const stack = formatTechStack(u.techStack as string[] | null | undefined);
   const xp = u.xpBreakdown;
   const xpRows = xp
     ? [
         { label: "GitHub activity", value: xp.github, note: "Monthly /pulse awards and admin backfills" },
-        { label: "Submissions", value: xp.submissions, note: "Approvals, enrollment bonuses, first submission bonus" },
+        { label: "Projects", value: xp.submissions, note: "Approvals, enrollment bonuses, first submission bonus" },
         { label: "Votes received", value: xp.votesReceived, note: "+2 XP per vote on approved work" },
         { label: "Articles", value: xp.articles, note: "+10 XP per shared article" },
         { label: "Other / adjustments", value: xp.other, note: "Legacy imports, manual fixes, or historical differences" },
@@ -78,7 +79,7 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
               Rank #{u.rank || "—"} · {u.points} XP
             </button>
             <p className="text-xs text-white/45 text-center lg:text-left">
-              Submissions: {u.stats.submissions} · Articles: {u.stats.blogs} · Votes cast:{" "}
+              Projects: {u.stats.projectsTotal} · Articles: {u.stats.articles} · Votes cast:{" "}
               {u.stats.votesCast}
             </p>
             {u.profileCompletedAt ? (
@@ -95,6 +96,11 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
               {li ? (
                 <a href={li} target="_blank" rel="noopener noreferrer" className="btn text-xs py-1.5">
                   LinkedIn
+                </a>
+              ) : null}
+              {fr ? (
+                <a href={fr} target="_blank" rel="noopener noreferrer" className="btn text-xs py-1.5">
+                  Framer
                 </a>
               ) : null}
             </div>
@@ -121,16 +127,16 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
 
             <div>
               <div className="mb-4 flex items-center justify-between gap-2">
-              <h2 className="font-bold text-lg">Submissions</h2>
+              <h2 className="font-bold text-lg">Projects</h2>
               {isOwnProfile && manageLinks ? (
                 <Link href={manageLinks.submissions} className="btn text-xs py-1.5">
-                  Manage submissions
+                  Manage projects
                 </Link>
               ) : null}
             </div>
               {data.submissions.length === 0 ? (
                 <div className="empty-state">
-                  <p>No published submissions to show yet.</p>
+                  <p>No published challenge projects to show yet.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -196,7 +202,7 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
 
             <div>
               <div className="mb-4 flex items-center justify-between gap-2">
-                <h2 className="font-bold text-lg">Other Projects</h2>
+                <h2 className="font-bold text-lg">Other projects</h2>
                 {isOwnProfile && manageLinks ? (
                   <Link href={manageLinks.projects} className="btn text-xs py-1.5">
                     Manage projects
@@ -304,7 +310,7 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
                 ))}
                 {xp.details && (
                   <p className="text-xs leading-relaxed text-white/45">
-                    Submission detail: {xp.details.approvedSubmissions} approved submission
+                    Project detail: {xp.details.approvedSubmissions} approved submission
                     {xp.details.approvedSubmissions === 1 ? "" : "s"},{" "}
                     {xp.details.enrollmentBonusMonths} enrollment bonus month
                     {xp.details.enrollmentBonusMonths === 1 ? "" : "s"}, first submission bonus{" "}

@@ -112,6 +112,8 @@ export interface MemberSummary {
   bio: string | null;
   github: string | null;
   linkedin: string | null;
+  /** Portfolio / Framer (or other https site); optional */
+  framer: string | null;
   techStack: string[] | null;
   points: number;
   rank: number;
@@ -136,6 +138,7 @@ export interface Blog {
   id: string;
   kind?: "ARTICLE" | "PROJECT";
   title: string;
+  /** Empty when hosted on-site only. */
   url: string;
   viewUrl?: string;
   /** Up to 500 chars excerpt when sourced from uploaded markdown */
@@ -195,11 +198,12 @@ export interface PublicProfileUser {
   bio: string | null;
   github: string | null;
   linkedin: string | null;
+  framer: string | null;
   techStack: unknown;
   points: number;
   rank: number;
   profileCompletedAt: string | null;
-  stats: { submissions: number; blogs: number; votesCast: number };
+  stats: { projectsTotal: number; articles: number; votesCast: number };
   xpBreakdown?: {
     total: number;
     github: number;
@@ -394,6 +398,38 @@ export async function getBlogs(): Promise<BlogsResponse> {
     return res.json();
   } catch {
     return EMPTY_BLOGS;
+  }
+}
+
+const BLOG_ARTICLE_ID_RE = /^c[a-z0-9]{20,}$/i;
+
+/** Full hosted article for `/articles/[id]` (increments views server-side). */
+export interface BlogArticleDetail {
+  id: string;
+  title: string;
+  content: string;
+  url: string | null;
+  createdAt: string;
+  upvotes: number;
+  views: number;
+  user: {
+    discordId: string;
+    displayName?: string | null;
+    github: string | null;
+  };
+}
+
+export async function getBlogArticle(id: string): Promise<BlogArticleDetail | null> {
+  if (!BLOG_ARTICLE_ID_RE.test(id)) return null;
+  const url = await resolveApiFetchUrl(`/blogs/${encodeURIComponent(id)}`);
+  if (!url) return null;
+  try {
+    const res = await fetch(url, fetchInit());
+    if (!res.ok) return null;
+    const j = (await res.json()) as { blog?: BlogArticleDetail };
+    return j.blog ?? null;
+  } catch {
+    return null;
   }
 }
 

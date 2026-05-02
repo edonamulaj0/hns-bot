@@ -34,6 +34,24 @@ function isValidLinkedinUrl(raw: string): boolean {
   }
 }
 
+/** Matches Worker `normalizeFramerInput`: https only, max length 500. */
+function isValidFramerPortfolioUrl(raw: string): boolean {
+  const s = raw.trim();
+  if (!s) return true;
+  if (s.length > 500) return false;
+  try {
+    let href = s;
+    if (!/^https:\/\//i.test(href)) {
+      href = `https://${href.replace(/^\/+/, "")}`;
+    }
+    const u = new URL(href);
+    if (u.protocol !== "https:") return false;
+    return Boolean(u.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function validateSettingsDisplayName(value: string): string | null {
   const v = value.trim().replace(/\s+/g, " ");
   if (!v) return null;
@@ -50,6 +68,7 @@ type MeUser = {
   bio: string | null;
   github: string | null;
   linkedin: string | null;
+  framer: string | null;
   techStack: unknown;
   profileAvatarSource?: string | null;
 };
@@ -64,6 +83,7 @@ export function SettingsClient() {
   const [about, setAbout] = useState("");
   const [github, setGithub] = useState("");
   const [linkedin, setLinkedin] = useState("");
+  const [framer, setFramer] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [avatarSource, setAvatarSource] = useState<"github" | "discord">("discord");
   const [tagInput, setTagInput] = useState("");
@@ -72,6 +92,7 @@ export function SettingsClient() {
   const [error, setError] = useState<string | null>(null);
   const [githubErr, setGithubErr] = useState<string | null>(null);
   const [linkedinErr, setLinkedinErr] = useState<string | null>(null);
+  const [framerErr, setFramerErr] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
   const [deleteBusy, setDeleteBusy] = useState(false);
@@ -112,6 +133,7 @@ export function SettingsClient() {
         setAbout(data.user.bio ?? "");
         setGithub(data.user.github ?? "");
         setLinkedin(data.user.linkedin ?? "");
+        setFramer(data.user.framer ?? "");
         setTags(Array.isArray(data.user.techStack) ? (data.user.techStack as string[]).slice(0, 15) : []);
         setAvatarSource(
           data.user.profileAvatarSource?.toLowerCase() === "github" ? "github" : "discord",
@@ -164,11 +186,24 @@ export function SettingsClient() {
     return ok;
   };
 
+  const onFramerBlur = () => {
+    if (!framer.trim()) {
+      setFramerErr(null);
+      return true;
+    }
+    const ok = isValidFramerPortfolioUrl(framer);
+    setFramerErr(
+      ok ? null : "Use a valid https portfolio URL (Framer or custom domain), at most 500 characters.",
+    );
+    return ok;
+  };
+
   const save = async () => {
     setError(null);
     const ghOk = onGithubBlur();
     const liOk = onLinkedinBlur();
-    if (!ghOk || !liOk) return;
+    const frOk = onFramerBlur();
+    if (!ghOk || !liOk || !frOk) return;
     const nameToSend = displayName.trim().replace(/\s+/g, " ") || null;
     if (nameToSend) {
       const nameErr = validateSettingsDisplayName(nameToSend);
@@ -184,6 +219,7 @@ export function SettingsClient() {
         bio: about || null,
         github: github || null,
         linkedin: linkedin || null,
+        framer: framer || null,
         techStack: tags,
         profileAvatarSource: avatarSource,
       });
@@ -311,6 +347,20 @@ export function SettingsClient() {
                 className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2.5 text-sm"
               />
               {linkedinErr && <p className="text-xs text-[var(--danger)] mt-1 mb-3">{linkedinErr}</p>}
+
+              <label className="block text-sm text-white/70 mb-1 mt-4">Framer / portfolio URL</label>
+              <input
+                type="url"
+                placeholder="https://your-site.framer.website"
+                value={framer}
+                onChange={(e) => setFramer(e.target.value)}
+                onBlur={onFramerBlur}
+                className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2.5 text-sm"
+              />
+              <p className="text-xs text-white/45 mt-1 mb-1">
+                Optional. HTTPS link to your published site (Framer subdomain or custom domain).
+              </p>
+              {framerErr && <p className="text-xs text-[var(--danger)] mt-1 mb-3">{framerErr}</p>}
 
               <label className="block text-sm text-white/70 mb-1 mt-4">Tech Stack</label>
               <div className="mb-2 flex flex-wrap gap-2">

@@ -42,6 +42,7 @@ export async function patchProfile(body: {
   bio?: string | null;
   github?: string | null;
   linkedin?: string | null;
+  framer?: string | null;
   techStack?: string[];
   profileAvatarSource?: string | null;
 }): Promise<Response> {
@@ -97,7 +98,8 @@ export async function deleteSubmit(id: string): Promise<Response> {
 export async function postBlog(body: {
   kind: "ARTICLE" | "PROJECT";
   title: string;
-  url: string;
+  /** Required for projects; optional for articles (hosted body is primary). */
+  url?: string;
   content?: string | null;
 }): Promise<Response> {
   return fetch(browserApiUrl("/blog"), {

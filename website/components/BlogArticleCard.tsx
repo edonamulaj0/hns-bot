@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import type { Blog } from "@/lib/api";
 import { memberDisplayName } from "@/lib/member-label";
 import { formatFeedTime } from "@/lib/relative-time";
 
-export function articleBadge(blog: Blog): "Medium" | "Uploaded" | "External" {
-  if (blog.content?.trim()) return "Uploaded";
-  const u = blog.url.toLowerCase();
+export function articleBadge(blog: Blog): "Medium" | "Story" | "External" {
+  if (blog.content?.trim()) return "Story";
+  const u = blog.url?.toLowerCase() ?? "";
   if (u.includes("medium.com")) return "Medium";
   return "External";
 }
@@ -35,9 +36,6 @@ export function BlogArticleCard({
     <article className="card p-4 sm:p-5 flex flex-col h-full">
       <div className="flex flex-wrap gap-2 mb-2">
         <span className="tag text-[0.6rem]">{badge}</span>
-        {uploaded && (
-          <span className="tag text-[0.6rem] border-[var(--accent)]/40">Markdown</span>
-        )}
       </div>
       <h3 className="font-bold text-lg mb-2 leading-tight">{blog.title}</h3>
       {excerpt && (
@@ -69,14 +67,22 @@ export function BlogArticleCard({
           )}
         </div>
       </div>
-      <a
-        href={blog.viewUrl ?? blog.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn text-xs mt-3 w-fit"
-      >
-        {uploaded ? "Read" : "Open article →"}
-      </a>
+      {uploaded ? (
+        <Link href={`/articles/${blog.id}`} className="btn text-xs mt-3 w-fit">
+          Read
+        </Link>
+      ) : blog.url?.trim() ? (
+        <a
+          href={blog.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn text-xs mt-3 w-fit"
+        >
+          Open article →
+        </a>
+      ) : (
+        <span className="text-xs text-white/40 mt-3 inline-block">No link</span>
+      )}
     </article>
   );
 }

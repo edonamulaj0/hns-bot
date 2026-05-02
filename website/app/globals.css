@@ -404,6 +404,114 @@ footer.footer {
   }
 }
 
+/* ── Hosted articles (`/articles/[id]`) — readable “Medium-like” column ───────── */
+
+.article-prose {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.05rem, 2.2vw, 1.2rem);
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.article-prose > * + * {
+  margin-top: 1.25em;
+}
+
+.article-prose h1,
+.article-prose h2,
+.article-prose h3,
+.article-prose h4 {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  color: var(--text);
+  margin-top: 1.75em;
+}
+
+.article-prose h1 {
+  font-size: 1.75rem;
+}
+
+.article-prose h2 {
+  font-size: 1.45rem;
+}
+
+.article-prose h3 {
+  font-size: 1.2rem;
+}
+
+.article-prose a {
+  color: var(--accent-subtle);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.article-prose a:hover {
+  color: var(--accent);
+}
+
+.article-prose strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.article-prose ul,
+.article-prose ol {
+  padding-left: 1.35em;
+}
+
+.article-prose li {
+  margin-top: 0.35em;
+}
+
+.article-prose blockquote {
+  margin: 1.25em 0;
+  padding: 0.75em 0 0.75em 1rem;
+  border-left: 3px solid var(--accent-subtle);
+  color: rgba(255, 255, 255, 0.65);
+  font-style: italic;
+}
+
+.article-prose hr {
+  margin: 2rem 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.article-prose code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.88em;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+}
+
+.article-prose pre {
+  margin: 1.25em 0;
+  padding: 1rem 1.15rem;
+  overflow-x: auto;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #0d0d0d;
+}
+
+.article-prose pre code {
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.article-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 1.25em 0;
+}
+
 @media (max-width: 480px) {
   :root {
     --cta-direction: column;

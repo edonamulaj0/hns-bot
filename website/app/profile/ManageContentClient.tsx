@@ -70,10 +70,26 @@ export function ManageContentClient({
     setBusy(true);
     setError(null);
     try {
+      const titleTrim = form.title.trim();
+      const urlTrim = form.url.trim();
+      const contentTrim = form.content.trim();
+      if (titleTrim.length < 3) {
+        setError("Title must be at least 3 characters.");
+        return;
+      }
+      if (kind === "ARTICLE") {
+        if (contentTrim.length < 10) {
+          setError("Article text (markdown) is required — write at least a short paragraph.");
+          return;
+        }
+      } else if (!urlTrim) {
+        setError("Project URL is required.");
+        return;
+      }
       const payload = {
-        title: form.title,
-        url: form.url,
-        content: form.content || null,
+        title: titleTrim,
+        url: urlTrim,
+        content: contentTrim.length > 0 ? contentTrim : null,
       };
       if (editId) {
         const res = await patchBlog(editId, payload);
@@ -161,13 +177,22 @@ export function ManageContentClient({
           />
           <input
             className="w-full rounded border border-[var(--border)] bg-[var(--bg-card)] p-2.5 text-sm"
-            placeholder={kind === "ARTICLE" ? "Article URL" : "Project URL / repo URL"}
+            placeholder={
+              kind === "ARTICLE"
+                ? "Optional external URL (Medium, personal site, …)"
+                : "Project URL / repo URL (required)"
+            }
             value={form.url}
             onChange={(e) => setForm((p) => ({ ...p, url: e.target.value }))}
           />
           <textarea
-            className="w-full min-h-[120px] rounded border border-[var(--border)] bg-[var(--bg-card)] p-2.5 text-sm"
-            placeholder="Markdown description (optional)"
+            className="w-full min-h-[180px] rounded border border-[var(--border)] bg-[var(--bg-card)] p-2.5 text-sm font-mono text-[0.85rem] leading-relaxed"
+            placeholder={
+              kind === "ARTICLE"
+                ? "Article body (markdown, required)"
+                : "Markdown description (optional)"
+            }
+            required={kind === "ARTICLE"}
             value={form.content}
             onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))}
           />
@@ -203,9 +228,15 @@ export function ManageContentClient({
                 {item.content?.trim() ? (
                   <p className="text-sm text-white/60 mt-2 line-clamp-3">{item.content}</p>
                 ) : null}
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn text-xs mt-3">
-                  Open →
-                </a>
+                {kind === "ARTICLE" && item.content?.trim() ? (
+                  <Link href={`/articles/${item.id}`} className="btn text-xs mt-3 inline-flex">
+                    Open post
+                  </Link>
+                ) : item.url?.trim() ? (
+                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn text-xs mt-3">
+                    Open →
+                  </a>
+                ) : null}
                 <div className="mt-3 flex gap-2 border-t border-[var(--border)] pt-3">
                   <button type="button" className="btn p-2" onClick={() => startEdit(item)}>Edit</button>
                   <button type="button" className="btn p-2" onClick={() => remove(item.id)}>Delete</button>

@@ -20,6 +20,7 @@ import {
   handleSubmitPatch,
   handleSubmitDelete,
   handleBlogView,
+  handleBlogArticleGet,
   handleUserPublicProfile,
   handleBlogPost,
   handleBlogPatch,
@@ -168,9 +169,15 @@ export async function handleApiRequest(
       return tagApi(body, method);
     }
 
+    const blogDetailMatch = pathname.match(/^\/api\/blogs\/([^/]+)$/);
+    if (blogDetailMatch && method === "GET") {
+      const body = await handleBlogArticleGet(prisma, blogDetailMatch[1]!, env, request);
+      return tagApi(body, method);
+    }
+
     const blogViewMatch = pathname.match(/^\/api\/blogs\/([^/]+)\/view$/);
     if (blogViewMatch && method === "GET") {
-      const body = await handleBlogView(prisma, blogViewMatch[1]!, request);
+      const body = await handleBlogView(prisma, blogViewMatch[1]!, request, env);
       return tagApi(body, method);
     }
 
@@ -340,6 +347,7 @@ async function portfolioResponse(
           bio: true,
           github: true,
           linkedin: true,
+          framer: true,
           techStack: true,
           points: true,
           rank: true,
@@ -372,6 +380,7 @@ async function portfolioResponse(
         bio: u.bio,
         github: u.github,
         linkedin: u.linkedin,
+        framer: u.framer,
         techStack: u.techStack,
         points: u.points,
         rank: u.rank,
@@ -395,6 +404,7 @@ async function membersResponse(prisma: PrismaClient): Promise<Response> {
       bio: true,
       github: true,
       linkedin: true,
+      framer: true,
       techStack: true,
       points: true,
       rank: true,
@@ -439,6 +449,8 @@ async function leaderboardResponse(prisma: PrismaClient): Promise<Response> {
       avatarHash: true,
       bio: true,
       github: true,
+      linkedin: true,
+      framer: true,
       techStack: true,
       points: true,
       rank: true,

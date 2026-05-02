@@ -566,6 +566,7 @@ export default function MembersHub({
                               );
                               const gh = githubProfileHref(m.github);
                               const li = ensureAbsoluteUrl(m.linkedin);
+                              const fr = ensureAbsoluteUrl(m.framer);
                               return (
                                 <article
                                   key={m.discordId}
@@ -668,6 +669,17 @@ export default function MembersHub({
                                         onClick={(e) => e.stopPropagation()}
                                       >
                                         LinkedIn
+                                      </a>
+                                    )}
+                                    {fr && (
+                                      <a
+                                        href={fr}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn px-2 py-1 text-[0.65rem]"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        Framer
                                       </a>
                                     )}
                                   </div>

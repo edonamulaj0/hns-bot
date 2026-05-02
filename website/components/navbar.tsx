@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 import { AuthNav } from "@/components/AuthNav";
 import { getSessionClient, loginUrl, type SessionUser } from "@/lib/auth-client";
 import { userProfileAvatarUrl } from "@/lib/api";
-import { BRAND_LOGO_PNG, BRAND_LOGO_SVG, BRAND_NAME } from "@/lib/branding";
 import { getMonthKey } from "@/lib/month";
 
 const VISITED_KEY = "hns_has_visited";
@@ -56,25 +55,11 @@ function accountLinkActive(pathname: string, href: string): boolean {
 }
 
 function NavBrand() {
-  const [step, setStep] = useState<"png" | "svg" | "text">("png");
-  if (step === "text") {
-    return (
-      <span className="font-mono text-lg font-bold tracking-tight text-[var(--accent)]">
-        {BRAND_NAME}
-      </span>
-    );
-  }
-  const src = step === "png" ? BRAND_LOGO_PNG : BRAND_LOGO_SVG;
   return (
-    <Image
-      src={src}
-      alt={BRAND_NAME}
-      width={280}
-      height={52}
-      priority
-      className="h-11 w-auto max-h-[3rem] max-w-[min(280px,72vw)] object-contain object-left sm:h-12 sm:max-h-[3.25rem]"
-      onError={() => setStep((s) => (s === "png" ? "svg" : "text"))}
-    />
+    <span className="font-mono text-lg font-bold tracking-tight sm:text-xl leading-none">
+      <span className="text-[var(--accent-subtle)]">H4ck</span>
+      <span className="text-[var(--accent)]">&amp;Stack</span>
+    </span>
   );
 }
 
