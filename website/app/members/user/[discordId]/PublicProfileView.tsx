@@ -46,7 +46,13 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
     : [];
 
   return (
-    <section className="section px-[clamp(1rem,4vw,2rem)]">
+    <section
+      className={
+        isOwnProfile
+          ? "px-[clamp(1rem,4vw,2rem)] pb-[var(--space-xl)] pt-1 sm:pt-2"
+          : "section px-[clamp(1rem,4vw,2rem)]"
+      }
+    >
       <div className="container max-w-5xl space-y-10">
         <nav className="text-sm">
           <Link href="/members" className="text-white/50 hover:text-[var(--accent)]">

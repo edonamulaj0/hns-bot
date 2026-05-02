@@ -27,7 +27,7 @@ export function VoteBanner({ monthKey }: { monthKey?: string }) {
         "flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3",
         "rounded-sm border border-[#ccff004d] bg-[#ccff000a]",
         "px-2.5 py-2 sm:px-3 sm:py-2",
-        "mb-4 max-w-full",
+        "mb-1 max-w-full",
       ].join(" ")}
     >
       {/* Vote cap: 3 total, max 1 per track. Update here if src/vote-service.ts changes. */}

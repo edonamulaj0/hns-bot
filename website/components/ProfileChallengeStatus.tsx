@@ -11,7 +11,7 @@ function formatTrack(track: string): string {
 }
 
 const cardClass =
-  "flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 rounded-sm border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-2 sm:px-3 sm:py-2 mb-4 max-w-full";
+  "flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 rounded-sm border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-2 sm:px-3 sm:py-2 mb-1 max-w-full";
 
 export function ProfileChallengeStatus({
   phase,
@@ -24,7 +24,7 @@ export function ProfileChallengeStatus({
 }) {
   if (phase === "VOTE") {
     return (
-      <section className="section px-[clamp(1rem,4vw,2rem)] pb-0 pt-2">
+      <section className="px-[clamp(1rem,4vw,2rem)] pb-0 pt-1">
         <div className="container max-w-5xl">
           <div className={cardClass}>
             <div className="min-w-0 flex-1 leading-snug">
@@ -53,7 +53,7 @@ export function ProfileChallengeStatus({
   if (enrollment) {
     const ch = enrollment.challenge;
     return (
-      <section className="section px-[clamp(1rem,4vw,2rem)] pb-0 pt-2">
+      <section className="px-[clamp(1rem,4vw,2rem)] pb-0 pt-1">
         <div className="container max-w-5xl">
           <div className={cardClass}>
             <div className="min-w-0 flex-1 leading-snug">
@@ -78,7 +78,7 @@ export function ProfileChallengeStatus({
   }
 
   return (
-    <section className="section px-[clamp(1rem,4vw,2rem)] pb-0 pt-2">
+    <section className="px-[clamp(1rem,4vw,2rem)] pb-0 pt-1">
       <div className="container max-w-5xl">
         <div className={cardClass}>
           <div className="min-w-0 flex-1 leading-snug">
