@@ -10,6 +10,9 @@ function formatTrack(track: string): string {
   return t === "HACKER" ? "Hacker" : t === "DESIGNERS" ? "Designer" : "Developer";
 }
 
+const cardClass =
+  "flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 rounded-sm border border-[var(--border)] bg-[var(--bg-card)] px-2.5 py-2 sm:px-3 sm:py-2 mb-4 max-w-full";
+
 export function ProfileChallengeStatus({
   phase,
   month,
@@ -23,14 +26,19 @@ export function ProfileChallengeStatus({
     return (
       <section className="section px-[clamp(1rem,4vw,2rem)] pb-0 pt-2">
         <div className="container max-w-5xl">
-          <div className="rounded border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
-            <h2 className="font-bold text-lg text-white mb-2">Submissions are closed — time to vote</h2>
-            <p className="text-sm text-white/65 leading-relaxed mb-5">
-              The build window has ended for <span className="mono text-[var(--accent)]">{month}</span>. Cast your votes on
-              the site (up to three per month, one per track).
-            </p>
-            <Link href={`/vote/${encodeURIComponent(month)}`} className="btn btn-primary inline-flex">
-              Open voting
+          <div className={cardClass}>
+            <div className="min-w-0 flex-1 leading-snug">
+              <p className="font-bold text-xs text-white sm:text-sm">Submissions closed — vote open</p>
+              <p className="mono text-[0.65rem] text-white/50 sm:text-xs">
+                <span className="text-[var(--accent)]">{month}</span>
+                <span className="text-white/30 before:mx-1.5 before:content-['·']">Up to 3 votes · 1 per track</span>
+              </p>
+            </div>
+            <Link
+              href={`/vote/${encodeURIComponent(month)}`}
+              className="btn btn-primary w-full shrink-0 px-3 py-1.5 text-xs sm:w-auto sm:self-center"
+            >
+              Open voting →
             </Link>
           </div>
         </div>
@@ -47,16 +55,21 @@ export function ProfileChallengeStatus({
     return (
       <section className="section px-[clamp(1rem,4vw,2rem)] pb-0 pt-2">
         <div className="container max-w-5xl">
-          <div className="rounded border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
-            <h2 className="font-bold text-lg text-white mb-3">You&apos;re enrolled this month</h2>
-            <p className="text-sm text-white/80 mb-1">
-              <span className="text-white font-semibold">{formatTrack(ch.track)}</span>
-              <span className="text-white/40 mx-2">·</span>
-              <span className="mono text-[var(--accent)]">{ch.tier}</span>
-            </p>
-            <p className="text-sm text-white/55 mb-5">{ch.title}</p>
-            <Link href="/submit" className="btn btn-primary inline-flex">
-              Submit your work
+          <div className={cardClass}>
+            <div className="min-w-0 flex-1 leading-snug">
+              <p className="font-bold text-xs text-white sm:text-sm">Enrolled this month</p>
+              <p className="text-[0.65rem] text-white/70 sm:text-xs">
+                <span className="font-semibold text-white/90">{formatTrack(ch.track)}</span>
+                <span className="text-white/35 mx-1">·</span>
+                <span className="mono text-[var(--accent)]">{ch.tier}</span>
+              </p>
+              <p className="mt-0.5 line-clamp-2 text-[0.65rem] text-white/45 sm:text-xs">{ch.title}</p>
+            </div>
+            <Link
+              href="/submit"
+              className="btn btn-primary w-full shrink-0 px-3 py-1.5 text-xs sm:w-auto sm:self-center"
+            >
+              Submit →
             </Link>
           </div>
         </div>
@@ -67,24 +80,28 @@ export function ProfileChallengeStatus({
   return (
     <section className="section px-[clamp(1rem,4vw,2rem)] pb-0 pt-2">
       <div className="container max-w-5xl">
-        <div className="rounded border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
-          <h2 className="font-bold text-lg text-white mb-2">Challenges are out</h2>
-          <p className="text-sm text-white/65 leading-relaxed mb-4">
-            Pick your track and tier for <span className="mono text-[var(--accent)]">{month}</span> in Discord: run{" "}
-            <code className="mono text-[var(--accent)] text-[0.9em]">/enroll</code>, choose your category and difficulty,
-            and you&apos;ll get the full briefing in your DMs. Then submit your entry on this site.
-          </p>
-          <div className="flex flex-wrap gap-3">
+        <div className={cardClass}>
+          <div className="min-w-0 flex-1 leading-snug">
+            <p className="font-bold text-xs text-white sm:text-sm">Challenges are out</p>
+            <p className="text-[0.65rem] text-white/50 sm:text-xs">
+              <span className="mono text-[var(--accent)]">{month}</span>
+              <span className="text-white/35">
+                {" "}
+                · Use <code className="mono text-[var(--accent)]">/enroll</code> in Discord, then submit here.
+              </span>
+            </p>
+          </div>
+          <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end sm:self-center">
             <a
               href={DISCORD_INVITE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn inline-flex"
+              className="btn w-full px-3 py-1.5 text-xs sm:w-auto"
             >
-              Open Discord
+              Discord
             </a>
-            <Link href="/challenges" className="btn btn-primary inline-flex">
-              Browse challenges
+            <Link href="/challenges" className="btn btn-primary w-full px-3 py-1.5 text-xs sm:w-auto">
+              Challenges →
             </Link>
           </div>
         </div>
