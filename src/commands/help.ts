@@ -13,10 +13,6 @@ const MEMBER_ROWS: { name: string; value: string }[] = [
     value: "Portfolio-style profile (defaults to you). Edit fields on the website.",
   },
   {
-    name: "/submit",
-    value: "Link to submit your monthly project on the site.",
-  },
-  {
     name: "/enroll",
     value: "Pick Developer or Hacker track + tier during the build window before submitting.",
   },
@@ -40,10 +36,6 @@ const MEMBER_ROWS: { name: string; value: string }[] = [
 
 const ADMIN_ROWS: { name: string; value: string }[] = [
   {
-    name: "/intro",
-    value: "Post a plain-text welcome in this channel (mods only).",
-  },
-  {
     name: "/admin",
     value: "Health check: XP role mappings vs Discord hierarchy.",
   },
@@ -66,6 +58,10 @@ const ADMIN_ROWS: { name: string; value: string }[] = [
   {
     name: "/admin-sync-roles",
     value: "Re-sync all member Discord roles from current XP.",
+  },
+  {
+    name: "/admin-sync-github-xp",
+    value: "Backfill GitHub activity XP from Jul 2025 through May 2026.",
   },
 ];
 

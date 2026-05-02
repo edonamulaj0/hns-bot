@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import type { PublicMemberProfile } from "@/lib/api";
 import { formatTechStack, userProfileAvatarUrl } from "@/lib/api";
 import { BlogArticleCard } from "@/components/BlogArticleCard";
@@ -17,6 +20,7 @@ const AVATAR_BLUR_DATA_URL =
 
 export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: PublicProfileViewProps) {
   const u = data.user;
+  const [showXpModal, setShowXpModal] = useState(false);
   const avatar = userProfileAvatarUrl(
     {
       discordId: u.discordId,
@@ -29,6 +33,16 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
   const gh = githubProfileHref(u.github);
   const li = ensureAbsoluteUrl(u.linkedin);
   const stack = formatTechStack(u.techStack as string[] | null | undefined);
+  const xp = u.xpBreakdown;
+  const xpRows = xp
+    ? [
+        { label: "GitHub activity", value: xp.github, note: "Monthly /pulse awards and admin backfills" },
+        { label: "Submissions", value: xp.submissions, note: "Approvals, enrollment bonuses, first submission bonus" },
+        { label: "Votes received", value: xp.votesReceived, note: "+2 XP per vote on approved work" },
+        { label: "Articles", value: xp.articles, note: "+10 XP per shared article" },
+        { label: "Other / adjustments", value: xp.other, note: "Legacy imports, manual fixes, or historical differences" },
+      ].filter((row) => row.value > 0 || row.label === "Other / adjustments")
+    : [];
 
   return (
     <section className="section px-[clamp(1rem,4vw,2rem)]">
@@ -55,9 +69,14 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
             <div className="text-center lg:text-left">
               <h1 className="font-bold text-xl">{memberDisplayName(u)}</h1>
             </div>
-            <p className="text-sm text-[var(--accent)] text-center lg:text-left">
+            <button
+              type="button"
+              className="block w-full rounded text-center text-sm text-[var(--accent)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] lg:text-left"
+              onClick={() => setShowXpModal(true)}
+              aria-label={`Show XP breakdown for ${memberDisplayName(u)}`}
+            >
               Rank #{u.rank || "—"} · {u.points} XP
-            </p>
+            </button>
             <p className="text-xs text-white/45 text-center lg:text-left">
               Submissions: {u.stats.submissions} · Articles: {u.stats.blogs} · Votes cast:{" "}
               {u.stats.votesCast}
@@ -238,6 +257,67 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
           </div>
         </div>
       </div>
+      {showXpModal && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="xp-breakdown-title"
+          onClick={() => setShowXpModal(false)}
+        >
+          <div
+            className="card max-h-[90vh] w-full max-w-lg overflow-y-auto p-5 sm:p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <p className="label mb-1">XP Breakdown</p>
+                <h2 id="xp-breakdown-title" className="text-xl font-bold">
+                  {memberDisplayName(u)}
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="btn text-xs"
+                onClick={() => setShowXpModal(false)}
+                aria-label="Close XP breakdown"
+              >
+                Close
+              </button>
+            </div>
+            <p className="mb-4 text-sm text-white/60">
+              Total XP: <span className="font-bold text-[var(--accent)]">{u.points}</span>
+            </p>
+            {xp ? (
+              <div className="space-y-3">
+                {xpRows.map((row) => (
+                  <div
+                    key={row.label}
+                    className="rounded border border-[var(--border)] bg-[var(--bg)] p-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-bold text-white/90">{row.label}</span>
+                      <span className="mono text-[var(--accent)]">{row.value} XP</span>
+                    </div>
+                    <p className="mt-1 text-xs text-white/45">{row.note}</p>
+                  </div>
+                ))}
+                {xp.details && (
+                  <p className="text-xs leading-relaxed text-white/45">
+                    Submission detail: {xp.details.approvedSubmissions} approved submission
+                    {xp.details.approvedSubmissions === 1 ? "" : "s"},{" "}
+                    {xp.details.enrollmentBonusMonths} enrollment bonus month
+                    {xp.details.enrollmentBonusMonths === 1 ? "" : "s"}, first submission bonus{" "}
+                    {xp.details.firstSubmissionBonus} XP.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-white/60">XP breakdown is not available for this profile yet.</p>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

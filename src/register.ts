@@ -6,9 +6,8 @@ dotenv.config();
 
 const DISCORD_API = "https://discord.com/api/v10";
 
-/** Slash names that should only appear for members with ADMIN_ROLE_ID (guild command permissions). */
+/** Slash names guarded at runtime by ADMIN_ROLE_ID. */
 const ADMIN_SLASH_NAMES = new Set([
-  "intro",
   "admin",
   "admin-test-claude",
   "admin-test-generate",
@@ -22,7 +21,6 @@ async function main() {
   const applicationId = process.env.DISCORD_APPLICATION_ID;
   const token = process.env.DISCORD_TOKEN;
   const guildId = process.env.DISCORD_TEST_GUILD_ID;
-  const adminRoleId = process.env.ADMIN_ROLE_ID?.trim() ?? "";
 
   if (!applicationId || !token) {
     throw new Error("DISCORD_APPLICATION_ID and DISCORD_TOKEN must be set in .env");
@@ -36,25 +34,6 @@ async function main() {
     new Command("profile", "View a member portfolio profile").options(
       new Option("user", "Member to view (optional — defaults to you)", "User"),
     ),
-    new Command(
-      "submit",
-      "Submit challenge work (Designer via Discord; Developer/Hacker on the website)",
-    ).options(
-      new Option("track", "Track — use Designer to submit from Discord", "String")
-        .required(false)
-        .choices(
-          { name: "Developer (website)", value: "DEVELOPER" },
-          { name: "Hacker (website)", value: "HACKER" },
-          { name: "Designer", value: "DESIGNERS" },
-        ),
-      new Option("title", "Title for Designer submit (5–100 chars)", "String").required(false),
-      new Option("description", "Description for Designer (100–2000 chars)", "String").required(false),
-      new Option(
-        "image_url",
-        "Direct HTTPS image URL — PNG, JPG, or WebP (Designer)",
-        "String",
-      ).required(false),
-    ),
     new Command("pulse", "Award monthly GitHub activity XP and show a month-end estimate"),
     new Command(
       "link-github",
@@ -62,12 +41,7 @@ async function main() {
     ),
     new Command("unlink-github", "Remove stored GitHub OAuth from this bot"),
     new Command("leaderboard", "See the top contributors this month"),
-    new Command(
-      "design-brief",
-      "Show this month's Designer challenge briefs (all tiers)",
-    ),
     new Command("help", "List all bot commands and what they do (ephemeral)"),
-    new Command("intro", "Post a plain-text welcome in this channel (mods only)"),
     new Command("enroll", "Enroll in a monthly challenge before you submit on the web").options(
       new Option("track", "Challenge track (optional — omit to pick from a menu)", "String")
         .required(false)
@@ -148,52 +122,8 @@ async function main() {
   }
 
   console.info("===== ✅ Slash commands registered =====");
-
-  const registered = (await putRes.json()) as Array<{ id: string; name: string }>;
-
-  if (!adminRoleId) {
-    console.warn(
-      "ADMIN_ROLE_ID is not set — admin slash commands are visible to everyone in this guild.",
-      "Set ADMIN_ROLE_ID in .env and run `npm run register` again to restrict them.",
-    );
-    return;
-  }
-
-  const payload = registered.map((cmd) => {
-    if (ADMIN_SLASH_NAMES.has(cmd.name)) {
-      return {
-        id: cmd.id,
-        permissions: [
-          { id: guildId, type: 1, permission: false },
-          { id: adminRoleId, type: 1, permission: true },
-        ],
-      };
-    }
-    return { id: cmd.id, permissions: [] as { id: string; type: number; permission: boolean }[] };
-  });
-
-  const permRes = await fetch(
-    `${DISCORD_API}/applications/${applicationId}/guilds/${guildId}/commands/permissions`,
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bot ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    },
-  );
-
-  if (!permRes.ok) {
-    const errText = await permRes.text();
-    console.error("===== ⚠️ Error setting command visibility (permissions) =====");
-    console.error(`${permRes.status} ${permRes.statusText}\n${errText}`);
-    process.exitCode = 1;
-    return;
-  }
-
   console.info(
-    `===== ✅ Admin-only visibility applied (${ADMIN_SLASH_NAMES.size} commands → role ${adminRoleId}) =====`,
+    `===== ✅ Admin commands guarded at runtime (${ADMIN_SLASH_NAMES.size} commands check ADMIN_ROLE_ID) =====`,
   );
 }
 

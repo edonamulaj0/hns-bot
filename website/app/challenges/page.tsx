@@ -353,20 +353,16 @@ export default function ChallengesPage() {
           <ul className="space-y-4 text-left text-sm text-white/70 sm:text-base">
             {[
               {
-                cmd: "Website → Profile",
-                desc: "After signing in with Discord, complete your profile (bio, GitHub, LinkedIn, tech stack) for your public Members card. You can also use /profile in Discord.",
+                cmd: "/help",
+                desc: "Shows the current Discord bot commands and what each one does.",
+              },
+              {
+                cmd: "/profile",
+                desc: "After signing in with Discord, complete your profile (bio, GitHub, LinkedIn, tech stack) for your public Members card. You can use /profile in Discord to view your profile.",
               },
               {
                 cmd: "/enroll",
                 desc: "Pick a monthly challenge (track + tier) before you can submit. Open during the build window (days 1–21 UTC).",
-              },
-              {
-                cmd: "/submit",
-                desc: "Submit your build: Developer (GitHub repo), Hacker (writeup / link), or Designer (direct image URL). You can also use Submit on the site when signed in.",
-              },
-              {
-                cmd: "/design-brief",
-                desc: "Posts the current month’s Designer challenge tiers (Beginner, Intermediate, Advanced) in-channel.",
               },
               {
                 cmd: "Vote (site)",

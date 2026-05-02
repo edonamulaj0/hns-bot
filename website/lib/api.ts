@@ -200,6 +200,19 @@ export interface PublicProfileUser {
   rank: number;
   profileCompletedAt: string | null;
   stats: { submissions: number; blogs: number; votesCast: number };
+  xpBreakdown?: {
+    total: number;
+    github: number;
+    submissions: number;
+    votesReceived: number;
+    articles: number;
+    other: number;
+    details?: {
+      approvedSubmissions: number;
+      enrollmentBonusMonths: number;
+      firstSubmissionBonus: number;
+    };
+  };
 }
 
 export interface PublicProfileSubmission {

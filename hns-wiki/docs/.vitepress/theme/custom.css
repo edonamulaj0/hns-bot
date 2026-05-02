@@ -146,7 +146,7 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 9998;
+  z-index: 0;
   pointer-events: none;
   opacity: 0.025;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -236,15 +236,57 @@ h4,
   border-bottom: 1px solid var(--border) !important;
   background: var(--bg-overlay) !important;
   backdrop-filter: blur(12px);
+  z-index: 1000 !important;
 }
 
-.VPNavBar,
-.VPNavBar .container,
-.VPNavBar .content {
+.VPNavBar .container {
   max-width: var(--container-max);
   margin: 0 auto;
   padding-left: clamp(1.5rem, 4vw, 2.5rem);
   padding-right: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.VPNavBar .content {
+  min-width: 0;
+}
+
+.VPNavBar .content-body {
+  gap: 0.75rem;
+}
+
+.hns-wiki-nav .VPNavBarSearch {
+  flex: 1 1 auto;
+  width: min(420px, 100%);
+  padding-left: 0 !important;
+}
+
+.hns-wiki-nav #local-search,
+.hns-wiki-nav .DocSearch-Button {
+  width: 100%;
+}
+
+.hns-wiki-nav .DocSearch-Button {
+  min-width: 0;
+  height: 40px;
+  margin: 0;
+  border: 1px solid var(--border-bright);
+  border-radius: 4px;
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+.hns-wiki-nav .DocSearch-Button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.hns-wiki-nav .DocSearch-Button-Placeholder {
+  font-size: var(--text-sm);
+}
+
+.hns-wiki-nav .DocSearch-Button-Keys {
+  min-width: fit-content;
 }
 
 .VPNavBarTitle .title,

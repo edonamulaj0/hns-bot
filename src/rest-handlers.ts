@@ -387,6 +387,44 @@ export async function handleUserPublicProfile(
     },
   }));
 
+  const approvedForXp = await prisma.submission.findMany({
+    where: {
+      userId: user.id,
+      OR: [
+        { submissionStatus: "APPROVED" },
+        { submissionStatus: "PUBLISHED" },
+        { AND: [{ submissionStatus: null }, { isApproved: true }] },
+      ],
+    },
+    select: { month: true, votes: true },
+  });
+  const approvedMonths = new Set(approvedForXp.map((s) => s.month));
+  const enrollmentMonths = await prisma.enrollment.findMany({
+    where: { userId: user.id, challenge: { month: { in: [...approvedMonths] } } },
+    select: { challenge: { select: { month: true } } },
+  });
+  const enrollmentBonusMonths = new Set(enrollmentMonths.map((e) => e.challenge.month));
+  let githubXp = 0;
+  try {
+    const pulseRows = await prisma.$queryRaw<Array<{ total: number | bigint | null }>>`
+      SELECT COALESCE(SUM("xp"), 0) AS total
+      FROM "PulseAward"
+      WHERE "userId" = ${user.id}
+    `;
+    const raw = pulseRows[0]?.total ?? 0;
+    githubXp = typeof raw === "bigint" ? Number(raw) : Number(raw);
+  } catch {
+    githubXp = 0;
+  }
+  const submissionsXp =
+    approvedForXp.length * XP.SUBMISSION_APPROVED +
+    (approvedForXp.length > 0 ? XP.FIRST_SUBMISSION : 0) +
+    enrollmentBonusMonths.size * XP.ENROLLMENT_BONUS;
+  const votesReceivedXp = approvedForXp.reduce((sum, s) => sum + s.votes * XP.VOTE_RECEIVED, 0);
+  const articlesXp = blogRows.length * XP.BLOG_POSTED;
+  const categorizedXp = githubXp + submissionsXp + votesReceivedXp + articlesXp;
+  const otherXp = Math.max(0, user.points - categorizedXp);
+
   return jsonResponse(
     env,
     request,
@@ -406,6 +444,19 @@ export async function handleUserPublicProfile(
         rank: user.rank,
         profileCompletedAt: user.profileCompletedAt?.toISOString() ?? null,
         stats: user._count,
+        xpBreakdown: {
+          total: user.points,
+          github: githubXp,
+          submissions: submissionsXp,
+          votesReceived: votesReceivedXp,
+          articles: articlesXp,
+          other: otherXp,
+          details: {
+            approvedSubmissions: approvedForXp.length,
+            enrollmentBonusMonths: enrollmentBonusMonths.size,
+            firstSubmissionBonus: approvedForXp.length > 0 ? XP.FIRST_SUBMISSION : 0,
+          },
+        },
       },
       submissions,
       blogs,
