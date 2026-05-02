@@ -172,7 +172,7 @@ export default function MembersHub({
         if (v === null || v === undefined || v === "") p.delete(k);
         else p.set(k, v);
       }
-      router.replace(`/members?${p.toString()}`, { scroll: false });
+      router.replace(`/members?${p.toString()}`);
     },
     [router, searchParams],
   );
@@ -359,8 +359,8 @@ export default function MembersHub({
                 type="search"
                 placeholder={
                   view === "profiles"
-                    ? "Search name, Discord ID, bio, tech…"
-                    : "Search titles…"
+                    ? "Search user"
+                    : "Search title"
                 }
                 value={q}
                 onChange={(e) => patchQuery({ q: e.target.value || null })}

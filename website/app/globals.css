@@ -274,25 +274,6 @@ footer.footer {
   border-color: var(--accent);
 }
 
-@keyframes splash-exit {
-  0%, 78% { opacity: 1; transform: translate3d(0, 0, 0); }
-  100% { opacity: 0; transform: translate3d(0, -12px, 0); }
-}
-
-.splash-screen {
-  animation: splash-exit 2000ms ease-out both;
-  will-change: opacity, transform;
-}
-
-@keyframes splash-cursor-blink {
-  0%, 45% { opacity: 1; }
-  46%, 100% { opacity: 0; }
-}
-
-.splash-cursor {
-  animation: splash-cursor-blink 650ms steps(1, end) infinite;
-}
-
 .scrollbar-none {
   scrollbar-width: none;
 }

@@ -1,8 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DISCORD_INVITE_URL, WIKI_URL } from "@/lib/branding";
 
 export const runtime = "edge";
-import { DISCORD_INVITE_URL, WIKI_URL } from "@/lib/branding";
+
+function JoinServerTabIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width={18}
+      height={18}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      aria-hidden
+    >
+      <path
+        d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export const metadata: Metadata = {
   title: "Join Us | H4ck&Stack",
@@ -38,7 +59,8 @@ export default async function JoinPage({
                 background: "#7c2feb14",
               }}
             >
-              Sign-in requires membership in the H4ck&Stack Discord. Join with the link below, then try{" "}
+              Sign-in requires membership in the H4ck&Stack Discord. Use <strong className="text-white">Join server</strong>{" "}
+              above to open the invite, then try{" "}
               <strong className="text-white">Sign in with Discord</strong> again.
             </div>
           )}
@@ -60,13 +82,18 @@ export default async function JoinPage({
             track — with dedicated spaces for builders and security-focused work.
           </p>
           <div className="flex flex-wrap gap-3 sm:gap-4">
+            <Link href="/join#your-first-week" className="btn btn-primary">
+              Join us →
+            </Link>
             <a
               href={DISCORD_INVITE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-primary"
+              className="btn btn-outline inline-flex items-center gap-2"
+              aria-label="Join Discord server (opens in new tab)"
             >
-              Join Discord →
+              Join server
+              <JoinServerTabIcon className="opacity-90 shrink-0" />
             </a>
             <Link href="/members?view=projects" className="btn btn-outline">
               Browse Projects
@@ -75,8 +102,8 @@ export default async function JoinPage({
         </div>
       </section>
 
-      <section className="section border-t border-[var(--border)]">
-        <div className="container max-w-3xl">
+      <section id="your-first-week" className="section scroll-mt-28 border-t border-[var(--border)]">
+        <div className="container max-w-6xl">
           <h2 className="text-2xl sm:text-3xl font-bold mb-6">Your first week</h2>
           <div className="mb-10 rounded border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3 sm:px-5 sm:py-4">
             <p className="mono text-[0.65rem] text-white/40 uppercase tracking-wider mb-1">Resources</p>
@@ -101,7 +128,8 @@ export default async function JoinPage({
                 body: (
                   <>
                     <p className="text-white/65 text-sm sm:text-base leading-relaxed">
-                      Click the invite link above. The server has channels for all three tracks —{" "}
+                      Use <strong className="text-white/90">Join server</strong> above (opens Discord in a new tab).
+                      The server has channels for all three tracks —{" "}
                       <strong className="text-white/90">#dev-chat</strong> for builders and{" "}
                       <strong className="text-white/90">#hacker-lounge</strong> for security folks.
                     </p>
@@ -124,47 +152,155 @@ export default async function JoinPage({
               {
                 title: "Pick your track",
                 body: (
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="card p-4 sm:p-5">
-                      <p className="text-xl mb-2">🛠</p>
-                      <h3 className="font-bold text-[var(--accent)] mb-2">Developer Track</h3>
-                      <p className="text-sm text-white/60 leading-relaxed">
-                        Build a project over 21 days. Any stack, any idea. Submit on the site from{" "}
-                        <strong className="text-white/80">Submit</strong> in your avatar menu or from the{" "}
-                        <Link href="/challenges" className="text-[var(--accent)] hover:underline font-medium">
-                          Challenges
-                        </Link>{" "}
-                        page before day 22 (UTC).
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:items-stretch">
+                    <div className="card flex min-h-[380px] sm:min-h-[420px] lg:min-h-[480px] h-full w-full flex-col p-6 sm:p-8 lg:p-9">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-2xl">🛠</span>
+                        <h3 className="text-xl sm:text-2xl font-bold">Developer Track</h3>
+                      </div>
+                      <p className="text-white/60 text-sm sm:text-base mb-4 leading-relaxed">
+                        Build a full project over the <strong className="text-white">monthly build window</strong>{" "}
+                        (days 1–21). Choose a tier (Beginner, Intermediate, or Advanced) and ship something real — an
+                        app, a library, a tool, anything.
                       </p>
+                      <div className="flex w-full flex-wrap gap-2">
+                        <span className="tag tag-accent whitespace-normal break-words leading-snug">
+                          Days 1–21: Build
+                        </span>
+                        <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
+                        <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
+                        <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {["Web / API", "CLI & tooling", "Library / package", "Automation"].map((t) => (
+                          <span
+                            key={t}
+                            className="tag text-[0.65rem]"
+                            style={{
+                              background: "#ccff0014",
+                              borderColor: "#ccff004d",
+                              color: "#ccff00",
+                            }}
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                      <Link href="/challenges/developers" className="btn btn-primary mt-auto w-fit self-start pt-4">
+                        View challenges →
+                      </Link>
                     </div>
-                    <div className="card p-4 sm:p-5">
-                      <p className="text-xl mb-2">🔐</p>
-                      <h3 className="font-bold text-[var(--accent)] mb-2">Hacker Track</h3>
-                      <p className="text-sm text-white/60 leading-relaxed">
-                        Same unified monthly calendar as developers — days 1–21 to build, days 22–25 to vote. Submit CTF
-                        writeups, security tools, vulnerability research, or red team reports. Run{" "}
-                        <code className="mono text-[var(--accent)]">/enroll</code> in Discord for the track, then complete
-                        your submission on the site from <strong className="text-white/80">Submit</strong> or the{" "}
-                        <Link href="/challenges" className="text-[var(--accent)] hover:underline font-medium">
-                          Challenges
-                        </Link>{" "}
-                        page.
+
+                    <div className="card flex min-h-[380px] sm:min-h-[420px] lg:min-h-[480px] h-full w-full flex-col p-6 sm:p-8 lg:p-9">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-2xl">🔒</span>
+                        <h3 className="text-xl sm:text-2xl font-bold">Hacker Track</h3>
+                      </div>
+                      <p className="text-white/60 text-sm sm:text-base mb-4 leading-relaxed">
+                        Same <strong className="text-white">monthly calendar</strong> as the developer track. Submit
+                        CTF writeups, build security tools, research vulnerabilities, or run red team simulations — all
+                        on the same build, vote, and publish rhythm.
                       </p>
+                      <div className="mb-3 flex w-full flex-wrap gap-2">
+                        <span className="tag tag-accent whitespace-normal break-words leading-snug">
+                          Days 1–21: Build
+                        </span>
+                        <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
+                        <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
+                        <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {["CTF Writeup", "Tool Build", "Vuln Research", "Red Team"].map((t) => (
+                          <span
+                            key={t}
+                            className="tag text-[0.65rem]"
+                            style={{
+                              background: "#7c2feb1a",
+                              borderColor: "#7c2feb4d",
+                              color: "#ccff00",
+                            }}
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                      <Link
+                        href="/challenges/hackers"
+                        className="btn mt-auto w-fit self-start pt-4"
+                        style={{
+                          borderColor: "#7c2feb66",
+                          color: "#ccff00",
+                        }}
+                      >
+                        View challenges →
+                      </Link>
                     </div>
-                    <div className="card p-4 sm:p-5">
-                      <p className="text-xl mb-2">🎨</p>
-                      <h3 className="font-bold text-[var(--accent)] mb-2">Designer Track</h3>
-                      <p className="text-sm text-white/60 leading-relaxed">
-                        Same monthly calendar as developers — days 1–21 to create, days 22–25 to vote.
-                        Submit posters, brand kits, UI mockups, or motion storyboards as a PNG, JPG,
-                        or WebP image export. Use <code className="mono text-[var(--accent)]">/enroll</code>{" "}
-                        in Discord to pick your tier, then submit your image on the site from{" "}
-                        <strong className="text-white/80">Submit</strong> or the{" "}
-                        <Link href="/challenges/designer" className="text-[var(--accent)] hover:underline font-medium">
-                          Challenges
-                        </Link>{" "}
-                        page.
+
+                    <div className="card flex min-h-[380px] sm:min-h-[420px] lg:min-h-[480px] h-full w-full flex-col p-6 sm:p-8 lg:p-9">
+                      <div className="flex items-center gap-3 mb-4">
+                        <svg
+                          width="28"
+                          height="28"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="shrink-0 text-[#D85A30]"
+                          aria-hidden
+                        >
+                          <path
+                            d="M4 20c5.5-1.5 11-6 14-12l2.5-4.5 2.2 2.2L18 8c-6 2-11.5 6.5-14 12"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M17 4l3 3M6 19l2-1"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <h3 className="text-xl sm:text-2xl font-bold">Designer Challenge</h3>
+                      </div>
+                      <p className="text-white/60 text-sm sm:text-base mb-4 leading-relaxed">
+                        Create posters, brand kits, UI mockups, or motion graphics. Submit a PNG, JPG, or WebP image
+                        export — show your visual thinking, not just your tools.
                       </p>
+                      <div className="flex w-full flex-wrap gap-2">
+                        <span className="tag tag-accent whitespace-normal break-words leading-snug">
+                          Days 1–21: Build
+                        </span>
+                        <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
+                        <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
+                        <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {["Poster", "Brand Identity", "UI Mockup", "Motion Graphic"].map((t) => (
+                          <span
+                            key={t}
+                            className="tag text-[0.65rem]"
+                            style={{
+                              background: "#D85A301a",
+                              borderColor: "#D85A304d",
+                              color: "#fff",
+                            }}
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                      <Link
+                        href="/challenges/designer"
+                        className="btn mt-auto w-fit self-start pt-4"
+                        style={{
+                          borderColor: "#D85A3088",
+                          color: "#fff",
+                          background: "#D85A3014",
+                        }}
+                      >
+                        View challenges →
+                      </Link>
                     </div>
                   </div>
                 ),

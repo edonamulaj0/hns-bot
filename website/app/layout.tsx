@@ -64,34 +64,35 @@ export default function RootLayout({
         <main>{children}</main>
         <CookieConsent />
         <footer className="footer">
-          <div className="container flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-            <span className="mono dim text-sm">
+          <div className="container flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+            <span className="mono dim shrink-0">
               © {new Date().getFullYear()} {BRAND_NAME}
             </span>
-            <div className="flex flex-wrap gap-4 text-sm">
-              <a href="/terms" className="text-white/50 hover:text-[var(--accent)] no-underline">
-                Terms
-              </a>
-              <a href="/privacy" className="text-white/50 hover:text-[var(--accent)] no-underline">
-                Privacy
-              </a>
-              <a
-                href={WIKI_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/50 hover:text-[var(--accent)] no-underline"
-              >
-                Wiki
-              </a>
-              <a
-                href={BUILDER_SITE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mono text-[0.65rem] text-white/25 hover:text-white/45 no-underline"
-              >
-                Built by Cyphera
-              </a>
-            </div>
+            <span className="hidden sm:inline text-white/25" aria-hidden>
+              ·
+            </span>
+            <a href="/terms" className="text-white/50 hover:text-[var(--accent)] no-underline">
+              Terms
+            </a>
+            <a href="/privacy" className="text-white/50 hover:text-[var(--accent)] no-underline">
+              Privacy
+            </a>
+            <a
+              href={WIKI_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white/50 hover:text-[var(--accent)] no-underline"
+            >
+              Wiki
+            </a>
+            <a
+              href={BUILDER_SITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mono text-white/50 hover:text-[var(--accent)] no-underline"
+            >
+              Built by Cyphera
+            </a>
           </div>
         </footer>
       </body>

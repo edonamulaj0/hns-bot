@@ -151,8 +151,8 @@ export function Navbar() {
             open ? "flex" : "hidden md:flex"
           }`}
         >
-          <div className="flex h-[calc(100dvh-3.75rem)] w-full flex-col justify-between overflow-y-auto px-[clamp(1rem,4vw,2rem)] py-[clamp(1.5rem,5vh,2.5rem)] sm:h-[calc(100dvh-4rem)] md:h-auto md:w-auto md:flex-row md:items-center md:gap-1 md:overflow-visible md:p-0">
-            <div className="flex flex-col gap-1 md:flex-row md:items-center">
+          <div className="flex w-full flex-col gap-6 overflow-y-auto px-[clamp(1rem,4vw,2rem)] py-[clamp(1.25rem,4vh,2rem)] md:h-auto md:w-auto md:flex-row md:items-center md:gap-1 md:overflow-visible md:p-0">
+            <div className="flex flex-col gap-1 md:flex-row md:items-center md:flex-1 md:min-w-0">
               {NAV_LINKS.map((link) => {
                 const active = linkActive(pathname, link.href);
                 return (
@@ -271,41 +271,35 @@ export function Navbar() {
                 </div>
               )}
             </div>
-            <div className="flex flex-col gap-3 border-t border-[var(--border)] pt-6 md:ml-2 md:flex-row md:items-center md:gap-2 md:border-t-0 md:pt-0">
-              <div className="md:hidden w-full">
-                {!session && (
-                  <div
-                    className="flex flex-col gap-3"
-                    style={{ paddingTop: "1.5rem", borderTop: "1px solid var(--border)" }}
+            {!session ? (
+              <>
+                <div className="flex w-full flex-col gap-3 border-t border-[var(--border)] pt-4 md:hidden">
+                  <Link
+                    href="/join"
+                    className="btn btn-outline w-full justify-center"
+                    onClick={() => setOpen(false)}
                   >
-                    <Link
-                      href="/join"
-                      className="btn btn-outline w-full justify-center"
-                      onClick={() => setOpen(false)}
-                    >
-                      Join Discord
-                    </Link>
-                    <a
-                      href={loginUrl()}
-                      className="btn btn-primary w-full justify-center"
-                    >
-                      Sign in with Discord
-                    </a>
-                  </div>
-                )}
-              </div>
-              {!session && (
-                <Link
-                  href="/join"
-                  className="btn btn-outline hidden md:inline-flex w-full items-center justify-center text-center md:w-auto whitespace-nowrap"
-                >
-                  Join Discord
-                </Link>
-              )}
-              <div className="hidden md:block">
+                    Join Discord
+                  </Link>
+                  <a href={loginUrl()} className="btn btn-primary w-full justify-center">
+                    Sign in with Discord
+                  </a>
+                </div>
+                <div className="hidden md:ml-2 md:flex md:flex-row md:items-center md:gap-2">
+                  <Link
+                    href="/join"
+                    className="btn btn-outline inline-flex w-auto shrink-0 items-center justify-center whitespace-nowrap"
+                  >
+                    Join Discord
+                  </Link>
+                  <AuthNav />
+                </div>
+              </>
+            ) : (
+              <div className="hidden md:ml-2 md:flex md:items-center">
                 <AuthNav />
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

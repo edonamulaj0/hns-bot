@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import type { DiscordWidgetResponse } from "@/lib/api";
-import { DISCORD_INVITE_URL } from "@/lib/branding";
 
 function statusColor(status: string): string {
   switch (status) {
@@ -47,10 +47,6 @@ export function DiscordWidget({ className = "" }: { className?: string }) {
     };
   }, [guildId]);
 
-  const inviteHref =
-    (data?.instant_invite && data.instant_invite.startsWith("http")
-      ? data.instant_invite
-      : null) || DISCORD_INVITE_URL;
   const serverName = data?.name ?? "H4ck&Stack";
   const totalMembers = data?.approximate_member_count;
   const online = data?.presence_count;
@@ -71,14 +67,9 @@ export function DiscordWidget({ className = "" }: { className?: string }) {
         <p className="text-sm text-white/60 mb-4">
           Join the server for challenges, voice, and project feedback.
         </p>
-        <a
-          href={DISCORD_INVITE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-primary inline-flex"
-        >
+        <Link href="/join" className="btn btn-primary inline-flex">
           Join us on Discord
-        </a>
+        </Link>
       </div>
     );
   }
@@ -97,14 +88,9 @@ export function DiscordWidget({ className = "" }: { className?: string }) {
               <p className="mono text-[0.65rem] text-white/45 truncate">Live server · Discord</p>
             </div>
           </div>
-          <a
-            href={inviteHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-primary text-xs py-1.5 px-3 shrink-0"
-          >
+          <Link href="/join" className="btn btn-primary text-xs py-1.5 px-3 shrink-0">
             Join →
-          </a>
+          </Link>
         </div>
 
         {loading ? (

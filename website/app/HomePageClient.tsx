@@ -14,7 +14,6 @@ import {
 } from "@/lib/api";
 import type { Phase } from "@/lib/phase";
 import { PhaseCountdownStat } from "@/components/PhaseCountdown";
-import { DISCORD_INVITE_URL } from "@/lib/branding";
 import { buildActivityFeed, submissionsFromPortfolio } from "@/lib/activity-feed";
 import { ActivityFeedList, SeeAllActivityLink } from "@/components/ActivityTimeline";
 import { memberDisplayName } from "@/lib/member-label";
@@ -548,14 +547,9 @@ export default function HomePageClient({
           <p className="text-sm sm:text-base text-white/60 leading-relaxed mb-8">
             Early community — come help build it. Monthly challenges, real projects on Discord and this site.
           </p>
-          <a
-            href={DISCORD_INVITE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-primary inline-flex justify-center"
-          >
+          <Link href="/join" className="btn btn-primary inline-flex justify-center">
             Join Discord
-          </a>
+          </Link>
         </div>
       </AnimateIn>
     </>

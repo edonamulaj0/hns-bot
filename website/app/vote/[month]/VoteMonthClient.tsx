@@ -61,7 +61,7 @@ export function VoteMonthClient({ month }: { month: string }) {
   const [auth, setAuth] = useState<boolean | undefined>(undefined);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [notMemberUrl, setNotMemberUrl] = useState<string | null>(null);
+  const [membershipRequired, setMembershipRequired] = useState(false);
 
   const load = useCallback(async () => {
     setLoadErr(null);
@@ -72,19 +72,16 @@ export function VoteMonthClient({ month }: { month: string }) {
       ]);
       if (qRes.status === 401 || sRes.status === 401) {
         setAuth(false);
-        setNotMemberUrl(null);
+        setMembershipRequired(false);
         return;
       }
       if (qRes.status === 403 || sRes.status === 403) {
         setAuth(true);
-        const raw = qRes.status === 403 ? qRes : sRes;
-        const body = (await raw.json().catch(() => ({}))) as {
-          joinUrl?: string;
-        };
-        setNotMemberUrl(body.joinUrl ?? "/join");
+        await (qRes.status === 403 ? qRes : sRes).json().catch(() => ({}));
+        setMembershipRequired(true);
         return;
       }
-      setNotMemberUrl(null);
+      setMembershipRequired(false);
       setAuth(true);
       if (qRes.ok) {
         const q = (await qRes.json()) as { phase: Phase; submissions: QSub[] };
@@ -196,7 +193,7 @@ export function VoteMonthClient({ month }: { month: string }) {
     );
   }
 
-  if (notMemberUrl) {
+  if (membershipRequired) {
     return (
       <section className="section flex min-h-[50vh] flex-col items-center justify-center gap-4 px-4 max-w-lg mx-auto text-center">
         <h1 className="text-2xl font-bold">Vote — {month}</h1>
@@ -204,9 +201,9 @@ export function VoteMonthClient({ month }: { month: string }) {
           Your Discord account is signed in, but we could not verify membership in the H4ck&Stack server.
           Join the server, then try again.
         </p>
-        <a href={notMemberUrl} className="btn btn-primary min-h-[44px] px-6">
+        <Link href="/join" className="btn btn-primary min-h-[44px] px-6">
           Join Discord
-        </a>
+        </Link>
       </section>
     );
   }
