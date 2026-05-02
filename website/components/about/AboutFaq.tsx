@@ -9,8 +9,9 @@ const FAQ: { q: string; a: ReactNode }[] = [
     a: (
       <>
         H4ck&Stack is a global community for developers and security researchers. Each month we run a{" "}
-        <strong className="text-white/85">shared UTC calendar</strong> for two tracks: a developer track for shipping
-        software projects and a hacker track for security work like CTF writeups, tools, and research. Join on Discord,
+        <strong className="text-white/85">shared UTC+2 calendar</strong> (fixed offset, no DST) for three tracks: a
+        developer track for shipping software projects, a hacker track for security work like CTF writeups, tools, and
+        research, and a designer track for visual deliverables. Join on Discord,
         sign in on this site, then <strong className="text-white/85">submit</strong> and <strong className="text-white/85">vote</strong> from the website (including the vote banner on the{" "}
         <Link href="/challenges" className="text-[var(--accent)] hover:underline">
           Challenges
@@ -27,7 +28,7 @@ const FAQ: { q: string; a: ReactNode }[] = [
     q: "What are the different challenge tracks?",
     a: (
       <>
-        H4ck&Stack has three tracks, all sharing the same UTC monthly calendar
+        H4ck&Stack has three tracks, all sharing the same UTC+2 monthly calendar
         (days 1–21 build, days 22–25 vote):
         <br />
         <br />
@@ -75,7 +76,8 @@ const FAQ: { q: string; a: ReactNode }[] = [
         <br />- First submission ever: +10 (one-time bonus)
         <br />
         <br />
-        On Discord, <code>/pulse</code> awards GitHub activity XP once per UTC month and shows a month-end estimate
+        On Discord, <code>/pulse</code> awards GitHub activity XP once per challenge month (UTC+2) and shows a
+        month-end estimate
         from the community formula (capped at 100 XP).
       </>
     ),
@@ -86,7 +88,7 @@ const FAQ: { q: string; a: ReactNode }[] = [
   },
   {
     q: "What happens if I miss the submission deadline?",
-    a: "Late submissions are not accepted for that month — the calendar closes submissions after the build window. You can still participate in voting, community channels, and the next month’s build phase. Watch for day 21 (UTC) when submissions close.",
+    a: "Late submissions are not accepted for that month — the calendar closes submissions after the build window. You can still participate in voting, community channels, and the next month’s build phase. Watch for day 21 (UTC+2) when submissions close.",
   },
   {
     q: "How does the Hacker track work — what are the challenge types?",

@@ -12,6 +12,7 @@ import {
 } from "@/lib/api-browser";
 import { getChallenges, getPortfolio, type ChallengeDto } from "@/lib/api";
 import { codenameFromSubmissionId } from "@/lib/codename";
+import { communityMidnightUtc, getCommunityCalendarParts } from "@/lib/community-calendar";
 import { getMonthKey } from "@/lib/month";
 import type { Phase } from "@/lib/phase";
 
@@ -34,14 +35,16 @@ type MePayload = {
 };
 
 function nextBuildWindowOpensLabel(): string {
-  const d = new Date();
-  const next = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1));
-  return next.toLocaleDateString("en-US", {
+  const { year: y, monthIndex: m } = getCommunityCalendarParts(new Date());
+  const nm = m === 11 ? 0 : m + 1;
+  const ny = m === 11 ? y + 1 : y;
+  const nextFirst = communityMidnightUtc(ny, nm, 1);
+  return nextFirst.toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
-    timeZone: "UTC",
+    timeZone: "Etc/GMT-2",
   });
 }
 
@@ -302,7 +305,7 @@ export function SubmitPageClient() {
       <section className="section px-[clamp(1rem,4vw,2rem)] max-w-2xl mx-auto space-y-4">
         <h1 className="text-2xl font-bold">Build window closed</h1>
         <p className="text-white/70 text-sm leading-relaxed">
-          Submissions are only accepted during days <strong>1–21</strong> (UTC). The next build window opens on{" "}
+          Submissions are only accepted during days <strong>1–21</strong> (UTC+2). The next build window opens on{" "}
           <span className="mono text-[var(--accent)]">{nextBuildWindowOpensLabel()}</span>.
         </p>
         <Link href="/challenges" className="btn inline-block">

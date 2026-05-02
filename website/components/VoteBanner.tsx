@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getCommunityCalendarParts } from "@/lib/community-calendar";
 import { getMonthKey } from "@/lib/month";
 
 function getPhase() {
-  const day = new Date().getUTCDate();
+  const { day } = getCommunityCalendarParts(new Date());
   if (day >= 22 && day <= 25) return "VOTE";
   return "OTHER";
 }
 
-/** Shown only during days 22–25 UTC. `monthKey` should match the active challenge month (e.g. portfolio.month). */
+/** Shown only during days 22–25 (UTC+2 calendar). `monthKey` should match the active challenge month (e.g. portfolio.month). */
 export function VoteBanner({ monthKey }: { monthKey?: string }) {
   const [phase, setPhase] = useState("");
   useEffect(() => {

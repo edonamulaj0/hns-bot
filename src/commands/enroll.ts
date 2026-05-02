@@ -3,7 +3,7 @@ import { MessageFlags } from "discord-api-types/v10";
 import type { DiscordHono } from "discord-hono";
 import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
-import { getMonthlyPhase, monthKey, nextUtcMonthFirstDateString } from "../time";
+import { getMonthlyPhase, monthKey, nextCommunityMonthFirstDateString } from "../time";
 import { getDiscordUserId } from "./helpers";
 import { sendDirectMessage } from "../discord-api";
 import type { PrismaClient } from "@prisma/client/edge";
@@ -77,7 +77,7 @@ export async function processDiscordEnrollment(
   const m = monthKey();
   if (phase !== "BUILD") {
     await ctx.followup({
-      content: `Enrollment is closed. The next build window opens **${nextUtcMonthFirstDateString()}** (UTC, day 1).`,
+      content: `Enrollment is closed. The next build window opens **${nextCommunityMonthFirstDateString()}** (UTC+2, day 1).`,
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -141,7 +141,7 @@ export async function processDiscordEnrollment(
           { name: "Brief", value: brief.slice(0, 1024), inline: false },
         ],
         footer: {
-          text: `Build and submit at ${base}/submit before day 21.`,
+          text: `Build and submit at ${base}/submit before day 21 (UTC+2).`,
         },
       },
     ],
@@ -166,7 +166,7 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
       const m = monthKey();
       if (phase !== "BUILD") {
         return c.flags("EPHEMERAL").res(
-          `Enrollment is closed. The next build window opens **${nextUtcMonthFirstDateString()}** (UTC, day 1).`,
+          `Enrollment is closed. The next build window opens **${nextCommunityMonthFirstDateString()}** (UTC+2, day 1).`,
         );
       }
 
@@ -251,7 +251,7 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
                 { name: "Brief", value: brief.slice(0, 1024), inline: false },
               ],
               footer: {
-                text: `Build and submit at ${base}/submit before day 21. Full brief sent in DM.`,
+                text: `Build and submit at ${base}/submit before day 21 (UTC+2). Full brief sent in DM.`,
               },
             },
           ],

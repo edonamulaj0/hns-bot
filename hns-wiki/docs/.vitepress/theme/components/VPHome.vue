@@ -49,15 +49,3 @@ const { frontmatter, theme } = useData()
     <slot name="home-features-after" />
   </div>
 </template>
-
-<style scoped>
-.VPHome--hns {
-  margin-bottom: 96px;
-}
-
-@media (min-width: 768px) {
-  .VPHome--hns {
-    margin-bottom: 128px;
-  }
-}
-</style>

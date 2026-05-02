@@ -41,4 +41,5 @@ DISCORD_PUBLIC_KEY = "cae56c5d6b3f9d47fe891660a9111d8844edf025dcb053f6121687c7c7
 DISCORD_APPLICATION_ID = "1475217166558298303"
 
 [triggers]
-crons = ["5 0 * * *"]
+# 22:05 UTC ≈ 00:05 next calendar day UTC+2 — daily checks use community calendar parts in code
+crons = ["5 22 * * *"]

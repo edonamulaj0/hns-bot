@@ -1,6 +1,6 @@
-/** UTC calendar month key, aligned with the bot Worker (`monthKey`). */
+import { communityMonthKey } from "@/lib/community-calendar";
+
+/** Calendar month key `YYYY-MM` — UTC+2 challenge calendar (matches bot Worker `monthKey`). */
 export function getMonthKey(date = new Date()): string {
-  const y = date.getUTCFullYear();
-  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
-  return `${y}-${m}`;
+  return communityMonthKey(date);
 }

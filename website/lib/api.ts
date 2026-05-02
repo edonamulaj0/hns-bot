@@ -557,27 +557,27 @@ export const PHASE_META: Record<
   BUILD: {
     label: "BUILD PHASE",
     color: "#7c2feb",
-    description: "Days 1–21 · Submissions open",
+    description: "Days 1–21 · UTC+2 · Submissions open",
   },
   VOTE: {
     label: "VOTE PHASE",
     /** Subtle secondary accent (main brand stays volt green in CSS). */
     color: "#7c2feb",
-    description: "Days 22–25 · Cast your votes",
+    description: "Days 22–25 · UTC+2 · Cast your votes",
   },
   REVIEW: {
     label: "REVIEW PHASE",
     color: "#f59e0b",
-    description: "Days 26–28 · Admin review",
+    description: "Days 26–28 · UTC+2 · Admin review",
   },
   PUBLISH: {
     label: "PUBLISH DAY",
     color: "#10b981",
-    description: "Day 29 · Results going live",
+    description: "Day 29 · UTC+2 · Results going live",
   },
   POST_PUBLISH: {
     label: "RESULTS LIVE",
     color: "#10b981",
-    description: "Days 30–31 · Buffer before next cycle",
+    description: "Days 30–31 · UTC+2 · Buffer before next cycle",
   },
 };

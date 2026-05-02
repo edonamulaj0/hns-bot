@@ -101,12 +101,6 @@ export default function ChallengesPage() {
                 (days 1–21). Choose a tier (Beginner, Intermediate, or Advanced) and ship something real — an
                 app, a library, a tool, anything.
               </p>
-              <div className="flex w-full flex-wrap gap-2">
-                <span className="tag tag-accent whitespace-normal break-words leading-snug">Days 1–21: Build</span>
-                <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
-                <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
-                <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
-              </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {["Web / API", "CLI & tooling", "Library / package", "Automation"].map((t) => (
                   <span
@@ -122,7 +116,7 @@ export default function ChallengesPage() {
                   </span>
                 ))}
               </div>
-              <Link href="/challenges/developers" className="btn btn-primary mt-auto w-fit self-start pt-4">
+              <Link href="/challenges/developers" className="btn btn-primary mt-auto w-fit self-start pt-8">
                 View challenges →
               </Link>
             </div>
@@ -137,13 +131,7 @@ export default function ChallengesPage() {
                 writeups, build security tools, research vulnerabilities, or run red team simulations — all on the
                 same build, vote, and publish rhythm.
               </p>
-              <div className="mb-3 flex w-full flex-wrap gap-2">
-                <span className="tag tag-accent whitespace-normal break-words leading-snug">Days 1–21: Build</span>
-                <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
-                <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
-                <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
-              </div>
-              <div className="flex flex-wrap gap-1.5 mt-2">
+              <div className="flex flex-wrap gap-1.5 mt-3">
                 {["CTF Writeup", "Tool Build", "Vuln Research", "Red Team"].map((t) => (
                   <span
                     key={t}
@@ -160,7 +148,7 @@ export default function ChallengesPage() {
               </div>
               <Link
                 href="/challenges/hackers"
-                className="btn mt-auto w-fit self-start pt-4"
+                className="btn mt-auto w-fit self-start pt-8"
                 style={{
                   borderColor: "#7c2feb66",
                   color: "#ccff00",
@@ -201,12 +189,6 @@ export default function ChallengesPage() {
                 Create posters, brand kits, UI mockups, or motion graphics. Submit a PNG, JPG, or WebP image export —
                 show your visual thinking, not just your tools.
               </p>
-              <div className="flex w-full flex-wrap gap-2">
-                <span className="tag tag-accent whitespace-normal break-words leading-snug">Days 1–21: Build</span>
-                <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
-                <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
-                <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
-              </div>
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {["Poster", "Brand Identity", "UI Mockup", "Motion Graphic"].map((t) => (
                   <span
@@ -224,7 +206,7 @@ export default function ChallengesPage() {
               </div>
               <Link
                 href="/challenges/designer"
-                className="btn mt-auto w-fit self-start pt-4"
+                className="btn mt-auto w-fit self-start pt-8"
                 style={{
                   borderColor: "#D85A3088",
                   color: "#fff",
@@ -233,6 +215,32 @@ export default function ChallengesPage() {
               >
                 View challenges →
               </Link>
+            </div>
+          </div>
+        </div>
+      </AnimateIn>
+
+      {/* ── Monthly calendar (all tracks) ───────────────────────────────── */}
+      <AnimateIn
+        className="section border-t border-[var(--border)]"
+        hidden={{ opacity: 0 }}
+        visible={{ opacity: 1 }}
+        transition={{ duration: 0.6, ease: EASE_OUT }}
+        amount={0.15}
+      >
+        <div id="monthly-calendar" className="container w-full max-w-3xl scroll-mt-28">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Monthly calendar</h2>
+          <p className="text-sm sm:text-base text-white/60 leading-relaxed mb-6">
+            Every track follows the same <strong className="text-white">UTC+2 month rhythm</strong>: enroll and ship during
+            the build window, vote while polls are open, then reviews wrap before results go live.
+          </p>
+          <div className="card p-6 sm:p-8">
+            <p className="mono text-[0.65rem] text-white/40 uppercase tracking-wider mb-4">This month</p>
+            <div className="flex w-full flex-wrap gap-2">
+              <span className="tag tag-accent whitespace-normal break-words leading-snug">Days 1–21: Build</span>
+              <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
+              <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
+              <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
             </div>
           </div>
         </div>
@@ -371,11 +379,11 @@ export default function ChallengesPage() {
               },
               {
                 cmd: "/enroll",
-                desc: "Pick a monthly challenge (track + tier) before you can submit. Open during the build window (days 1–21 UTC).",
+                desc: "Pick a monthly challenge (track + tier) before you can submit. Open during the build window (days 1–21 UTC+2).",
               },
               {
                 cmd: "Vote (site)",
-                desc: `During the vote window (days 22–25 UTC), cast up to 3 votes (max 1 per track: Developer, Hacker, Designer) at /vote/${currentMonth || voteMonth}.`,
+                desc: `During the vote window (days 22–25 UTC+2), cast up to 3 votes (max 1 per track: Developer, Hacker, Designer) at /vote/${currentMonth || voteMonth}.`,
               },
               {
                 cmd: "/pulse",

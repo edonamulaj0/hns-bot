@@ -1,6 +1,6 @@
 import { getConfig, setConfig } from "../config";
 import { getPrisma } from "../db";
-import { getMonthlyPhase, monthKey } from "../time";
+import { getCommunityCalendarParts, getMonthlyPhase, monthKey } from "../time";
 import { generateAndPostChallenges } from "../challenge-generator";
 import { syncAllRoles } from "../role-manager";
 import { syncLegacyApprovalFields } from "../submission-lifecycle";
@@ -12,10 +12,10 @@ import {
 } from "../notifications";
 
 export function registerCron(app: any) {
-  return app.cron("5 0 * * *", async (c: any) => {
+  return app.cron("5 22 * * *", async (c: any) => {
     const prisma = getPrisma(c.env.DB);
     const now = new Date();
-    const day = now.getUTCDate();
+    const { day } = getCommunityCalendarParts(now);
     const currentMonth = monthKey(now);
     const phase = getMonthlyPhase(now);
 

@@ -97,7 +97,7 @@ export default function AboutClient({ openStats }: { openStats: AboutStatsPayloa
               <p>
                 The hacker track came when enough security-minded people wanted their own lane for writeups and tooling;
                 the designer track followed so visual builders could ship mockups, posters, and brand work on the same
-                monthly calendar. Developer, hacker, and designer all share one UTC rhythm—build, vote, publish—and the
+                monthly calendar. Developer, hacker, and designer all share one UTC+2 rhythm—build, vote, publish—and the
                 same XP loop on the site. The platform—bot, site, and database—is built and maintained by{" "}
                 <a
                   href={BUILDER_SITE_URL}

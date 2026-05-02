@@ -1,7 +1,7 @@
 import { mergedPublicDisplayName } from "./display-name";
 import { getPrisma } from "./db";
 import { sendChannelMessage } from "./discord-api";
-import { monthKey } from "./time";
+import { communityMidnightUtc, getCommunityCalendarParts, monthKey } from "./time";
 import type { WorkerBindings } from "./worker-env";
 
 type NotifyOpts = {
@@ -24,18 +24,19 @@ function singleGenericPreviewChannel(
 
 function monthParts(month: string): { year: number; monthIdx: number } {
   const [y, m] = month.split("-").map(Number);
-  return { year: y || new Date().getUTCFullYear(), monthIdx: (m || 1) - 1 };
+  const fallbackY = getCommunityCalendarParts(new Date()).year;
+  return { year: y || fallbackY, monthIdx: (m || 1) - 1 };
 }
 
-function formatUtcDate(month: string, day: number): string {
+function formatCommunityCalendarDate(month: string, day: number): string {
   const { year, monthIdx } = monthParts(month);
-  const d = new Date(Date.UTC(year, monthIdx, day, 0, 0, 0));
-  return `${d.toLocaleDateString("en-US", {
+  const instant = communityMidnightUtc(year, monthIdx, day);
+  return `${instant.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
-    timeZone: "UTC",
-  })} (UTC)`;
+    timeZone: "Etc/GMT-2",
+  })} (UTC+2)`;
 }
 
 function firstN(text: string, n: number): string {
@@ -141,13 +142,13 @@ export async function notifyDeadlineWarning(
   opts?: NotifyOpts,
 ): Promise<void> {
   const month = monthKey();
-  const deadline = formatUtcDate(month, 21);
+  const deadline = formatCommunityCalendarDate(month, 21);
   const channels = targetChannels(env, opts);
   const embed = {
     title: `⏰ 7 days left to submit — ${month}`,
     color: 0xf59e0b,
     description:
-      "Submissions close at the end of day 21 (UTC). If you're enrolled but haven't submitted yet, head to **h4cknstack.com/submit** now.\n\nNot enrolled yet? You can still enroll and submit before day 21.",
+      "Submissions close at the end of day 21 (UTC+2). If you're enrolled but haven't submitted yet, head to **h4cknstack.com/submit** now.\n\nNot enrolled yet? You can still enroll and submit before day 21.",
     fields: [
       { name: "Deadline", value: `Day 21 — ${deadline}`, inline: false },
       { name: "Submissions", value: "h4cknstack.com/submit", inline: false },
@@ -165,7 +166,7 @@ export async function notifySubmissionsClosed(
   opts?: NotifyOpts,
 ): Promise<void> {
   const month = monthKey();
-  const closes = formatUtcDate(month, 25);
+  const closes = formatCommunityCalendarDate(month, 25);
   const channels = targetChannels(env, opts);
   const embed = {
     title: "🗳️ Submissions are closed — voting is open!",
@@ -364,12 +365,12 @@ export async function buildAdminTestNotifyPayload(
   }
 
   if (type === "deadline-warning") {
-    const deadline = formatUtcDate(month, 21);
+    const deadline = formatCommunityCalendarDate(month, 21);
     const embed = {
       title: `⏰ 7 days left to submit — ${month}`,
       color: 0xf59e0b,
       description:
-        "Submissions close at the end of day 21 (UTC). If you're enrolled but haven't submitted yet, head to **h4cknstack.com/submit** now.\n\nNot enrolled yet? You can still enroll and submit before day 21.",
+        "Submissions close at the end of day 21 (UTC+2). If you're enrolled but haven't submitted yet, head to **h4cknstack.com/submit** now.\n\nNot enrolled yet? You can still enroll and submit before day 21.",
       fields: [
         { name: "Deadline", value: `Day 21 — ${deadline}`, inline: false },
         { name: "Submissions", value: "h4cknstack.com/submit", inline: false },
@@ -380,7 +381,7 @@ export async function buildAdminTestNotifyPayload(
   }
 
   if (type === "submissions-closed" || type === "voting-open") {
-    const closes = formatUtcDate(month, 25);
+    const closes = formatCommunityCalendarDate(month, 25);
     const embed = {
       title: "🗳️ Submissions are closed — voting is open!",
       color: 0x5865f2,

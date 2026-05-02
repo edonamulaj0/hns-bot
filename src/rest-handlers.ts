@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client/edge";
 import type { WorkerBindings } from "./worker-env";
 import { mergedPublicDisplayName, validatePublicDisplayName } from "./display-name";
-import { getMonthlyPhase, monthKey, nextUtcMonthFirstDateString } from "./time";
+import { getMonthlyPhase, monthKey, nextCommunityMonthFirstDateString } from "./time";
 import { getSessionFromRequest } from "./session-verify";
 import { requireGuildMembership } from "./membership";
 import { castVote } from "./vote-service";
@@ -962,7 +962,7 @@ export async function handleEnrollPost(
       request,
       {
         error: "enrollment_closed",
-        message: `The next build window opens ${nextUtcMonthFirstDateString()} (UTC, day 1).`,
+        message: `The next build window opens ${nextCommunityMonthFirstDateString()} (UTC+2, day 1).`,
       },
       400,
     );
@@ -1349,7 +1349,7 @@ export async function handleSubmitPost(
       request,
       {
         error: "submissions_closed",
-        message: `The build window for this month is closed. The next one opens ${nextUtcMonthFirstDateString()} (UTC, day 1).`,
+        message: `The build window for this month is closed. The next one opens ${nextCommunityMonthFirstDateString()} (UTC+2, day 1).`,
       },
       400,
     );

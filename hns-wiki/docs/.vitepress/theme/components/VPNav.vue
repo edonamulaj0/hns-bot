@@ -22,6 +22,7 @@ const LOCAL_SEARCH_FILTER_KEY = 'vitepress:local-search-filter'
 
 const WIKI_ORIGIN = 'https://wiki.h4cknstack.com'
 const MAIN_SITE = 'https://h4cknstack.com'
+const MAIN_LOGO_PNG = `${MAIN_SITE}/branding/hns-name.png`
 const GITHUB_REPO = 'https://github.com/edonamulaj0/hns-bot'
 const DISCORD_INVITE = 'https://discord.gg/xrxTUsgdv9'
 
@@ -174,17 +175,21 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="hasNavbar" class="vp-nav-spacer" />
-
   <VPLocalSearchBox v-if="searchOpen" @close="onSearchClose" />
 
   <header v-if="hasNavbar" class="VPNav hns-wiki-nav">
     <div class="hns-wiki-nav__top">
       <div class="hns-wiki-nav__inner">
         <a class="hns-wiki-nav__brand" :href="`${WIKI_ORIGIN}/`" aria-label="H4ck&amp;Stack Wiki home">
-          <span class="hns-wiki-nav__wordmark" aria-hidden="true">
-            <span class="hns-wiki-nav__wordmark-purple">H4ck</span><span class="hns-wiki-nav__wordmark-lime">&amp;Stack&nbsp;</span><span class="hns-wiki-nav__wordmark-lime">Wiki</span>
-          </span>
+          <img
+            class="hns-wiki-nav__logo"
+            :src="MAIN_LOGO_PNG"
+            width="1120"
+            height="400"
+            alt="H4ck&amp;Stack"
+            decoding="async"
+          />
+          <span class="hns-wiki-nav__wiki-label">Wiki</span>
         </a>
 
         <div class="hns-wiki-nav__search hns-wiki-nav__search--desktop">
@@ -300,29 +305,23 @@ onUnmounted(() => {
 
 <style scoped>
 .VPNav {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
-  z-index: 1000;
+  z-index: 100;
   width: 100%;
   pointer-events: auto;
 }
 
-.vp-nav-spacer {
-  height: var(--vp-nav-height);
-}
-
 .hns-wiki-nav {
-  height: var(--vp-nav-height);
   overflow: visible;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-overlay);
-  backdrop-filter: blur(12px);
+  background: var(--bg);
 }
 
 .hns-wiki-nav__top {
   position: relative;
-  z-index: 1001;
+  z-index: 101;
   width: 100%;
 }
 
@@ -333,36 +332,43 @@ onUnmounted(() => {
   gap: 0.75rem 1rem;
   width: 100%;
   max-width: var(--container-max);
-  height: 100%;
-  min-height: var(--vp-nav-height);
+  box-sizing: border-box;
+  min-height: 3.75rem;
   margin: 0 auto;
-  padding: 0 clamp(1.5rem, 4vw, 2.5rem);
+  padding: 0.5rem clamp(1.5rem, 4vw, 2.5rem);
+}
+
+@media (min-width: 640px) {
+  .hns-wiki-nav__inner {
+    min-height: 4rem;
+  }
 }
 
 .hns-wiki-nav__brand {
   display: inline-flex;
   min-width: 0;
   align-items: center;
+  gap: 0.5rem;
   text-decoration: none;
 }
 
-.hns-wiki-nav__wordmark {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  font-family: var(--vp-font-family-mono), ui-monospace, monospace;
-  font-size: clamp(1rem, 3.6vw, 1.2rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
+.hns-wiki-nav__logo {
+  height: 2rem;
+  width: auto;
+  max-height: 2.25rem;
+  max-width: min(220px, 58vw);
+  object-fit: contain;
+  object-position: left center;
 }
 
-.hns-wiki-nav__wordmark-purple {
-  color: var(--accent-subtle, #7c2feb);
-}
-
-.hns-wiki-nav__wordmark-lime {
-  color: var(--accent, #ccff00);
+.hns-wiki-nav__wiki-label {
+  flex-shrink: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
 .hns-wiki-nav__search--desktop {
@@ -415,8 +421,7 @@ onUnmounted(() => {
   z-index: 1002;
   padding: 0.5rem clamp(1.5rem, 4vw, 2.5rem) 0.65rem;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-overlay);
-  backdrop-filter: blur(12px);
+  background: var(--bg);
 }
 
 .hns-wiki-nav__mobile-search-input {
@@ -428,7 +433,7 @@ onUnmounted(() => {
   border-radius: 4px;
   background: var(--bg-card);
   color: var(--text);
-  font-family: var(--vp-font-family-mono), ui-monospace, monospace;
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
   font-size: 0.875rem;
 }
 
@@ -485,10 +490,6 @@ onUnmounted(() => {
 
   .hns-wiki-nav__inner {
     grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-
-  .hns-wiki-nav__wordmark {
-    font-size: 1.25rem;
   }
 }
 </style>

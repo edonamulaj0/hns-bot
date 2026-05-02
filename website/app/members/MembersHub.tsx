@@ -26,7 +26,7 @@ const XP_TABLE = [
   { action: "Submission approved", xp: 50, note: "Per submission" },
   { action: "Vote received", xp: 2, note: "Per vote on your work" },
   { action: "Article shared", xp: 10, note: "Per article" },
-  { action: "/pulse (Discord)", xp: "Up to 100", note: "GitHub activity XP, once per UTC month" },
+  { action: "/pulse (Discord)", xp: "Up to 100", note: "GitHub activity XP, once per challenge month (UTC+2)" },
   { action: "Challenge enrollment bonus", xp: 25, note: "On first approval" },
   { action: "First submission ever", xp: 10, note: "One-time bonus" },
 ];

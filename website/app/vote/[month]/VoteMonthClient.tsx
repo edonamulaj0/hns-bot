@@ -229,9 +229,9 @@ export function VoteMonthClient({ month }: { month: string }) {
         {beforeVote && (
           <p className="mt-4 text-white/60">
             {phase === "BUILD"
-              ? "Voting opens on day 22 (UTC) and runs through day 25 (UTC)."
+              ? "Voting opens on day 22 (UTC+2) and runs through day 25 (UTC+2)."
               : phase === "REVIEW"
-                ? "Voting for this month has closed (day 25 UTC). Results publish on day 29."
+                ? "Voting for this month has closed (day 25 UTC+2). Results publish on day 29."
                 : "Voting is not open for this month on the calendar right now."}
           </p>
         )}

@@ -79,7 +79,7 @@ function githubHeaders(token?: string): Record<string, string> {
   return h;
 }
 
-/** Inclusive UTC date range for calendar month `YYYY-MM`. */
+/** Inclusive civil date range for challenge month label `YYYY-MM` (UTC+2-aligned keys). */
 function monthUtcRange(month: string): { start: string; end: string } {
   const [y, m] = month.split("-").map(Number);
   const start = `${month}-01`;

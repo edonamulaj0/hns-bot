@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DISCORD_INVITE_URL, WIKI_URL } from "@/lib/branding";
+import { loginUrl } from "@/lib/auth-client";
 
 export const runtime = "edge";
 
@@ -59,7 +60,7 @@ export default async function JoinPage({
                 background: "#7c2feb14",
               }}
             >
-              Sign-in requires membership in the H4ck&Stack Discord. Use <strong className="text-white">Join server</strong>{" "}
+              Sign-in requires membership in the H4ck&Stack Discord. Use <strong className="text-white">Join Server</strong>{" "}
               above to open the invite, then try{" "}
               <strong className="text-white">Sign in with Discord</strong> again.
             </div>
@@ -82,22 +83,106 @@ export default async function JoinPage({
             track — with dedicated spaces for builders and security-focused work.
           </p>
           <div className="flex flex-wrap gap-3 sm:gap-4">
-            <Link href="/join#your-first-week" className="btn btn-primary">
-              Join us →
-            </Link>
             <a
               href={DISCORD_INVITE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-outline inline-flex items-center gap-2"
+              className="btn btn-primary inline-flex items-center gap-2"
               aria-label="Join Discord server (opens in new tab)"
             >
-              Join server
+              Join Server
               <JoinServerTabIcon className="opacity-90 shrink-0" />
             </a>
-            <Link href="/members?view=projects" className="btn btn-outline">
-              Browse Projects
-            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="section border-t border-[var(--border)] bg-[var(--bg-card)]/35">
+        <div className="container max-w-3xl">
+          <p className="label mb-2">From the team</p>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-white">Welcome</h2>
+          <div className="space-y-4 text-sm sm:text-base text-white/65 leading-relaxed">
+            <p>
+              If you just landed here — or you&apos;ve been lurking — we&apos;re glad you&apos;re here.
+            </p>
+            <p>
+              <strong className="text-white/90">H4ck&Stack</strong> runs the same loop every month. Challenge dates follow a{" "}
+              <strong className="text-white/85">shared UTC+2 calendar</strong> (fixed offset, no daylight saving): three tracks —{" "}
+              <strong className="text-white/85">Developer</strong> (ship a project),{" "}
+              <strong className="text-white/85">Hacker</strong> (security work — writeups, tools, research), and{" "}
+              <strong className="text-white/85">Designer</strong> (visual deliverables such as mockups or image exports). During the
+              build window you enroll, build, then submit on this site. When voting opens, members vote here too (up to three votes
+              per month, at most one per track). XP feeds the leaderboard and your Discord XP roles — structure so you can finish
+              something and show it off.
+            </p>
+            <p>
+              <strong className="text-white/85">Site:</strong>{" "}
+              <a
+                href="https://h4cknstack.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--accent)] hover:underline font-medium"
+              >
+                h4cknstack.com
+              </a>
+            </p>
+            <p>
+              <strong className="text-white/85">When you&apos;re ready:</strong> open the site and{" "}
+              <a href={loginUrl()} className="text-[var(--accent)] hover:underline font-medium">
+                Sign in with Discord
+              </a>
+              . If you aren&apos;t in the server yet, use <strong className="text-white/85">Join Server</strong> above first — sign-in
+              requires membership. Then complete{" "}
+              <Link href="/profile" className="text-[var(--accent)] hover:underline font-medium">
+                Profile
+              </Link>{" "}
+              (GitHub link, bio, and so on). That powers{" "}
+              <Link href="/members" className="text-[var(--accent)] hover:underline font-medium">
+                Members
+              </Link>{" "}
+              and how people discover you.
+            </p>
+            <p>
+              <strong className="text-white/85">During the build window:</strong> in Discord, run{" "}
+              <code className="mono text-[var(--accent)] text-[0.9em]">/enroll</code> to pick track and tier (Beginner / Intermediate /
+              Advanced where applicable). Submit your entry at{" "}
+              <Link href="/submit" className="text-[var(--accent)] hover:underline font-medium">
+                /submit
+              </Link>{" "}
+              on the site — there isn&apos;t a Discord <code className="mono text-[var(--accent)] text-[0.9em]">/submit</code>{" "}
+              command; onboarding points you to the web flow.
+            </p>
+            <p>
+              <strong className="text-white/85">Voting</strong> happens on the site when the vote window opens; we&apos;ll announce it
+              in Discord.
+            </p>
+            <p>
+              <code className="mono text-[var(--accent)] text-[0.9em]">/pulse</code> looks at your GitHub activity for the{" "}
+              <strong className="text-white/85">current challenge month (UTC+2)</strong>. It can award pulse XP once per month (with a
+              cap) and shows a scaled &quot;if the month ended now&quot; estimate. For private contributions, use{" "}
+              <code className="mono text-[var(--accent)] text-[0.9em]">/link-github</code> (and{" "}
+              <code className="mono text-[var(--accent)] text-[0.9em]">/unlink-github</code> to disconnect). If there&apos;s no
+              qualifying activity for that run, you won&apos;t see pulse XP for it.
+            </p>
+            <p>
+              Want every command with short descriptions? Run{" "}
+              <code className="mono text-[var(--accent)] text-[0.9em]">/help</code> in Discord — only you see that reply.
+            </p>
+            <p className="text-white/55 text-sm">
+              Popular commands:{" "}
+              <code className="mono text-[var(--accent)] text-[0.85em]">/profile</code>,{" "}
+              <code className="mono text-[var(--accent)] text-[0.85em]">/enroll</code>,{" "}
+              <code className="mono text-[var(--accent)] text-[0.85em]">/leaderboard</code>,{" "}
+              <code className="mono text-[var(--accent)] text-[0.85em]">/pulse</code>,{" "}
+              <code className="mono text-[var(--accent)] text-[0.85em]">/link-github</code> /{" "}
+              <code className="mono text-[var(--accent)] text-[0.85em]">/unlink-github</code>,{" "}
+              <code className="mono text-[var(--accent)] text-[0.85em]">/delete-account</code> (same effect as deleting from the site —
+              no undo).
+            </p>
+            <p>
+              Invite friends who&apos;d vibe with shipping and showing work — the more builders in the loop, the better each month
+              gets.
+            </p>
           </div>
         </div>
       </section>
@@ -128,10 +213,8 @@ export default async function JoinPage({
                 body: (
                   <>
                     <p className="text-white/65 text-sm sm:text-base leading-relaxed">
-                      Use <strong className="text-white/90">Join server</strong> above (opens Discord in a new tab).
-                      The server has channels for all three tracks —{" "}
-                      <strong className="text-white/90">#dev-chat</strong> for builders and{" "}
-                      <strong className="text-white/90">#hacker-lounge</strong> for security folks.
+                      Use <strong className="text-white/90">Join Server</strong> above (opens Discord in a new tab).
+                      The server has channels for all three tracks.
                     </p>
                   </>
                 ),
@@ -142,7 +225,7 @@ export default async function JoinPage({
                   <>
                     <p className="text-white/65 text-sm sm:text-base leading-relaxed mb-4">
                       Sign in on this site with Discord, then open{" "}
-                      <strong className="text-white/85">Profile</strong> from your avatar menu. Add GitHub, LinkedIn,
+                      <strong className="text-white/85">Profile</strong> from your avatar menu. Add GitHub, LinkedIn, Framer website,
                       bio, and tech stack for your public Members card. In Discord you can also run{" "}
                       <code className="mono text-[var(--accent)]">/profile</code> for a link to the same page.
                     </p>
@@ -163,14 +246,6 @@ export default async function JoinPage({
                         (days 1–21). Choose a tier (Beginner, Intermediate, or Advanced) and ship something real — an
                         app, a library, a tool, anything.
                       </p>
-                      <div className="flex w-full flex-wrap gap-2">
-                        <span className="tag tag-accent whitespace-normal break-words leading-snug">
-                          Days 1–21: Build
-                        </span>
-                        <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
-                        <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
-                        <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
-                      </div>
                       <div className="flex flex-wrap gap-1.5 mt-3">
                         {["Web / API", "CLI & tooling", "Library / package", "Automation"].map((t) => (
                           <span
@@ -186,7 +261,7 @@ export default async function JoinPage({
                           </span>
                         ))}
                       </div>
-                      <Link href="/challenges/developers" className="btn btn-primary mt-auto w-fit self-start pt-4">
+                      <Link href="/challenges/developers" className="btn btn-primary mt-auto w-fit self-start pt-8">
                         View challenges →
                       </Link>
                     </div>
@@ -201,15 +276,7 @@ export default async function JoinPage({
                         CTF writeups, build security tools, research vulnerabilities, or run red team simulations — all
                         on the same build, vote, and publish rhythm.
                       </p>
-                      <div className="mb-3 flex w-full flex-wrap gap-2">
-                        <span className="tag tag-accent whitespace-normal break-words leading-snug">
-                          Days 1–21: Build
-                        </span>
-                        <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
-                        <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
-                        <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 mt-2">
+                      <div className="flex flex-wrap gap-1.5 mt-3">
                         {["CTF Writeup", "Tool Build", "Vuln Research", "Red Team"].map((t) => (
                           <span
                             key={t}
@@ -226,7 +293,7 @@ export default async function JoinPage({
                       </div>
                       <Link
                         href="/challenges/hackers"
-                        className="btn mt-auto w-fit self-start pt-4"
+                        className="btn mt-auto w-fit self-start pt-8"
                         style={{
                           borderColor: "#7c2feb66",
                           color: "#ccff00",
@@ -267,14 +334,6 @@ export default async function JoinPage({
                         Create posters, brand kits, UI mockups, or motion graphics. Submit a PNG, JPG, or WebP image
                         export — show your visual thinking, not just your tools.
                       </p>
-                      <div className="flex w-full flex-wrap gap-2">
-                        <span className="tag tag-accent whitespace-normal break-words leading-snug">
-                          Days 1–21: Build
-                        </span>
-                        <span className="tag whitespace-normal break-words leading-snug">Days 22–25: Vote</span>
-                        <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
-                        <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
-                      </div>
                       <div className="flex flex-wrap gap-1.5 mt-3">
                         {["Poster", "Brand Identity", "UI Mockup", "Motion Graphic"].map((t) => (
                           <span
@@ -292,7 +351,7 @@ export default async function JoinPage({
                       </div>
                       <Link
                         href="/challenges/designer"
-                        className="btn mt-auto w-fit self-start pt-4"
+                        className="btn mt-auto w-fit self-start pt-8"
                         style={{
                           borderColor: "#D85A3088",
                           color: "#fff",
@@ -311,7 +370,7 @@ export default async function JoinPage({
                   <p className="text-white/65 text-sm sm:text-base leading-relaxed">
                     Sign in on the site and go to <strong className="text-white/85">Submit</strong> via your avatar menu.
                     Fill in your repo link, optional demo URL, and optional writeup or attachment. You can edit your
-                    submission any time before day 21. Designers upload a PNG, JPG, or WebP image directly from the
+                    submission any time before day 21 (UTC+2). Designers upload a PNG, JPG, or WebP image directly from the
                     submit page — no GitHub repo needed.
                   </p>
                 ),
@@ -320,8 +379,8 @@ export default async function JoinPage({
                 title: "Vote and earn XP",
                 body: (
                   <p className="text-white/65 text-sm sm:text-base leading-relaxed">
-                    During the vote window (days 22–25 UTC), use the vote banner on the{" "}
-                    <Link href="/challenges" className="text-[var(--accent)] hover:underline font-medium">
+                    During the vote window (days 22–25 UTC+2), use the vote banner on the{" "}
+                    <Link href="/challenges#monthly-calendar" className="text-[var(--accent)] hover:underline font-medium">
                       Challenges
                     </Link>{" "}
                     page, or open <strong className="text-white/85">Vote</strong> from your avatar menu. You have 3 votes per

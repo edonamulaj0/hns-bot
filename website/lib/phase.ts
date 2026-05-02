@@ -1,4 +1,9 @@
-/** Mirrors `src/time.ts` getMonthlyPhase — UTC calendar days. */
+/** Mirrors `src/time.ts` — UTC+2 civil calendar days for phases. */
+
+import {
+  communityMidnightUtc,
+  getCommunityCalendarParts,
+} from "@/lib/community-calendar";
 
 export type Phase =
   | "BUILD"
@@ -8,7 +13,7 @@ export type Phase =
   | "POST_PUBLISH";
 
 export function getMonthlyPhase(date = new Date()): Phase {
-  const day = date.getUTCDate();
+  const { day } = getCommunityCalendarParts(date);
   if (day >= 1 && day <= 21) return "BUILD";
   if (day >= 22 && day <= 25) return "VOTE";
   if (day >= 26 && day <= 28) return "REVIEW";
@@ -16,30 +21,26 @@ export function getMonthlyPhase(date = new Date()): Phase {
   return "POST_PUBLISH";
 }
 
-export function utcLastDayOfMonth(y: number, monthIndex: number): number {
-  return new Date(Date.UTC(y, monthIndex + 1, 0)).getUTCDate();
-}
-
-/** Next instant when the monthly phase changes (UTC). */
+/** Next instant when the monthly phase changes (UTC+2 calendar boundaries). */
 export function getNextPhaseTransitionAt(now = new Date()): Date {
-  const y = now.getUTCFullYear();
-  const m = now.getUTCMonth();
+  const { year: y, monthIndex: m } = getCommunityCalendarParts(now);
   const phase = getMonthlyPhase(now);
-  const nextMonthStart = new Date(Date.UTC(y, m + 1, 1, 0, 0, 0, 0));
+  const nextMonthIdx = m === 11 ? 0 : m + 1;
+  const nextYear = m === 11 ? y + 1 : y;
 
   if (phase === "BUILD") {
-    return new Date(Date.UTC(y, m, 22, 0, 0, 0, 0));
+    return communityMidnightUtc(y, m, 22);
   }
   if (phase === "VOTE") {
-    return new Date(Date.UTC(y, m, 26, 0, 0, 0, 0));
+    return communityMidnightUtc(y, m, 26);
   }
   if (phase === "REVIEW") {
-    return new Date(Date.UTC(y, m, 29, 0, 0, 0, 0));
+    return communityMidnightUtc(y, m, 29);
   }
   if (phase === "PUBLISH") {
-    return new Date(Date.UTC(y, m, 30, 0, 0, 0, 0));
+    return communityMidnightUtc(y, m, 30);
   }
-  return nextMonthStart;
+  return communityMidnightUtc(nextYear, nextMonthIdx, 1);
 }
 
 export function splitDuration(ms: number): {

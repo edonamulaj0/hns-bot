@@ -118,7 +118,7 @@ export async function insertPulseAward(
 }
 
 /**
- * Award GitHub pulse XP at most once per user per UTC month.
+ * Award GitHub pulse XP at most once per user per challenge month (UTC+2 calendar).
  */
 export async function awardMonthlyPulsePoints(
   prisma: PrismaClient,

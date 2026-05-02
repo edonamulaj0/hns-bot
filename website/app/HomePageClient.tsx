@@ -12,6 +12,7 @@ import {
   type PortfolioResponse,
   type BlogsResponse,
 } from "@/lib/api";
+import { getCommunityCalendarParts } from "@/lib/community-calendar";
 import type { Phase } from "@/lib/phase";
 import { PhaseCountdownStat } from "@/components/PhaseCountdown";
 import { buildActivityFeed, submissionsFromPortfolio } from "@/lib/activity-feed";
@@ -95,9 +96,10 @@ export default function HomePageClient({
 
   const showStatNumbers =
     data !== null && (totalMembers > 0 || totalSubmissions > 0);
+  const { year: launchYear, monthIndex: launchMonthIdx } = getCommunityCalendarParts(new Date());
   const monthsSinceLaunch = Math.max(
     0,
-    (new Date().getUTCFullYear() - 2025) * 12 + new Date().getUTCMonth() - 5,
+    (launchYear - 2025) * 12 + launchMonthIdx - 5,
   );
 
   const heroWords = ["Build.", "Ship.", "Get seen."];
@@ -262,7 +264,7 @@ export default function HomePageClient({
           >
             {[
               { step: "01", title: "Join Discord", body: "Sign in on the site and complete your profile (GitHub, LinkedIn, tech stack) for your public card." },
-              { step: "02", title: "Build (Days 1–21)", body: "Ship a project of any tier. Enroll and submit before the vote window (UTC calendar)." },
+              { step: "02", title: "Build (Days 1–21)", body: "Ship a project of any tier. Enroll and submit before the vote window (UTC+2 calendar)." },
               { step: "03", title: "Vote (Days 22–25)", body: "Signed-in members vote on the site; each vote on your work earns you XP." },
               { step: "04", title: "Get Published", body: "After results are revealed at month-end, winning work appears in the portfolio." },
             ].map((item) => (

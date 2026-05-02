@@ -137,7 +137,7 @@ export function registerPulse(app: DiscordHono<HonoWorkerEnv>) {
 
         const description = noActivity
           ? noActivityText
-          : `Counts are **${currentMonth}** (UTC), from GitHub. Pulse XP is awarded once per month from current activity and caps at **${PULSE_XP_CAP}**. Projected XP scales your pace by **${scale.toFixed(2)}×** for a month-end estimate.`;
+          : `Counts are **${currentMonth}** (UTC+2 calendar), from GitHub. Pulse XP is awarded once per month from current activity and caps at **${PULSE_XP_CAP}**. Projected XP scales your pace by **${scale.toFixed(2)}×** for a month-end estimate.`;
 
         const footerBase =
           pulse.source === "viewer"

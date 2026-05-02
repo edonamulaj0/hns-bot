@@ -248,8 +248,8 @@ Typical Cloudflare setup with a zone route:
 ## 8. Smoke checks
 
 1. Open `/auth/login`, complete Discord OAuth, confirm cookie and `/auth/me`.
-2. Signed-in: `/profile`, `/submit`, `/vote/YYYY-MM` (UTC month).
-3. Discord: slash commands respond; cron runs on schedule (UTC).
+2. Signed-in: `/profile`, `/submit`, `/vote/YYYY-MM` (month key matches the **UTC+2** challenge calendar).
+3. Discord: slash commands respond; cron runs at **22:05 UTC** daily (`5 22 * * *` in `wrangler.toml`) — lifecycle checks use **UTC+2** civil dates in code (see comment on `[triggers]`).
 
 ---
 
