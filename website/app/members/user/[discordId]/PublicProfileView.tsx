@@ -259,14 +259,14 @@ export function PublicProfileView({ data, isOwnProfile = false, manageLinks }: P
       </div>
       {showXpModal && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-[#050505] p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="xp-breakdown-title"
           onClick={() => setShowXpModal(false)}
         >
           <div
-            className="card max-h-[90vh] w-full max-w-lg overflow-y-auto p-5 sm:p-6"
+            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded border border-[var(--border)] bg-[var(--bg-raised)] p-5 shadow-xl sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start justify-between gap-4">
