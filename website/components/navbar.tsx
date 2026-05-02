@@ -301,10 +301,10 @@ export function Navbar() {
                     className="btn btn-outline w-full justify-center"
                     onClick={() => setOpen(false)}
                   >
-                    Join Discord
+                    Join us
                   </Link>
                   <a href={loginUrl()} className="btn btn-primary w-full justify-center">
-                    Sign in with Discord
+                    Sign in
                   </a>
                 </div>
                 <div className="hidden md:ml-2 md:flex md:flex-row md:items-center md:gap-2">
@@ -312,7 +312,7 @@ export function Navbar() {
                     href="/join"
                     className="btn btn-outline inline-flex w-auto shrink-0 items-center justify-center whitespace-nowrap"
                   >
-                    Join Discord
+                    Join us
                   </Link>
                   <AuthNav />
                 </div>
