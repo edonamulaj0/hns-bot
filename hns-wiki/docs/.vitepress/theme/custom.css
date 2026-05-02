@@ -164,6 +164,23 @@ body::before {
   outline-offset: 2px;
 }
 
+/* Search UI: softer focus than global lime ring */
+.hns-wiki-nav .DocSearch-Button:focus-visible {
+  outline: 1px solid rgba(124, 47, 235, 0.55) !important;
+  outline-offset: 1px !important;
+}
+
+.VPLocalSearchBox .search-bar:focus-within {
+  border-color: var(--accent-border-soft) !important;
+  box-shadow: none !important;
+}
+
+.VPLocalSearchBox input:focus-visible,
+.VPLocalSearchBox .search-input:focus-visible {
+  outline: 1px solid rgba(124, 47, 235, 0.45) !important;
+  outline-offset: 1px !important;
+}
+
 h1,
 h2,
 h3,
@@ -374,9 +391,28 @@ h4,
 }
 
 .VPHero {
-  min-height: min(64dvh, 720px);
+  min-height: min(72dvh, 760px);
   padding-top: var(--space-xl) !important;
   padding-bottom: var(--space-lg) !important;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(124, 47, 235, 0.07) 0%, transparent 48%);
+}
+
+.VPHero .container {
+  max-width: var(--container-max) !important;
+}
+
+/* Match main site: white wordmark + lime accent line */
+.VPHero .name.clip {
+  color: var(--text);
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: var(--text) !important;
+}
+
+.VPHero .heading .text {
+  color: var(--accent);
 }
 
 .VPHero .name,
@@ -387,7 +423,19 @@ h4,
 }
 
 .VPHero .tagline {
-  color: var(--text-subtle);
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 36rem !important;
+  font-weight: 400;
+  font-size: clamp(1rem, 2.4vw, 1.25rem) !important;
+  line-height: 1.65 !important;
+}
+
+@media (min-width: 960px) {
+  .VPHero.has-image .image .image-src {
+    max-height: min(42vh, 280px);
+    width: auto;
+    object-fit: contain;
+  }
 }
 
 .VPFeature,
@@ -514,13 +562,24 @@ select {
   font-family: var(--font-display);
 }
 
+input:focus {
+  border-color: var(--accent-border-soft) !important;
+  outline: 1px solid rgba(124, 47, 235, 0.4);
+  outline-offset: 1px;
+}
+
 .VPLocalSearchBox input:focus,
-input:focus,
+.VPLocalSearchBox .search-input:focus {
+  border-color: var(--accent-border-soft) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 textarea:focus,
 select:focus {
-  border-color: var(--accent) !important;
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  border-color: var(--accent-border-soft) !important;
+  outline: 1px solid rgba(124, 47, 235, 0.45);
+  outline-offset: 1px;
 }
 
 .VPLocalSearchBox .result,

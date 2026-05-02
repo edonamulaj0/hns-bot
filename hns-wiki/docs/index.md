@@ -4,8 +4,12 @@ layout: home
 description: Free resources for developers, builders, and security researchers.
 
 hero:
-  name: H4ck&Stack Wiki
-  tagline: Curated free resources for developers and security researchers.
+  name: H4ck&Stack
+  text: Wiki
+  tagline: Curated free resources for developers, hackers, and designers — the same dark canvas, lime accents, and purple glow as the main community site.
+  image:
+    src: https://h4cknstack.com/icon.svg
+    alt: ""
   actions:
     - theme: brand
       text: Browse resources

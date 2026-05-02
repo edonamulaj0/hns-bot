@@ -223,23 +223,39 @@ export function ManageContentClient({
             </div>
           ) : (
             items.map((item) => (
-              <article key={item.id} className="card p-4 sm:p-5">
-                <h2 className="text-lg font-bold">{item.title}</h2>
-                {item.content?.trim() ? (
-                  <p className="text-sm text-white/60 mt-2 line-clamp-3">{item.content}</p>
+              <article key={item.id} className="card relative overflow-hidden p-4 sm:p-5">
+                {kind === "ARTICLE" ? (
+                  <Link
+                    href={`/articles/${item.id}`}
+                    className="absolute inset-0 z-[1] rounded-[inherit] outline-none ring-offset-2 ring-offset-[var(--bg-card)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    aria-label={`Open article: ${item.title}`}
+                  />
                 ) : null}
-                {kind === "ARTICLE" && item.content?.trim() ? (
-                  <Link href={`/articles/${item.id}`} className="btn text-xs mt-3 inline-flex">
-                    Open post
-                  </Link>
-                ) : item.url?.trim() ? (
-                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn text-xs mt-3">
-                    Open →
-                  </a>
-                ) : null}
-                <div className="mt-3 flex gap-2 border-t border-[var(--border)] pt-3">
-                  <button type="button" className="btn p-2" onClick={() => startEdit(item)}>Edit</button>
-                  <button type="button" className="btn p-2" onClick={() => remove(item.id)}>Delete</button>
+                <div
+                  className={`relative z-[2] ${kind === "ARTICLE" ? "pointer-events-none" : ""}`}
+                >
+                  <h2 className="text-lg font-bold">{item.title}</h2>
+                  {item.content?.trim() ? (
+                    <p className="text-sm text-white/60 mt-2 line-clamp-3">{item.content}</p>
+                  ) : null}
+                  {kind === "PROJECT" && item.url?.trim() ? (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn text-xs mt-3 inline-flex pointer-events-auto"
+                    >
+                      Open →
+                    </a>
+                  ) : null}
+                  <div className="mt-3 flex gap-2 border-t border-[var(--border)] pt-3 pointer-events-auto">
+                    <button type="button" className="btn p-2" onClick={() => startEdit(item)}>
+                      Edit
+                    </button>
+                    <button type="button" className="btn p-2" onClick={() => remove(item.id)}>
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </article>
             ))
