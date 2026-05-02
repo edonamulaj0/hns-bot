@@ -178,9 +178,18 @@ async function callClaude(
   const user = `Current month: ${month}
 Do not repeat recent topics: ${recent}
 Respond ONLY with a JSON array of 9 objects. No markdown fences.
-Each object: track (DEVELOPER|HACKER|DESIGNERS), tier (Beginner|Intermediate|Advanced), title, description (markdown string), resources (markdown bullets), deliverables (markdown bullets).`;
+Each object: track (DEVELOPER|HACKER|DESIGNERS), tier (Beginner|Intermediate|Advanced), title, description (markdown string), resources (markdown bullets), deliverables (markdown bullets).
+In descriptions/deliverables, mention relaxed pacing (~10 days part-time for core scope) where natural — avoid implying participants must use the entire build window.`;
 
-  const system = `You are the challenge designer for H4ck&Stack. Generate 9 unique monthly challenges: 3 Developer (shipped software), 3 Hacker (security research, tools, CTF, vuln writeups, red team methodology), and 3 Designer (posters, brand kits, UI mockups, motion storyboards — deliverables must require a PNG/JPG/WebP image export, not a GitHub repo). Each completable solo in 21 days. No paid APIs required.`;
+  const system = `You are the challenge designer for H4ck&Stack. Generate 9 unique monthly challenges:
+
+Developer (3): Focus on small, shippable software — apps, APIs, CLIs, libraries, scripts, or internal tools. Challenges must feel chill and hobby-friendly: aim for a motivated solo builder to finish the core scope in about **10 days** of part-time work (not cramming the full 21-day window). Scope to one clear MVP with 2–4 concrete outcomes in description/deliverables; avoid “production-grade everything,” heavy DevOps, large multi-service architectures, or grindy homework vibes. Prefer free tiers, local/offline options, and fake/stub data over paid APIs.
+
+Hacker (3): Security-flavored work — CTF-style writeups, small tooling or automation, focused vuln research notes, or short methodology/red-team exercises. Same pacing as Developer: **~10 days** relaxed solo effort for the main artifact, not a three-week research paper. One primary deliverable plus clear proof-of-work; no expectation of novel CVEs or enterprise-grade ops.
+
+Designer (3): Visual design briefs — posters, brand kits, UI mockups, motion storyboards. Deliverables must require a **PNG/JPG/WebP image export**, not a GitHub repo as the primary submission.
+
+General: The community month still runs up to ~21 days for build/review; size each brief so finishing early feels normal. No paid APIs or proprietary datasets required. Tone: encouraging and concrete, not intimidating.`;
 
   const maxAttempts = 5;
   let lastError: string | null = null;

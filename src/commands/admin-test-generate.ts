@@ -9,6 +9,7 @@ import {
 } from "../challenge-generator";
 import { getDiscordUserId } from "./helpers";
 import { isAdmin } from "./admin";
+import { clearMonthChallengeAndRelated, patchAdminComponentMessage } from "./admin-reset-month";
 
 const previewCache = new Map<string, GeneratedChallengesResult>();
 
@@ -20,31 +21,19 @@ function previewFields(list: GeneratedChallengesResult["challenges"]) {
   }));
 }
 
-async function editSourceMessage(ctx: any, content: string) {
-  const channelId = ctx.interaction?.channel_id;
-  const messageId = ctx.interaction?.message?.id;
-  if (!channelId || !messageId) return false;
-  const res = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages/${messageId}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bot ${ctx.env.DISCORD_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ content, components: [] }),
-  });
-  return res.ok;
-}
-
 export function registerAdminTestGenerate(app: DiscordHono<HonoWorkerEnv>) {
   return app.command("admin-test-generate", async (c) =>
-    c.flags("EPHEMERAL").resDefer(async (ctx) => {
+    c.resDefer(async (ctx) => {
       if (!ctx.env.ADMIN_ROLE_ID || !isAdmin(ctx.interaction, ctx.env.ADMIN_ROLE_ID)) {
-        await ctx.followup({ content: "⛔ Unauthorized." });
+        await ctx.followup({ content: "⛔ Unauthorized.", flags: MessageFlags.Ephemeral });
         return;
       }
       const discordId = getDiscordUserId(ctx.interaction);
       if (!discordId) {
-        await ctx.followup({ content: "Could not detect your Discord ID.", flags: MessageFlags.Ephemeral });
+        await ctx.followup({
+          content: "Could not detect your Discord ID.",
+          flags: MessageFlags.Ephemeral,
+        });
         return;
       }
 
@@ -77,6 +66,8 @@ export function registerAdminTestGenerate(app: DiscordHono<HonoWorkerEnv>) {
 
       await ctx.followup({
         ...basePayload,
+        content:
+          "Preview below — **Post for real** clears this month’s challenges + related enrollments/submissions/votes in the database, posts fresh embeds to the challenge channels, then edits this message.",
         components: [
           {
             type: 1,
@@ -110,51 +101,41 @@ export async function handleAdminGenerateComponent(ctx: any): Promise<boolean> {
     return false;
   }
 
-  if (!ctx.env.ADMIN_ROLE_ID || !isAdmin(ctx.interaction, ctx.env.ADMIN_ROLE_ID)) {
-    await ctx.followup({ content: "⛔ Unauthorized.", flags: MessageFlags.Ephemeral });
-    return true;
-  }
-
   const discordId = getDiscordUserId(ctx.interaction);
   if (!discordId) {
-    await ctx.followup({ content: "Could not detect your Discord ID.", flags: MessageFlags.Ephemeral });
+    await patchAdminComponentMessage(ctx, "Could not detect your Discord ID.");
     return true;
   }
 
   if (customId === "admin:discard-challenges") {
-    const ok = await editSourceMessage(ctx, "🗑️ Discarded. Nothing was posted.");
-    if (!ok) {
-      await ctx.followup({ content: "🗑️ Discarded. Nothing was posted.", flags: MessageFlags.Ephemeral });
-    }
+    await patchAdminComponentMessage(ctx, "🗑️ Discarded. Nothing was posted.");
     return true;
   }
 
   const month = customId.replace("admin:confirm-post-challenges:", "").trim();
   const cached = previewCache.get(`${discordId}:${month}`);
   if (!cached) {
-    await ctx.followup({
-      content: "Preview not found or expired. Run /admin-test-generate again.",
-      flags: MessageFlags.Ephemeral,
-    });
+    await patchAdminComponentMessage(
+      ctx,
+      "Preview not found or expired. Run `/admin-test-generate` again.",
+    );
     return true;
   }
 
   try {
     const prisma = getPrisma(ctx.env.DB);
+    await clearMonthChallengeAndRelated(prisma, month);
     await postChallengesToDiscord({ env: ctx.env }, prisma, month, cached.challenges);
     previewCache.delete(`${discordId}:${month}`);
-    const ok = await editSourceMessage(ctx, "✅ Challenges posted to #developers and #hackers");
-    if (!ok) {
-      await ctx.followup({
-        content: "✅ Challenges posted to #developers and #hackers",
-        flags: MessageFlags.Ephemeral,
-      });
-    }
+    await patchAdminComponentMessage(
+      ctx,
+      "✅ This month’s challenge data was cleared and replaced. New challenge posts were sent to the developer / hacker / designer channels.",
+    );
   } catch (err) {
-    await ctx.followup({
-      content: `❌ Failed to post challenges. Error: ${err instanceof Error ? err.message : String(err)}`,
-      flags: MessageFlags.Ephemeral,
-    });
+    await patchAdminComponentMessage(
+      ctx,
+      `❌ Failed to post challenges. Error: ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 
   return true;

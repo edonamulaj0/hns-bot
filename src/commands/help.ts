@@ -45,7 +45,8 @@ const ADMIN_ROWS: { name: string; value: string }[] = [
   },
   {
     name: "/admin-test-generate",
-    value: "Generate this month’s challenges and preview (no public post).",
+    value:
+      "Generate this month’s challenges as a channel preview; **Post for real** replaces DB rows for the month and posts to challenge channels.",
   },
   {
     name: "/admin-test-notify",

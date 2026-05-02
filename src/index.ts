@@ -31,6 +31,7 @@ import {
 } from "./commands/admin-reset-month";
 import { processDiscordEnrollment, type EnrollmentDeferCtx } from "./commands/enroll";
 import { getDiscordUserId } from "./commands/helpers";
+import { isAdmin } from "./commands/admin";
 import { MessageFlags } from "discord-api-types/v10";
 import { ensureRolesExist } from "./role-manager";
 
@@ -57,10 +58,18 @@ app = registerAdminResetMonth(app);
 app = app.component("", async (c) => {
   const customId: string = c.interaction?.data?.custom_id ?? "";
   if (customId.startsWith("admin:")) {
-    return c.flags("EPHEMERAL").resDefer(async (ctx) => {
+    if (!c.env.ADMIN_ROLE_ID || !isAdmin(c.interaction, c.env.ADMIN_ROLE_ID)) {
+      return c.flags("EPHEMERAL").res("⛔ Unauthorized.");
+    }
+    /** `update()` required so deferred `followup` PATCHes the component message (@original). */
+    return c.update().resDefer(async (ctx) => {
       if (await handleAdminGenerateComponent(ctx)) return;
       if (await handleAdminResetComponent(ctx)) return;
-      await ctx.followup({ content: "Unknown admin action.", flags: MessageFlags.Ephemeral });
+      await ctx.followup({
+        content: "Unknown admin action.",
+        embeds: [],
+        components: [],
+      });
     });
   }
   if (!customId.startsWith("enroll:")) {

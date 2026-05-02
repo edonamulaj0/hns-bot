@@ -32,6 +32,33 @@ async function requireProfile(
   return { ok: true, userId: row.id };
 }
 
+/** One enrollment per calendar month: same challenge id allowed (idempotent); any other challenge blocks. */
+async function assertSingleEnrollmentSlot(
+  prisma: PrismaClient,
+  userId: string,
+  month: string,
+  challengeId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const rows = await prisma.enrollment.findMany({
+    where: {
+      userId,
+      challenge: { month },
+    },
+    include: {
+      challenge: {
+        select: { id: true, track: true, tier: true, title: true },
+      },
+    },
+  });
+  const conflicting = rows.filter((r) => r.challengeId !== challengeId);
+  if (conflicting.length === 0) return { ok: true };
+  const c = conflicting[0].challenge;
+  return {
+    ok: false,
+    message: `You're already enrolled for **${month}** — ${trackLabel(c.track)} (${c.tier}): "${c.title}". Only one track and difficulty per month. Ask an admin if you need to switch.`,
+  };
+}
+
 /** Deferred component/slash context from discord-hono (followup return type varies by version). */
 export type EnrollmentDeferCtx = {
   env: HonoWorkerEnv["Bindings"];
@@ -70,6 +97,12 @@ export async function processDiscordEnrollment(
       content: "That challenge is not available for enrollment.",
       flags: MessageFlags.Ephemeral,
     });
+    return;
+  }
+
+  const slot = await assertSingleEnrollmentSlot(prisma, prof.userId, m, challenge.id);
+  if (!slot.ok) {
+    await ctx.followup({ content: slot.message, flags: MessageFlags.Ephemeral });
     return;
   }
 
@@ -153,6 +186,13 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
         );
       }
 
+      const already = await prisma.enrollment.findFirst({
+        where: { userId: prof.userId, challenge: { month: m } },
+        include: {
+          challenge: { select: { track: true, tier: true, title: true } },
+        },
+      });
+
       const selectedTrack = normalizeTrackParam((c.var as { track?: string }).track ?? "");
       const selectedTier = ((c.var as { tier?: string }).tier ?? "").trim();
       if (selectedTrack && selectedTier) {
@@ -165,6 +205,11 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
           return c.flags("EPHEMERAL").res(
             `No ${selectedTier} ${trackLabel(selectedTrack)} challenge found for **${m}**.`,
           );
+        }
+
+        const slotPick = await assertSingleEnrollmentSlot(prisma, prof.userId, m, picked.id);
+        if (!slotPick.ok) {
+          return c.flags("EPHEMERAL").res(slotPick.message);
         }
 
         await prisma.enrollment.upsert({
@@ -211,6 +256,13 @@ export function registerEnroll(app: DiscordHono<HonoWorkerEnv>) {
             },
           ],
         });
+      }
+
+      if (already) {
+        const ec = already.challenge;
+        return c.flags("EPHEMERAL").res(
+          `You're already enrolled for **${m}** — ${trackLabel(ec.track)} (${ec.tier}): "${ec.title}". Only one track and difficulty per month.`,
+        );
       }
 
       const options = challenges.map((ch) => ({

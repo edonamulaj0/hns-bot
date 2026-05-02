@@ -90,10 +90,8 @@ export default function ChallengesPage() {
       >
         <div className="container w-full">
           <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Three Tracks</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div
-              className="card w-full p-5 sm:p-7"
-            >
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:items-stretch">
+            <div className="card flex h-full w-full flex-col p-5 sm:p-7">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-2xl">🛠</span>
                 <h3 className="text-xl sm:text-2xl font-bold">Developer Track</h3>
@@ -109,14 +107,27 @@ export default function ChallengesPage() {
                 <span className="tag whitespace-normal break-words leading-snug">Days 26–28: Review</span>
                 <span className="tag whitespace-normal break-words leading-snug">Day 29: Publish</span>
               </div>
-              <Link href="/challenges/developers" className="btn btn-primary w-fit mt-4">
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {["Web / API", "CLI & tooling", "Library / package", "Automation"].map((t) => (
+                  <span
+                    key={t}
+                    className="tag text-[0.65rem]"
+                    style={{
+                      background: "#ccff0014",
+                      borderColor: "#ccff004d",
+                      color: "#ccff00",
+                    }}
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+              <Link href="/challenges/developers" className="btn btn-primary mt-auto w-fit self-start pt-4">
                 View challenges →
               </Link>
             </div>
 
-            <div
-              className="card w-full p-5 sm:p-7"
-            >
+            <div className="card flex h-full w-full flex-col p-5 sm:p-7">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-2xl">🔒</span>
                 <h3 className="text-xl sm:text-2xl font-bold">Hacker Track</h3>
@@ -149,7 +160,7 @@ export default function ChallengesPage() {
               </div>
               <Link
                 href="/challenges/hackers"
-                className="btn w-fit mt-4"
+                className="btn mt-auto w-fit self-start pt-4"
                 style={{
                   borderColor: "#7c2feb66",
                   color: "#ccff00",
@@ -159,9 +170,7 @@ export default function ChallengesPage() {
               </Link>
             </div>
 
-            <div
-              className="card w-full p-5 sm:p-7"
-            >
+            <div className="card flex h-full w-full flex-col p-5 sm:p-7">
               <div className="flex items-center gap-3 mb-4">
                 <svg
                   width="28"
@@ -215,7 +224,7 @@ export default function ChallengesPage() {
               </div>
               <Link
                 href="/challenges/designer"
-                className="btn w-fit mt-4"
+                className="btn mt-auto w-fit self-start pt-4"
                 style={{
                   borderColor: "#D85A3088",
                   color: "#fff",

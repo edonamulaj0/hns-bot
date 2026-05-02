@@ -1,0 +1,34 @@
+name = "hns-bot"
+main = "src/index.ts"
+compatibility_date = "2026-04-11"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hns-bot-db"
+database_id = "4b4b1a3d-44bf-42c7-9522-e0a50c6b4f52"
+
+[[r2_buckets]]
+binding = "SUBMISSIONS_BUCKET"
+bucket_name = "hns-submissions"
+
+[vars]
+BASE_URL = "https://h4cknstack.com"
+DISCORD_GUILD_ID = "1387695542934437979"
+
+ADMIN_CHANNEL_ID = "1493219913618296842"
+VOTING_CHANNEL_ID = "1475220426077507676"
+BLOG_CHANNEL_ID = "1492973065653452860"
+ADMIN_ROLE_ID = "1387701276204208228"
+DEVELOPER_CHALLENGES_CHANNEL_ID = "1492903109691707453"
+HACKER_CHALLENGES_CHANNEL_ID = "1492903075269312593"
+DESIGN_CHALLENGES_CHANNEL_ID = "1494759179469193420"
+
+WORKER_PUBLIC_URL = "https://hns-bot.edonaamulaj.workers.dev"
+GITHUB_OAUTH_CLIENT_ID = "Ov23liqmPme3wOzqWJGE"
+
+DISCORD_PUBLIC_KEY = "cae56c5d6b3f9d47fe891660a9111d8844edf025dcb053f6121687c7c775a4e4"
+DISCORD_APPLICATION_ID = "1475217166558298303"
+
+[triggers]
+crons = ["5 0 * * *"]

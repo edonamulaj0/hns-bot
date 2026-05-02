@@ -1,30 +1,41 @@
 import type { DiscordHono } from "discord-hono";
 import { MessageFlags } from "discord-api-types/v10";
+import type { PrismaClient } from "@prisma/client/edge";
 import type { HonoWorkerEnv } from "../worker-env";
 import { getPrisma } from "../db";
 import { monthKey } from "../time";
 import { isAdmin } from "./admin";
 
-async function editSourceMessage(ctx: any, content: string) {
-  const channelId = ctx.interaction?.channel_id;
-  const messageId = ctx.interaction?.message?.id;
-  if (!channelId || !messageId) return false;
-  const res = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages/${messageId}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bot ${ctx.env.DISCORD_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ content, components: [] }),
+/** Deletes votes, submissions, enrollments, and challenges for one calendar month (challenge cycle). */
+export async function clearMonthChallengeAndRelated(prisma: PrismaClient, month: string): Promise<void> {
+  await prisma.vote.deleteMany({
+    where: { submission: { month } },
   });
-  return res.ok;
+  await prisma.submission.deleteMany({
+    where: { month },
+  });
+  await prisma.enrollment.deleteMany({
+    where: { challenge: { month } },
+  });
+  await prisma.challenge.deleteMany({
+    where: { month },
+  });
+}
+
+/** Replace the Discord component message (same `followup` target as `c.update().resDefer`). */
+export async function patchAdminComponentMessage(ctx: any, content: string): Promise<void> {
+  await ctx.followup({
+    content,
+    embeds: [],
+    components: [],
+  });
 }
 
 export function registerAdminResetMonth(app: DiscordHono<HonoWorkerEnv>) {
   return app.command("admin-reset-month", async (c) =>
     c.flags("EPHEMERAL").resDefer(async (ctx) => {
       if (!ctx.env.ADMIN_ROLE_ID || !isAdmin(ctx.interaction, ctx.env.ADMIN_ROLE_ID)) {
-        await ctx.followup({ content: "⛔ Unauthorized." });
+        await ctx.followup({ content: "⛔ Unauthorized.", flags: MessageFlags.Ephemeral });
         return;
       }
 
@@ -64,34 +75,15 @@ export async function handleAdminResetComponent(ctx: any): Promise<boolean> {
     return false;
   }
 
-  if (!ctx.env.ADMIN_ROLE_ID || !isAdmin(ctx.interaction, ctx.env.ADMIN_ROLE_ID)) {
-    await ctx.followup({ content: "⛔ Unauthorized.", flags: MessageFlags.Ephemeral });
-    return true;
-  }
-
   if (customId === "admin:cancel") {
-    const ok = await editSourceMessage(ctx, "Cancelled. No data was changed.");
-    if (!ok) {
-      await ctx.followup({ content: "Cancelled. No data was changed.", flags: MessageFlags.Ephemeral });
-    }
+    await patchAdminComponentMessage(ctx, "Cancelled. No data was changed.");
     return true;
   }
 
   const currentMonth = customId.replace("admin:confirm-reset:", "").trim() || monthKey();
   const prisma = getPrisma(ctx.env.DB);
 
-  await prisma.vote.deleteMany({
-    where: { submission: { month: currentMonth } },
-  });
-  await prisma.submission.deleteMany({
-    where: { month: currentMonth },
-  });
-  await prisma.enrollment.deleteMany({
-    where: { challenge: { month: currentMonth } },
-  });
-  await prisma.challenge.deleteMany({
-    where: { month: currentMonth },
-  });
+  await clearMonthChallengeAndRelated(prisma, currentMonth);
 
   let cfg = await prisma.config.findFirst();
   if (!cfg) cfg = await prisma.config.create({ data: {} });
@@ -104,15 +96,9 @@ export async function handleAdminResetComponent(ctx: any): Promise<boolean> {
     },
   });
 
-  const ok = await editSourceMessage(
+  await patchAdminComponentMessage(
     ctx,
     `✅ ${currentMonth} data cleared. Bot will regenerate challenges on next /admin-test-generate or day-1 cron.`,
   );
-  if (!ok) {
-    await ctx.followup({
-      content: `✅ ${currentMonth} data cleared. Bot will regenerate challenges on next /admin-test-generate or day-1 cron.`,
-      flags: MessageFlags.Ephemeral,
-    });
-  }
   return true;
 }
