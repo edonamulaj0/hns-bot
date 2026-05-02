@@ -30,54 +30,41 @@ export function ActivityFeedRow({
       );
     return (
       <div
-        className={`flex gap-3 ${compact ? "py-2" : "py-3"} pl-5 border-b border-[var(--border)] last:border-0`}
+        className={`flex flex-col items-center text-center gap-2 ${compact ? "py-3" : "py-4"} px-2 border-b border-[var(--border)] last:border-0`}
       >
-        <div className="-ml-[1.375rem] mt-1 shrink-0 w-3 flex justify-center">
-          <span
-            className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] ring-4 ring-[var(--bg)]"
-            aria-hidden
-          />
-        </div>
-        {thumb}
-        <div className="min-w-0 flex-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <p className={`text-sm text-white/80 ${compact ? "line-clamp-2" : ""}`}>
-            <span className="mono text-[0.6rem] text-[var(--accent)] mr-1">{badge}</span>
-            {memberDisplayName(item)} shipped {item.title} — {item.tier} · {item.month}
-          </p>
-          <span className="mono text-[0.65rem] text-white/40">{time}</span>
-          <Link href={`/submissions/${item.id}`} className="btn text-[0.65rem] py-1 px-2 shrink-0">
-            View →
-          </Link>
-        </div>
+        <span
+          className="w-2 h-2 rounded-full bg-[var(--accent)] ring-4 ring-[var(--bg)] shrink-0"
+          aria-hidden
+        />
+        <div className="flex justify-center">{thumb}</div>
+        <p className={`text-sm text-white/80 max-w-xl ${compact ? "line-clamp-3" : ""}`}>
+          <span className="mono text-[0.6rem] text-[var(--accent)] block mb-1">{badge}</span>
+          {memberDisplayName(item)} shipped {item.title} — {item.tier} · {item.month}
+        </p>
+        <span className="mono text-[0.65rem] text-white/40">{time}</span>
+        <Link href={`/submissions/${item.id}`} className="btn text-[0.65rem] py-1 px-2 shrink-0">
+          View →
+        </Link>
       </div>
     );
   }
 
   return (
     <div
-      className={`flex gap-3 ${compact ? "py-2" : "py-3"} pl-5 border-b border-[var(--border)] last:border-0`}
+      className={`flex flex-col items-center text-center gap-2 ${compact ? "py-3" : "py-4"} px-2 border-b border-[var(--border)] last:border-0`}
     >
-      <div className="-ml-[1.375rem] mt-1 shrink-0 w-3 flex justify-center">
-        <span
-          className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] ring-4 ring-[var(--bg)]"
-          aria-hidden
-        />
-      </div>
-      <span className="text-lg shrink-0 w-6 text-center leading-none pt-0.5">📝</span>
-      <div className="min-w-0 flex-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <p className={`text-sm text-white/80 flex-1 min-w-[12rem] ${compact ? "line-clamp-2" : ""}`}>
-          {memberDisplayName(item)} shared an article: {item.title}
-        </p>
-        <span className="mono text-[0.65rem] text-white/40">{time}</span>
-        <a
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn text-[0.65rem] py-1 px-2 shrink-0"
-        >
-          Open
-        </a>
-      </div>
+      <span
+        className="w-2 h-2 rounded-full bg-[var(--accent)] ring-4 ring-[var(--bg)] shrink-0"
+        aria-hidden
+      />
+      <span className="text-lg leading-none">📝</span>
+      <p className={`text-sm text-white/80 max-w-xl ${compact ? "line-clamp-3" : ""}`}>
+        {memberDisplayName(item)} shared an article: {item.title}
+      </p>
+      <span className="mono text-[0.65rem] text-white/40">{time}</span>
+      <Link href={`/articles/${item.id}`} className="btn text-[0.65rem] py-1 px-2 shrink-0">
+        Read →
+      </Link>
     </div>
   );
 }
@@ -92,7 +79,7 @@ export function ActivityFeedList({
   className?: string;
 }) {
   return (
-    <div className={`border-l-2 border-[var(--border)] ml-3 ${className}`}>
+    <div className={`max-w-2xl mx-auto ${className}`}>
       {items.map((item) => (
         <ActivityFeedRow key={`${item.type}-${item.id}`} item={item} compact={compact} />
       ))}

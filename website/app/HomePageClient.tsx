@@ -116,7 +116,7 @@ export default function HomePageClient({
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="section flex min-h-[min(80dvh,720px)] items-center">
         <div className="container w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 lg:items-center lg:gap-10 xl:gap-14">
+          <div className="grid grid-cols-1 lg:grid-cols-2 lg:items-stretch lg:gap-10 xl:gap-14">
             <div className="max-w-[720px] min-w-0">
               <div className="mb-4 sm:mb-6 flex gap-4 items-center">
                 <span
@@ -168,18 +168,17 @@ export default function HomePageClient({
               </div>
             </div>
 
-            <div
-              className="hidden lg:flex justify-center lg:justify-end items-center"
-              aria-hidden
-            >
-              <img
-                src="/icon.svg"
-                alt=""
-                width={320}
-                height={226}
-                className="w-full max-w-[220px] xl:max-w-[300px] h-auto select-none pointer-events-none"
-                draggable={false}
-              />
+            <div className="hidden lg:flex lg:min-h-0 lg:self-stretch lg:justify-end" aria-hidden>
+              <div className="flex h-full min-h-0 w-full items-center justify-end">
+                <img
+                  src="/icon.svg"
+                  alt=""
+                  width={11693}
+                  height={8268}
+                  className="max-h-full w-auto max-w-[min(100%,min(520px,56vw))] object-contain object-right select-none pointer-events-none"
+                  draggable={false}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -377,11 +376,9 @@ export default function HomePageClient({
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
             >
               {latestBlogs.map((blog) => (
-                <a
+                <Link
                   key={blog.id}
-                  href={blog.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={`/articles/${blog.id}`}
                   className="card card-lift p-4 sm:p-5 lg:p-6 no-underline text-[var(--text)] flex flex-col gap-3"
                 >
                   <h3 className="text-base sm:text-lg font-bold leading-tight">
@@ -400,7 +397,7 @@ export default function HomePageClient({
                       {relativeTime(blog.createdAt)}
                     </span>
                   )}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
