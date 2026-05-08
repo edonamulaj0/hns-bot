@@ -3,7 +3,7 @@ import { getPrisma } from "../db";
 import { getCommunityCalendarParts, getMonthlyPhase, monthKey } from "../time";
 import { generateAndPostChallenges } from "../challenge-generator";
 import { syncAllRoles } from "../role-manager";
-import { syncLegacyApprovalFields } from "../submission-lifecycle";
+import { submissionEligibleForPublish, syncLegacyApprovalFields } from "../submission-lifecycle";
 import {
   notifyChallengesLive,
   notifyDeadlineWarning,
@@ -52,7 +52,7 @@ export function registerCron(app: any) {
         if (config.lastPublishMonth !== currentMonth) {
           const publishData = { ...syncLegacyApprovalFields("PUBLISHED"), isLocked: true };
           await prisma.submission.updateMany({
-            where: { month: currentMonth },
+            where: { month: currentMonth, ...submissionEligibleForPublish() },
             data: publishData as any,
           });
 

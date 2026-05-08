@@ -40,6 +40,25 @@ export function isPublishedArchive(status: SubmissionLifecycleStatus): boolean {
   return status === "PUBLISHED";
 }
 
+export function isReviewableStatus(status: SubmissionLifecycleStatus): boolean {
+  return status === "PENDING";
+}
+
+/** Rows that may be promoted to the public archive on publish day. */
+export function submissionEligibleForPublish(): {
+  OR: Array<
+    | { submissionStatus: "APPROVED" }
+    | { AND: [{ submissionStatus: null }, { isApproved: true }] }
+  >;
+} {
+  return {
+    OR: [
+      { submissionStatus: "APPROVED" },
+      { AND: [{ submissionStatus: null }, { isApproved: true }] },
+    ],
+  };
+}
+
 /** Approved / published / legacy-approved rows — use for winner picks after publish day. */
 export function submissionEligibleForWinnerPick(): {
   OR: Array<
