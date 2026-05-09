@@ -16,6 +16,7 @@ import {
   syncLegacyApprovalFields,
   effectiveSubmissionStatus,
   isPublishedArchive,
+  isReviewableStatus,
 } from "./submission-lifecycle";
 import { syncDesignEnrollmentRoles } from "./design-track-roles";
 
@@ -1799,10 +1800,16 @@ export async function handleAdminSubmissionPatch(
   if (!sub) return jsonResponse(env, request, { error: "not_found" }, 404);
 
   const st = effectiveSubmissionStatus(sub);
+  if (!isReviewableStatus(st)) {
+    return jsonResponse(
+      env,
+      request,
+      { error: "cannot_review_after_review", submissionStatus: st },
+      409,
+    );
+  }
+
   if (action === "approve") {
-    if (st === "PUBLISHED") {
-      return jsonResponse(env, request, { error: "already_published" }, 400);
-    }
     const next = syncLegacyApprovalFields("APPROVED");
     await prisma.submission.update({ where: { id }, data: next as any });
 
