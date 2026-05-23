@@ -1668,6 +1668,7 @@ export async function handleSubmitDelete(
     where: { id, userId: user.id },
     select: {
       id: true,
+      isLocked: true,
       isApproved: true,
       revealed: true,
       submissionStatus: true,
@@ -1676,6 +1677,9 @@ export async function handleSubmitDelete(
   });
   if (!sub) {
     return jsonResponse(env, request, { error: "not_found" }, 404);
+  }
+  if (sub.isLocked) {
+    return jsonResponse(env, request, { error: "locked" }, 403);
   }
 
   await prisma.submission.delete({ where: { id: sub.id } });

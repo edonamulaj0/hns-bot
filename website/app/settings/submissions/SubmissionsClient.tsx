@@ -305,12 +305,15 @@ export function SubmissionsClient({ backHref = "/profile" }: { backHref?: string
                   )}
                   <button
                     type="button"
-                    className="btn p-2"
+                    className={`btn p-2 ${s.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                    disabled={s.isLocked}
+                    title={s.isLocked ? "This submission is locked" : "Delete"}
                     onClick={() => {
+                      if (s.isLocked) return;
                       setDeleteConfirmId(s.id);
                       setDeleteSecondStep(false);
                     }}
-                    aria-label="Delete"
+                    aria-label={s.isLocked ? "Delete disabled" : "Delete"}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="3 6 5 6 21 6" />
