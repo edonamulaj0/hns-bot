@@ -48,32 +48,39 @@ const baseSubmission: FakeSubmission = {
   user: { discordId: "111111111111111111" },
 };
 
-const pendingResult = await castVote(
-  fakePrismaForRejectedVote(baseSubmission) as any,
-  "222222222222222222",
-  baseSubmission.id,
-  baseSubmission.month,
-  {} as any,
-);
-assert.deepEqual(pendingResult, {
-  ok: false,
-  message: "This submission is not open for voting.",
-});
+async function main() {
+  const pendingResult = await castVote(
+    fakePrismaForRejectedVote(baseSubmission) as any,
+    "222222222222222222",
+    baseSubmission.id,
+    baseSubmission.month,
+    {} as any,
+  );
+  assert.deepEqual(pendingResult, {
+    ok: false,
+    message: "This submission is not open for voting.",
+  });
 
-const selfVoteResult = await castVote(
-  fakePrismaForRejectedVote({
-    ...baseSubmission,
-    isApproved: true,
-    submissionStatus: "APPROVED",
-  }) as any,
-  baseSubmission.user.discordId,
-  baseSubmission.id,
-  baseSubmission.month,
-  {} as any,
-);
-assert.deepEqual(selfVoteResult, {
-  ok: false,
-  message: "You cannot vote for your own submission.",
-});
+  const selfVoteResult = await castVote(
+    fakePrismaForRejectedVote({
+      ...baseSubmission,
+      isApproved: true,
+      submissionStatus: "APPROVED",
+    }) as any,
+    baseSubmission.user.discordId,
+    baseSubmission.id,
+    baseSubmission.month,
+    {} as any,
+  );
+  assert.deepEqual(selfVoteResult, {
+    ok: false,
+    message: "You cannot vote for your own submission.",
+  });
 
-console.log("vote service tests passed");
+  console.log("vote service tests passed");
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
