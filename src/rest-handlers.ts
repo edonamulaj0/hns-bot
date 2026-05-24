@@ -16,6 +16,7 @@ import {
   syncLegacyApprovalFields,
   effectiveSubmissionStatus,
   isPublishedArchive,
+  isOwnerDeletableStatus,
   isReviewableStatus,
 } from "./submission-lifecycle";
 import { syncDesignEnrollmentRoles } from "./design-track-roles";
@@ -1670,6 +1671,7 @@ export async function handleSubmitDelete(
       id: true,
       isApproved: true,
       revealed: true,
+      isLocked: true,
       submissionStatus: true,
       challengeId: true,
     },
@@ -1677,10 +1679,17 @@ export async function handleSubmitDelete(
   if (!sub) {
     return jsonResponse(env, request, { error: "not_found" }, 404);
   }
+  if (sub.isLocked) {
+    return jsonResponse(env, request, { error: "locked" }, 403);
+  }
+
+  const st = effectiveSubmissionStatus(sub);
+  if (!isOwnerDeletableStatus(st)) {
+    return jsonResponse(env, request, { error: "cannot_delete_after_review" }, 403);
+  }
 
   await prisma.submission.delete({ where: { id: sub.id } });
 
-  const st = effectiveSubmissionStatus(sub);
   const hadApprovalXp = st === "APPROVED" || st === "PUBLISHED";
   const deduction =
     (hadApprovalXp ? XP.SUBMISSION_APPROVED : 0) + (sub.challengeId && hadApprovalXp ? XP.ENROLLMENT_BONUS : 0);
