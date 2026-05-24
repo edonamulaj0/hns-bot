@@ -35,31 +35,38 @@ const baseSubmission = {
 
 const env = {} as any;
 
-assert.deepEqual(
-  await castVote(
-    prismaForSubmission(baseSubmission),
-    baseSubmission.user.discordId,
-    baseSubmission.id,
-    baseSubmission.month,
-    env,
-  ),
-  { ok: false, message: "You can't vote for your own submission." },
-);
+async function main(): Promise<void> {
+  assert.deepEqual(
+    await castVote(
+      prismaForSubmission(baseSubmission),
+      baseSubmission.user.discordId,
+      baseSubmission.id,
+      baseSubmission.month,
+      env,
+    ),
+    { ok: false, message: "You can't vote for your own submission." },
+  );
 
-assert.deepEqual(
-  await castVote(
-    prismaForSubmission({
-      ...baseSubmission,
-      submissionStatus: "PENDING",
-      isApproved: false,
-      user: { discordId: "222222222222222222" },
-    }),
-    "333333333333333333",
-    baseSubmission.id,
-    baseSubmission.month,
-    env,
-  ),
-  { ok: false, message: "This submission is not eligible for voting." },
-);
+  assert.deepEqual(
+    await castVote(
+      prismaForSubmission({
+        ...baseSubmission,
+        submissionStatus: "PENDING",
+        isApproved: false,
+        user: { discordId: "222222222222222222" },
+      }),
+      "333333333333333333",
+      baseSubmission.id,
+      baseSubmission.month,
+      env,
+    ),
+    { ok: false, message: "This submission is not eligible for voting." },
+  );
 
-console.log("vote service tests passed");
+  console.log("vote service tests passed");
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
