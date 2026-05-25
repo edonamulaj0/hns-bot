@@ -36,6 +36,10 @@ export function isInVotePool(status: SubmissionLifecycleStatus): boolean {
   return status === "APPROVED";
 }
 
+export function isOwnerDeletableStatus(status: SubmissionLifecycleStatus): boolean {
+  return status === "PENDING" || status === "REJECTED";
+}
+
 export function isPublishedArchive(status: SubmissionLifecycleStatus): boolean {
   return status === "PUBLISHED";
 }
