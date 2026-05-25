@@ -19,7 +19,8 @@
     "register": "npx tsx --env-file=.env src/register.ts",
     "deploy": "wrangler deploy",
     "deploy:all": "npm run deploy && npm run deploy -w hns-auth && npm run deploy -w hns-website",
-    "test:submission-lifecycle": "tsx scripts/submission-lifecycle.test.ts"
+    "test:submission-lifecycle": "tsx scripts/submission-lifecycle.test.ts",
+    "test:vote-service": "tsx scripts/vote-service.test.ts"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
