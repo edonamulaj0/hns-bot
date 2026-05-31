@@ -3,6 +3,7 @@ import { awardPoints, XP } from "./points";
 import { monthKey } from "./time";
 import type { WorkerBindings } from "./worker-env";
 import { TRACK_DEVELOPER, TRACK_DESIGNERS, TRACK_HACKER, trackLabel } from "./tracks";
+import { effectiveSubmissionStatus, isInVotePool } from "./submission-lifecycle";
 
 const MONTH_RE = /^\d{4}-\d{2}$/;
 
@@ -29,7 +30,17 @@ export async function castVote(
 ): Promise<CastVoteResult> {
   const submission = await prisma.submission.findUnique({
     where: { id: submissionId },
-    select: { id: true, month: true, track: true, userId: true, votes: true },
+    select: {
+      id: true,
+      month: true,
+      track: true,
+      userId: true,
+      votes: true,
+      isApproved: true,
+      revealed: true,
+      submissionStatus: true,
+      user: { select: { discordId: true } },
+    },
   });
 
   if (!submission) {
@@ -62,6 +73,15 @@ export async function castVote(
     });
     await awardPoints(prisma, full.userId, -XP.VOTE_RECEIVED, env);
     return { ok: true, votes: full.votes, toggledOff: true };
+  }
+
+  const status = effectiveSubmissionStatus(submission);
+  if (!isInVotePool(status)) {
+    return { ok: false, message: "This submission is not open for voting." };
+  }
+
+  if (submission.user.discordId === voterDiscordId) {
+    return { ok: false, message: "You cannot vote for your own submission." };
   }
 
   const subMonth = submission.month;
